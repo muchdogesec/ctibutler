@@ -317,6 +317,12 @@ Possible errors:
 
 ---
 
+### Objects
+
+Same endpoints as Vulmatch.
+
+---
+
 ### Jobs
 
 ##### Get Jobs
