@@ -11,14 +11,9 @@ A web API for:
 * MITRE ATT&CK
 * MITRE CAPEC
 * MITRE CWE
+* Locations
 
 ## The backend
-
-CTIButler stores the following data in an ArangoDB to power the API;
-
-* CAPEC records stored on Cloudflare
-* CWE records stored on Cloudflare
-* ATT&CK records stored on Cloudflare
 
 The download logic can be seen in these scripts:
 
@@ -37,6 +32,8 @@ The database where the data is stored is called `ctibutler`
 * MITRE ATT&CK Enterprise: `mitre_attack_enterprise_vertex_collection`/`mitre_attack_enterprise_edge_collection`
 * MITRE ATT&CK Mobile: `mitre_attack_mobile_vertex_collection`/`mitre_attack_mobile_edge_collection`
 * MITRE ATT&CK ICS: `mitre_attack_ics_vertex_collection`/`mitre_attack_ics_edge_collection`
+* Locations: `locations_vertex_collection` / `locations_edge_collection`
+* TLP: `tlp_vertex_collection` / `tlp_edge_collection`
 
 ## API
 
@@ -113,9 +110,7 @@ Possible errors:
 GET <HOST>/api/v1/attack-<MATRIX_NAME>/objects/:attack_id/relationships/
 ```
 
-This endpoint returns the actual ATT&CK object and all the CAPECs point to this object as a `_target` (generated using ACTIP `capec-attack`)
-
-It will return the actual SROs that define the relationship too.
+This endpoint returns all SROs where this object is either a `_source` or `_target`
 
 Is paginated.
 
@@ -198,9 +193,7 @@ Possible errors:
 GET <HOST>/api/v1/cwes/objects/:cwe_id/relationships/
 ```
 
-This endpoint returns the actual CWE object and all the CAPECs point to this object as a `_source` (generated using ACTIP `cwe-capec`)
-
-It will return the actual SROs that define the relationship too.
+This endpoint returns all SROs where this object is either a `_source` or `_target`
 
 Is paginated.
 
@@ -285,9 +278,7 @@ Possible errors:
 GET <HOST>/api/v1/capec/objects/:capec_id/relationships/
 ```
 
-This endpoint returns the actual CAPEC object and all the CWEs point to this object as a `_source` (generated using ACTIP `cwe-capec`)
-
-It will return the actual SROs that define the relationship too.
+This endpoint returns all SROs where this object is either a `_source` or `_target`
 
 Is paginated.
 
@@ -300,15 +291,63 @@ Possible errors:
 
 ---
 
-#### arango_cti_processor
+####  Locations
 
-Supports modes: `cwe-capec`, `capec-attack`
+##### POST Locations
+
+https://downloads.ctibutler.com/location2stix-manual-output/locations-bundle.json
 
 ```shell
-POST <HOST>/api/v1/arango_cti_processor/
+POST <HOST>/api/v1/locations/
 ```
 
-Same as Vulmatch.
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET Location Objects
+
+```shell
+GET <HOST>/api/v1/locations/
+```
+
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET Location Object
+
+```shell
+GET <HOST>/api/v1/locations/objects/:stix_id/
+```
+
+Possible errors:
+
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET Location Object version
+
+```shell
+GET <HOST>/api/v1/locations/objects/:stix_id/versions
+```
+
+Possible errors:
+
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET Location Object relationships
+
+```shell
+GET <HOST>/api/v1/locations/objects/:stix_id/relationships/
+```
+
+This endpoint returns all SROs where this object is either a `_source` or `_target`
+
+Is paginated.
+
+sort: modified_ascending, modified_descending, created_ascending, created_descending
 
 Possible errors:
 
@@ -317,7 +356,47 @@ Possible errors:
 
 ---
 
-### Objects
+####  TLPs
+
+##### POST TLPs
+
+https://downloads.ctibutler.com/tlp/tlpv1-bundle.json
+https://downloads.ctibutler.com/tlp/tlpv2-bundle.json
+
+
+```shell
+POST <HOST>/api/v1/tlps/
+```
+
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET TLP Objects
+
+```shell
+GET <HOST>/api/v1/tlps/
+```
+
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET TLP Object
+
+```shell
+GET <HOST>/api/v1/tlps/objects/:stix_id/
+```
+
+Possible errors:
+
+* 404 - Not found, or the client does not have access to the resource
+
+---
+
+#### Objects
 
 Same endpoints as Vulmatch.
 
