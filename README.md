@@ -41,6 +41,45 @@ The database where the data is stored is called `ctibutler`
 * TLP: `tlp_vertex_collection` / `tlp_edge_collection`
 * MITRE ATLAS: `mitre_atlas_vertex_collection`/`mitre_atlas_edge_collection`
 
+## ArangoDB logic
+
+On startup the app should create a user called `ctibutler_read_only` with no password.
+
+All requests to the Arango backend should be routed through this user.
+
+The root credentials used in `.env ` are only used to setup the user on first run.
+
+## Install
+
+### Download and configure
+
+```shell
+# clone the latest code
+git clone https://github.com/muchdogesec/ctibutler
+```
+
+### Configuration options
+
+Obstracts has various settings that are defined in an `.env` file.
+
+To create one using the default settings:
+
+```shell
+cp .env.example .env
+```
+
+### Build the Docker Image
+
+```shell
+sudo docker compose build
+```
+
+### Start the server
+
+```shell
+sudo docker compose up
+```
+
 ## API
 
 ### Endpoints
