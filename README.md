@@ -12,6 +12,8 @@ A web API for:
 * MITRE CAPEC
 * MITRE CWE
 * Locations
+* TLP
+* MITRE ATLAS
 
 ## The backend
 
@@ -26,16 +28,18 @@ https://github.com/muchdogesec/stix2arango/tree/main/utilities
 * `insert_archive_attack_mobile.py`
 * `insert_archive_locations.py`
 * `insert_archive_tlp.py`
+* `insert_archive_atlas.py`
 
 The database where the data is stored is called `ctibutler`
 
-* NVD CAPEC: `mitre_capec_vertex_collection`/`mitre_capec_edge_collection`
+* MITRE CAPEC: `mitre_capec_vertex_collection`/`mitre_capec_edge_collection`
 * MITRE CWE: `mitre_cwe_vertex_collection`/`mitre_cwe_edge_collection`
 * MITRE ATT&CK Enterprise: `mitre_attack_enterprise_vertex_collection`/`mitre_attack_enterprise_edge_collection`
 * MITRE ATT&CK Mobile: `mitre_attack_mobile_vertex_collection`/`mitre_attack_mobile_edge_collection`
 * MITRE ATT&CK ICS: `mitre_attack_ics_vertex_collection`/`mitre_attack_ics_edge_collection`
 * Locations: `locations_vertex_collection` / `locations_edge_collection`
 * TLP: `tlp_vertex_collection` / `tlp_edge_collection`
+* MITRE ATLAS: `mitre_atlas_vertex_collection`/`mitre_atlas_edge_collection`
 
 ## API
 
@@ -242,34 +246,30 @@ Possible errors:
 * 400 - The server did not understand the request
 * 404 - Not found, or the client does not have access to the resource
 
-##### GET CWE Object
+##### GET ATLAS Object
 
 ```shell
-GET <HOST>/api/v1/cwes/objects/:cwe_id/
+GET <HOST>/api/v1/atlas/objects/:atlas_id/
 ```
-
-Same as Vulmatch.
 
 Possible errors:
 
 * 404 - Not found, or the client does not have access to the resource
 
-##### GET CWE Object versions
+##### GET ATLAS Object versions
 
 ```shell
-GET <HOST>/api/v1/cwes/objects/:cwe_id/versions/
+GET <HOST>/api/v1/cwes/objects/:atlas_id/versions/
 ```
-
-Same as Vulmatch.
 
 Possible errors:
 
 * 404 - Not found, or the client does not have access to the resource
 
-##### GET CWE Object relationships
+##### GET ATLAS Object relationships
 
 ```shell
-GET <HOST>/api/v1/cwes/objects/:cwe_id/relationships/
+GET <HOST>/api/v1/cwes/objects/:atlas_id/relationships/
 ```
 
 This endpoint returns all SROs where this object is either a `_source` or `_target`
