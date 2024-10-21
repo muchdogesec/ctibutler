@@ -24,6 +24,8 @@ https://github.com/muchdogesec/stix2arango/tree/main/utilities
 * `insert_archive_attack_enterprise.py`
 * `insert_archive_attack_ics.py`
 * `insert_archive_attack_mobile.py`
+* `insert_archive_locations.py`
+* `insert_archive_tlp.py`
 
 The database where the data is stored is called `ctibutler`
 
@@ -295,8 +297,6 @@ Possible errors:
 
 ##### POST Locations
 
-https://downloads.ctibutler.com/location2stix-manual-output/locations-bundle.json
-
 ```shell
 POST <HOST>/api/v1/locations/
 ```
@@ -311,6 +311,8 @@ Possible errors:
 ```shell
 GET <HOST>/api/v1/locations/
 ```
+
+* `type`: `country`, `region`, `sub-region`, `intermediate-region`
 
 Possible errors:
 
@@ -359,10 +361,6 @@ Possible errors:
 ####  TLPs
 
 ##### POST TLPs
-
-https://downloads.ctibutler.com/tlp/tlpv1-bundle.json
-https://downloads.ctibutler.com/tlp/tlpv2-bundle.json
-
 
 ```shell
 POST <HOST>/api/v1/tlps/
