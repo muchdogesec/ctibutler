@@ -208,6 +208,83 @@ Possible errors:
 
 ---
 
+#### ATLAS Objects
+
+##### GET ATLAS
+
+```shell
+GET <HOST>/api/v1/atlas/
+```
+
+Possible errors:
+
+* 404 - Not found, or the client does not have access to the resource
+
+##### POST ATLAS
+
+```shell
+POST <HOST>/api/v1/atlas/
+```
+
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET ATLAS Objects
+
+```shell
+GET <HOST>/api/v1/atlas/objects/
+```
+
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET CWE Object
+
+```shell
+GET <HOST>/api/v1/cwes/objects/:cwe_id/
+```
+
+Same as Vulmatch.
+
+Possible errors:
+
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET CWE Object versions
+
+```shell
+GET <HOST>/api/v1/cwes/objects/:cwe_id/versions/
+```
+
+Same as Vulmatch.
+
+Possible errors:
+
+* 404 - Not found, or the client does not have access to the resource
+
+##### GET CWE Object relationships
+
+```shell
+GET <HOST>/api/v1/cwes/objects/:cwe_id/relationships/
+```
+
+This endpoint returns all SROs where this object is either a `_source` or `_target`
+
+Is paginated.
+
+sort: modified_ascending, modified_descending, created_ascending, created_descending
+
+Possible errors:
+
+* 400 - The server did not understand the request
+* 404 - Not found, or the client does not have access to the resource
+
+---
+
 #### CAPEC Objects
 
 ##### GET CAPECs
