@@ -30,7 +30,7 @@ https://github.com/muchdogesec/stix2arango/tree/main/utilities
 * `insert_archive_tlp.py`
 * `insert_archive_atlas.py`
 
-The database where the data is stored is called `ctibutler`
+The database where the data is stored is called `ctibutler_database`
 
 * MITRE CAPEC: `mitre_capec_vertex_collection`/`mitre_capec_edge_collection`
 * MITRE CWE: `mitre_cwe_vertex_collection`/`mitre_cwe_edge_collection`
@@ -43,7 +43,7 @@ The database where the data is stored is called `ctibutler`
 
 ## ArangoDB logic
 
-On startup the app should create a user called `ctibutler_read_only` with no password.
+On startup the app should create a user called `ctibutler_read_only` with no password (it should have read permissions to `ctibutler_database` only)
 
 All requests to the Arango backend should be routed through this user.
 
