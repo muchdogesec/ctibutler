@@ -1,0 +1,62 @@
+services:
+    env_django:
+        image: ctibutler
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        build: .
+        volumes:
+            - .:/usr/src/app/
+            - ./www:/var/www/
+        environment:
+            - DJANGO_SETTINGS_MODULE=ctibutler.settings
+            - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+            - CELERY_BROKER_URL=redis://redis:6379/0
+            - result_backend=redis://redis:6379/1
+            - POSTGRES_HOST=pgdb
+            - DEBUG=1
+        env_file:
+            - ./.env
+    django:
+        extends: env_django
+        command: >
+                bash -c "
+                    python manage.py collectstatic --no-input &&
+                        python manage.py makemigrations &&
+                            python manage.py migrate &&
+                                python -m ctibutler.worker.populate_dbs && python ctibutler/server/arango_based_views/arango_view_helper.py && 
+                    gunicorn ctibutler.wsgi:application  --reload --bind 0.0.0.0:8005
+                    " 
+        ports:
+            - 8005:8005
+        depends_on:
+            - celery
+
+    celery:
+        extends: env_django
+        command: >
+                bash -c "
+                  celery -A ctibutler.worker worker -l INFO
+                  "
+        depends_on:
+            pgdb:
+                condition: service_healthy
+            redis:
+                condition: service_started
+    pgdb:
+        image: postgres
+        env_file:
+          - ./.env
+
+        volumes:
+            - pgdata:/var/lib/postgresql/data/
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+            interval: 10s
+            retries: 5
+            start_period: 10s
+            timeout: 10s
+    redis:
+        image: "redis:alpine"
+
+volumes:
+    pgdata:

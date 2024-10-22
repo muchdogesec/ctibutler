@@ -3,10 +3,10 @@
 ## Setup
 
 ```shell
-python3 -m venv vulmatch-venv
-source vulmatch-venv/bin/activate
+python3 -m venv ctibutler-venv
+source ctibutler-venv/bin/activate
 # install requirements
-pip3 install -r requirements.txt
+pip3 install requests
 ````
 
 ## Run tests

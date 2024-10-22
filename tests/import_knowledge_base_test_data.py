@@ -56,7 +56,7 @@ def initiate_cwe_update(version):
         "version": version
     }
     print(f"Initiating CWE update with version: {version}")
-    response = requests.post(f'{base_url}/cwe/', headers=headers, json(data))
+    response = requests.post(f'{base_url}/cwe/', headers=headers, json=data)
     
     if response.status_code == 201:
         print(f"CWE update initiated successfully.")
