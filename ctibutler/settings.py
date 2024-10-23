@@ -179,7 +179,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "Location", "description": "Trigger the download of Location objects or view existing Location objects."},
         {"name": "TLP", "description": "Trigger the download of TLP objects or view existing TLP objects."},
         {"name": "Arango CTI Processor", "description": "Trigger the generation of relationships between objects."},
-        {"name": "Objects", "description": "Explore all STIX Objects stored in CTI Butler."},
+        {"name": "Objects", "description": "Explore all STIX Objects in the database."},
         {"name": "Jobs", "description": "Search through CTI Butler Jobs triggered when downloading data and creating relationships."},
     ]
 }

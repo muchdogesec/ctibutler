@@ -9,6 +9,7 @@ from django.conf import settings
 if typing.TYPE_CHECKING:
     from ctibutler import settings
 
+import textwrap
 
 class QueryParams:
     value = OpenApiParameter(
@@ -160,7 +161,36 @@ class SDOView(SingleObjectReportsView):
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SCO_PARAMS,
         summary="Get STIX Cyber Observable Objects",
-        description="Search for STIX Cyber Observable Objects (aka Indicators of Compromise). If you have the object ID already, you can use the base GET Objects endpoint.",
+        description=textwrap.dedent(
+            """
+            Search for STIX Cyber Observable Objects (aka Indicators of Compromise). If you have the object ID already, you can use the base GET Objects endpoint.\n\n
+            Note the `value` filter searches the following object properties;
+            * `artifact.payload_bin`
+            * `autonomous-system.number`
+            * `bank-account.iban_number`
+            * `bank-card.number`
+            * `cryptocurrency-transaction.hash`
+            * `cryptocurrency-wallet.hash`
+            * `directory.path`
+            * `domain-name.value`
+            * `email-addr.value`
+            * `email-message.body`
+            * `file.name`
+            * `ipv4-addr.value`
+            * `ipv6-addr.value`
+            * `mac-addr.value`
+            * `mutex.value`
+            * `network-traffic.protocols`
+            * `phone-number.number`
+            * `process.pid`
+            * `software.name`
+            * `url.value`
+            * `user-account.display_name`
+            * `user-agent.string`
+            * `windows-registry-key.key`
+            * `x509-certificate.subject`
+            """
+        ),
     ),
     reports=extend_schema(
         summary="Get all Reports belonging to SCO ID",

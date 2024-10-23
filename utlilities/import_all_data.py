@@ -1,6 +1,7 @@
 import requests
 import time
 import json
+import sys
 
 # Set the base URL and headers
 base_url = 'http://127.0.0.1:8006/api/v1'
@@ -41,6 +42,9 @@ tlp_versions = [
 atlas_versions = [
     "4_5_2"
 ]
+location_versions = [
+    "ac1bbfc"
+]
 
 # Function to initiate attack updates with version
 def initiate_attack_update(endpoint, version):
@@ -57,64 +61,16 @@ def initiate_attack_update(endpoint, version):
         print(f"Failed to initiate {endpoint} update: {response.status_code} - {response.text}")
         return None
 
-# Function to initiate the CAPEC update with version
-def initiate_capec_update(version):
-    data = {
-        "version": version
-    }
-    print(f"Initiating CAPEC update with version: {version}")
-    response = requests.post(f'{base_url}/capec/', headers=headers, json=data)
+# Function to initiate a location update without a version
+def initiate_location_update():
+    print("Initiating location update without a version")
+    response = requests.post(f'{base_url}/location/', headers=headers)
     
     if response.status_code == 201:
-        print(f"CAPEC update initiated successfully.")
+        print("Location update initiated successfully.")
         return response.json()['id']
     else:
-        print(f"Failed to initiate CAPEC update: {response.status_code} - {response.text}")
-        return None
-
-# Function to initiate the CWE update with version
-def initiate_cwe_update(version):
-    data = {
-        "version": version
-    }
-    print(f"Initiating CWE update with version: {version}")
-    response = requests.post(f'{base_url}/cwe/', headers=headers, json=data)
-    
-    if response.status_code == 201:
-        print(f"CWE update initiated successfully.")
-        return response.json()['id']
-    else:
-        print(f"Failed to initiate CWE update: {response.status_code} - {response.text}")
-        return None
-
-# Function to initiate the TLP update with version
-def initiate_tlp_update(version):
-    data = {
-        "version": version
-    }
-    print(f"Initiating TLP update with version: {version}")
-    response = requests.post(f'{base_url}/tlp/', headers=headers, json=data)
-    
-    if response.status_code == 201:
-        print(f"TLP update initiated successfully.")
-        return response.json()['id']
-    else:
-        print(f"Failed to initiate TLP update: {response.status_code} - {response.text}")
-        return None
-
-# Function to initiate the ATLAS update with version
-def initiate_atlas_update(version):
-    data = {
-        "version": version
-    }
-    print(f"Initiating ATLAS update with version: {version}")
-    response = requests.post(f'{base_url}/atlas/', headers=headers, json=data)
-    
-    if response.status_code == 201:
-        print(f"ATLAS update initiated successfully.")
-        return response.json()['id']
-    else:
-        print(f"Failed to initiate ATLAS update: {response.status_code} - {response.text}")
+        print(f"Failed to initiate location update: {response.status_code} - {response.text}")
         return None
 
 # Function to check the job status and wait for it to complete
@@ -131,9 +87,12 @@ def check_job_status(job_id):
             if state == 'completed':
                 print(f"Job {job_id} completed successfully.")
                 return job_status
+            elif state in ['failed', 'processing_failed', 'retrieve_failed']:
+                print(f"Job {job_id} failed with state: {state}. Exiting with critical error.")
+                sys.exit(1)  # Exit with an error status code
             else:
                 print(f"Job {job_id} still in state: {state}. Waiting for 30 sec before retrying...")
-                time.sleep(30)  # Wait for 1 minute before checking again
+                time.sleep(30)  # Wait for 30 seconds before checking again
         else:
             print(f"Failed to check job status: {response.status_code} - {response.text}")
             break
@@ -186,7 +145,13 @@ def monitor_jobs():
         if job_id:
             monitor_job_status(job_id, f"TLP (version {version})")
 
-    # Step 7 ATLAS update
+    # Step 7: Location update
+    for version in location_versions:
+        job_id = initiate_location_update(version)
+        if job_id:
+            monitor_job_status(job_id, f"Location (version {version})")
+
+    # Step 8: ATLAS update
     for version in atlas_versions:
         job_id = initiate_atlas_update(version)
         if job_id:
