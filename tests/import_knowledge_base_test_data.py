@@ -3,7 +3,7 @@ import time
 import json
 
 # Set the base URL and headers
-base_url = 'http://127.0.0.1:8005/api/v1'
+base_url = 'http://127.0.0.1:8006/api/v1'
 headers = {
     'accept': 'application/json',
     'Content-Type': 'application/json'

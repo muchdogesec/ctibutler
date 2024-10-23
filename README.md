@@ -80,6 +80,12 @@ sudo docker compose build
 sudo docker compose up
 ```
 
+### Access the server
+
+The webserver (Django) should now be running on: http://127.0.0.1:8001/
+
+You can access the Swagger UI for the API in a browser at: http://127.0.0.1:8001/api/schema/swagger-ui/
+
 ## API
 
 ### Endpoints

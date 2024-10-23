@@ -24,10 +24,10 @@ services:
                         python manage.py makemigrations &&
                             python manage.py migrate &&
                                 python -m ctibutler.worker.populate_dbs && python ctibutler/server/arango_based_views/arango_view_helper.py && 
-                    gunicorn ctibutler.wsgi:application  --reload --bind 0.0.0.0:8005
+                    gunicorn ctibutler.wsgi:application  --reload --bind 0.0.0.0:8006
                     " 
         ports:
-            - 8005:8005
+            - 8006:8006
         depends_on:
             - celery
 
