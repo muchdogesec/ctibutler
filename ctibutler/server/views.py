@@ -644,7 +644,7 @@ class AtlasView(viewsets.ViewSet):
     create=extend_schema(
         responses={201: serializers.JobSerializer
         },
-        request=None,
+        request=serializers.MitreTaskSerializer,
         summary="Download Location objects",
         description=textwrap.dedent(
             """
@@ -686,7 +686,10 @@ class LocationView(viewsets.ViewSet):
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
 
     def create(self, request, *args, **kwargs):
-        job = new_task({}, models.JobType.LOCATION_UPDATE)
+        serializer = serializers.MitreTaskSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data.copy()
+        job = new_task(data, models.JobType.LOCATION_UPDATE)
         job_s = serializers.JobSerializer(instance=job)
         return Response(job_s.data, status=status.HTTP_201_CREATED)
 
