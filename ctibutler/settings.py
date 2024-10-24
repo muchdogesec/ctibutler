@@ -173,17 +173,17 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
     "TAGS": [
         {"name": "CVE", "description": "Trigger the download of CVE objects or view existing CVE objects."},
         {"name": "CPE", "description": "Trigger the download of CPE objects or view existing CPE objects."},
-        {"name": "ATT&CK Mobile", "description": "Trigger the download of ATT&CK Mobile objects or view existing ATT&CK Mobile objects."},
-        {"name": "ATT&CK ICS", "description": "Trigger the download of ATT&CK ICS objects or view existing ATT&CK ICS objects."},
-        {"name": "ATT&CK Enterprise", "description": "Trigger the download of ATT&CK Enterprise objects or view existing ATT&CK Enterprise objects."},
-        {"name": "ATLAS", "description": "Trigger the download of ATLAS objects or view existing ATLAS objects."},
-        {"name": "CAPEC", "description": "Trigger the download of CAPEC objects or view existing CAPEC objects."},
-        {"name": "CWE", "description": "Trigger the download of CWE objects or view existing CWE objects."},
-        {"name": "Location", "description": "Trigger the download of Location objects or view existing Location objects."},
-        {"name": "TLP", "description": "Trigger the download of TLP objects or view existing TLP objects."},
-        {"name": "Arango CTI Processor", "description": "Trigger the generation of relationships between objects."},
+        {"name": "ATT&CK Enterprise", "description": "Manage and search MITRE ATT&CK Enterprise objects."},
+        {"name": "ATT&CK ICS", "description": "Manage and search MITRE ATT&CK ICS objects."},
+        {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},
+        {"name": "ATLAS", "description": "Manage and search MITRE ATLAS objects."},
+        {"name": "CAPEC", "description": "Manage and search MITRE CAPEC objects."},
+        {"name": "CWE", "description": "Manage and search MITRE CWE objects."},
+        {"name": "Location", "description": "Manage and search Location objects."},
+        {"name": "TLP", "description": "Manage and search TLP objects."},
         {"name": "Objects", "description": "Explore all STIX Objects in the database."},
-        {"name": "Jobs", "description": "Search through CTI Butler Jobs triggered when downloading data and creating relationships."},
+        {"name": "Arango CTI Processor", "description": "Trigger the generation of relationships between objects."},
+        {"name": "Jobs", "description": "Search through Jobs triggered when downloading data and creating relationships."},
     ]
 }
 
