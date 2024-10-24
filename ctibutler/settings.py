@@ -29,7 +29,8 @@ SECRET_KEY = os.environ['DJANGO_SECRET']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', "localhost 127.0.0.1 [::1]").split()
+
 
 MEDIA_ROOT = Path("/var/www/ctibutler_files/media/uploads")
 
@@ -172,7 +173,9 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
     "TAGS": [
         {"name": "CVE", "description": "Trigger the download of CVE objects or view existing CVE objects."},
         {"name": "CPE", "description": "Trigger the download of CPE objects or view existing CPE objects."},
-        {"name": "ATT&CK", "description": "Trigger the download of ATT&CK objects or view existing ATT&CK objects."},
+        {"name": "ATT&CK Mobile", "description": "Trigger the download of ATT&CK Mobile objects or view existing ATT&CK Mobile objects."},
+        {"name": "ATT&CK ICS", "description": "Trigger the download of ATT&CK ICS objects or view existing ATT&CK ICS objects."},
+        {"name": "ATT&CK Enterprise", "description": "Trigger the download of ATT&CK Enterprise objects or view existing ATT&CK Enterprise objects."},
         {"name": "ATLAS", "description": "Trigger the download of ATLAS objects or view existing ATLAS objects."},
         {"name": "CAPEC", "description": "Trigger the download of CAPEC objects or view existing CAPEC objects."},
         {"name": "CWE", "description": "Trigger the download of CWE objects or view existing CWE objects."},

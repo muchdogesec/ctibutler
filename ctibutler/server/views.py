@@ -420,6 +420,7 @@ class AttackView(viewsets.ViewSet):
         )  
         class TempAttackView(cls):
             matrix = matrix_name
+            openapi_tags = [f"ATT&CK {matrix_name_human}"]
         TempAttackView.__name__ = f'{matrix_name.title()}AttackView'
         return TempAttackView
     
