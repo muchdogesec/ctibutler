@@ -23,9 +23,13 @@ import textwrap
         summary="Download ATT&CK Objects",
         description=textwrap.dedent(
             """
-            Use this data to update ATT&CK records.\n\n
-            The following key/values are accepted in the body of the request:\n\n
-            * `version` (required): the version of ATT&CK you want to download in the format `N_N`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7).\n\n
+            Use this data to update ATT&CK records.
+
+            The following key/values are accepted in the body of the request:
+
+            * `version` (required): the version of ATT&CK you want to download in the format `N_N`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7).
+            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
+
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
         ),
@@ -132,6 +136,7 @@ class AttackView(viewsets.ViewSet):
                     The following key/values are accepted in the body of the request:
 
                     * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `15_1` for `15.1`. You can see all [Enterprise versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7), [Mobile versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_mobile.py#L7), or [ICS versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_ics.py#L7).
+                    * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
                     The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
                     """
@@ -205,6 +210,7 @@ class AttackView(viewsets.ViewSet):
             The following key/values are accepted in the body of the request:
 
             * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_cwe.py#L7).
+            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
@@ -327,6 +333,7 @@ class CweView(viewsets.ViewSet):
             The following key/values are accepted in the body of the request:
 
             * `version` (required): the version of CAPEC you want to download in the format `N_N`, e.g. `3_9` for `3.9`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_capec.py#L7).
+            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
@@ -443,11 +450,13 @@ class CapecView(viewsets.ViewSet):
         summary="Trigger arango_cti_processor `mode` to generate relationships.",
         description=textwrap.dedent(
             """
-            This endpoint will link together knowledgebases based on the `mode` selected. For more information about how this works see [arango_cti_processor](https://github.com/muchdogesec/arango_cti_processor/), specifically the `--relationship` setting.\n\n
-            The following key/values are accepted in the body of the request:\n\n
-            * `ignore_embedded_relationships` (optional - default: `true`): arango_cti_processor generates SROs to link knowledge-bases. These SROs have embedded relationships inside them. Setting this to `true` (recommended) will generat SROs for these embedded relationships so they can be searched. `false` will ignore them\n\n
-            * `modified_min` (optional - default: all time - format: `YYYY-MM-DDTHH:MM:SS.sssZ`): by default arango_cti_processor will run over all objects in the latest version of a framework (e.g. ATT&CK). This is not always effecient, espeically when updating CVE records. As such, you can ask the script to only consider objects with a `modified` time greater than that specified for this field.\n\n
-            * `created_min` (optional - default: all time- format: `YYYY-MM-DDTHH:MM:SS.sssZ`): same as `modified_min`, but this time considers `created` time of the object (not `modified` time).
+            This endpoint will link together knowledgebases based on the `mode` selected. For more information about how this works see [arango_cti_processor](https://github.com/muchdogesec/arango_cti_processor/), specifically the `--relationship` setting.\
+
+            The following key/values are accepted in the body of the request:
+
+            * `ignore_embedded_relationships` (optional - default: `false`): arango_cti_processor generates SROs to link knowledge-bases. These SROs have embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them
+            * `modified_min` (optional - default: all time - format: `YYYY-MM-DDTHH:MM:SS.sssZ`): by default arango_cti_processor will run over all objects in the latest version of a framework (e.g. ATT&CK). This is not always efficient. As such, you can ask the script to only consider objects with a `modified` time greater than that specified for this field. Generally it's recommended you don't pass this option, unless you know what you're doing.
+            * `created_min` (optional - default: all time- format: `YYYY-MM-DDTHH:MM:SS.sssZ`): same as `modified_min`, but this time considers `created` time of the object (not `modified` time). Again it's recommended you don't pass this option, unless you know what you're doing.
             """
         ),
     ),
@@ -532,9 +541,13 @@ class JobView(viewsets.ModelViewSet):
         summary="Download ATLAS objects",
         description=textwrap.dedent(
             """
-            Use this data to update ATLAS records.\n\n
-            The following key/values are accepted in the body of the request:\n\n
-            * `version` (required): the version of ATLAS you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).\n\n
+            Use this data to update ATLAS records.
+
+            The following key/values are accepted in the body of the request:
+
+            * `version` (required): the version of ATLAS you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).
+            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
+
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
         ),
@@ -700,9 +713,13 @@ class LocationView(viewsets.ViewSet):
         summary="Download TLP objects",
         description=textwrap.dedent(
             """
-            Use this data to update TLP records.\n\n
-            The following key/values are accepted in the body of the request:\n\n
-            * `version` (required): the version of TLP you want to download, value is either `1` or `2`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_tlp.py#L7).\n\n
+            Use this data to update TLP records.
+
+            The following key/values are accepted in the body of the request:
+
+            * `version` (required): the version of TLP you want to download, value is either `1` or `2`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_tlp.py#L7).
+            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
+
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
         ),
