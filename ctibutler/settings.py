@@ -171,8 +171,6 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         "url": "https://github.com/muchdogesec/ctibutler",
     },
     "TAGS": [
-        {"name": "CVE", "description": "Trigger the download of CVE objects or view existing CVE objects."},
-        {"name": "CPE", "description": "Trigger the download of CPE objects or view existing CPE objects."},
         {"name": "ATT&CK Enterprise", "description": "Manage and search MITRE ATT&CK Enterprise objects."},
         {"name": "ATT&CK ICS", "description": "Manage and search MITRE ATT&CK ICS objects."},
         {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},

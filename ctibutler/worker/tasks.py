@@ -45,10 +45,6 @@ def create_celery_task_from_job(job: Job):
             task = run_mitre_task(data, job, 'cwe')
         case models.JobType.CAPEC_UPDATE:
             task = run_mitre_task(data, job, 'capec')
-        case models.JobType.CVE_UPDATE:
-            task = run_nvd_task(data, job, 'cve')
-        case models.JobType.CPE_UPDATE:
-            task = run_nvd_task(data, job, 'cpe')
         case models.JobType.CTI_PROCESSOR:
             task = run_acp_task(data, job)
     task.set_immutable(True)
@@ -103,20 +99,6 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
     temp_dir = str(Path(tempfile.gettempdir())/f"ctibutler/mitre-{mitre_type}--{str(job.id)}")
     task = download_file.si(url, temp_dir, job_id=job.id) | upload_file.s(collection_name, stix2arango_note=f'version={version}', job_id=job.id)
     return (task | remove_temp_and_set_completed.si(temp_dir, job_id=job.id))
-
-def run_nvd_task(data, job: Job, nvd_type='cve'):
-    dates = date_range(data['last_modified_earliest'], data['last_modified_latest'])
-    temp_dir = str(Path(tempfile.gettempdir())/f"ctibutler/nvd-{nvd_type}--{str(job.id)}")
-    tasks = []
-    for d in dates:
-        url = urljoin(settings.NVD_BUCKET_ROOT_PATH, daily_url(d, nvd_type))
-        task = download_file.si(url, temp_dir, job_id=job.id)
-        task |= upload_file.s(f'nvd_{nvd_type}', stix2arango_note=f"ctibutler-{nvd_type}-date={d.strftime('%Y-%m-%d')}", job_id=job.id)
-        task.set_immutable(True)
-        tasks.append(task)
-    tasks = chain(tasks)
-    return (tasks | remove_temp_and_set_completed.si(temp_dir, job_id=job.id))
-
 
 def date_range(start_date: date, end_date: date):
     start_date = datetime.strptime(start_date, '%Y-%m-%d').date()

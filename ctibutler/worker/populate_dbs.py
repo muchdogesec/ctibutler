@@ -8,7 +8,7 @@ if typing.TYPE_CHECKING:
 from stix2arango.stix2arango import Stix2Arango
 
 
-collections_to_create = ['mitre_atlas', 'tlp', 'location', 'mitre_capec', 'mitre_attack_mobile', 'mitre_cwe', 'mitre_attack_ics', 'nvd_cve', 'nvd_cpe', 'mitre_attack_enterprise', 'sigma_rules']
+collections_to_create = ['mitre_atlas', 'tlp', 'location', 'mitre_capec', 'mitre_attack_mobile', 'mitre_cwe', 'mitre_attack_ics', 'mitre_attack_enterprise']
 
     
 def create_collections():

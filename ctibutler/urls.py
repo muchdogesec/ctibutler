@@ -30,9 +30,6 @@ router = routers.SimpleRouter(use_regex_path=False)
 router.register("jobs", views.JobView, "jobs-view")
 # arango-cti-processor
 router.register("arango-cti-processor/<str:mode>", views.ACPView, "acp-view")
-# nvd
-router.register("cve", views.CveView, "cve-view")
-router.register("cpe", views.CpeView, "cpe-view")
 # location/tlp
 router.register("location", views.LocationView, "location-view")
 router.register("tlp", views.TLPView, "tlp-view")

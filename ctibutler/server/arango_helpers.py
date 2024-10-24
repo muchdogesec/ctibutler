@@ -6,7 +6,7 @@ from django.conf import settings
 from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 
-from ctibutler.server import utils
+from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
 SDO_TYPES = set(
