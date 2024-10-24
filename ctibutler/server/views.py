@@ -166,9 +166,9 @@ class AttackView(viewsets.ViewSet):
                 summary=f"Get a list of MITRE ATT&CK {matrix_name_human} versions stored in the database",
                 description=textwrap.dedent(
                     """
-                    It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK {matrix_name_human} endpoints. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
+                    It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK {matrix_name_human} endpoint. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
 
-                    This endpoint allows you to see all imported versions of MITRE ATT&CK {matrix_name_human} available to use, and which version is the default (latest). Typically this endpoint is only interesting for researchers looking to retrieve older ATT&CK versions because you can filter objects by a specific version of ATT&CK on the object endpoints.
+                    This endpoint allows you to see all imported versions of MITRE ATT&CK {matrix_name_human} available to use, and which version is the latest (the default version for the objects returned).
                     """
                 ),
             ),
@@ -176,7 +176,7 @@ class AttackView(viewsets.ViewSet):
                 summary=f"See all version of the MITRE ATT&CK {matrix_name_human} object",
                 description=textwrap.dedent(
                     """
-                    This endpoint will show the STIX version of the object `modified` and what MITRE ATT&CK versions it appears in.
+                    This endpoint will show the STIX versions of the object (`modified` property) and what MITRE ATT&CK versions it appears in.
 
                     The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
                     """,
@@ -240,7 +240,7 @@ class AttackView(viewsets.ViewSet):
         summary="See all versions of the CWE object",
         description=textwrap.dedent(
             """
-            This endpoint will show the STIX version of the object modified and what CWE versions it appears in.
+            This endpoint will show the STIX versions of the object (`modified` property) and what CWE versions it appears in.
 
             The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
             """
@@ -310,7 +310,16 @@ class CweView(viewsets.ViewSet):
     def retrieve_object_relationships(self, request, *args, cwe_id=None, **kwargs):
         return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, relationship_mode=True)
         
-    @extend_schema(summary="See available CWE versions", description="See all imported versions available to use, and which version is the default (latest)")
+    @extend_schema(
+        summary="See available CWE versions",
+        description=textwrap.dedent(
+            """
+            It is possible to import multiple versions of CWE using the POST MITRE CWE endpoint. By default, all endpoints will only return the latest version of CWE objects (which generally suits most use-cases).
+
+            This endpoint allows you to see all imported versions of MITRE CWE available to use, and which version is the latest (the default version for the objects returned).
+            """
+            ),
+        )
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_mitre_versions()
@@ -363,7 +372,7 @@ class CweView(viewsets.ViewSet):
         summary="See all versions of the MITRE CAPEC object",
         description=textwrap.dedent(
             """
-            This endpoint will show the STIX version of the object modified and what CAPEC versions it appears in.
+            This endpoint will show the STIX versions of the object (`modified` property) and what CAPEC versions it appears in.
 
             The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
             """
@@ -433,7 +442,16 @@ class CapecView(viewsets.ViewSet):
     def retrieve_object_relationships(self, request, *args, capec_id=None, **kwargs):
         return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, relationship_mode=True)
     
-    @extend_schema(summary="See available CAPEC versions", description="See all imported versions available to use, and which version is the default (latest)")
+    @extend_schema(
+        summary="Get a list of CAPEC versions stored in the database",
+        description=textwrap.dedent(
+            """
+            It is possible to import multiple versions of CAPEC using the POST MITRE CAPEC endpoint. By default, all endpoints will only return the latest version of CAPEC objects (which generally suits most use-cases).
+
+            This endpoint allows you to see all imported versions of MITRE CAPEC available to use, and which version is the latest (the default version for the objects returned).
+            """
+            ),
+        )
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper('mitre_capec_vertex_collection', request).get_mitre_versions()
@@ -562,29 +580,33 @@ class JobView(viewsets.ModelViewSet):
         filters=True,
     ),
     retrieve_objects=extend_schema(
-        summary='Get a ATLAS object',
+        summary='Get an ATLAS object',
         description=textwrap.dedent(
             """
-            Get an ATLAS object by its STIX ID. To search and filter ATLAS objects to get an ID use the GET Objects endpoint.
+            Get an ATLAS object by its ID (e.g. `AML.TA0002`, `AML.T0000`).
+
+            If you do not know the ID of the object you can use the GET MITRE ATLAS Objects endpoint to find it.
             """
         ),
         filters=False,
     ),
     retrieve_object_relationships=extend_schema(
-        summary='Get Relationships for Object',
+        summary='Get the Relationships linked to the MITRE ATLAS Object',
         description=textwrap.dedent(
             """
-            Return relationships.
+            This endpoint will return all the STIX relationship objects where the ATLAS object is found as a source_ref or a target_ref.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
         parameters=ArangoDBHelper.get_schema_operation_parameters(),
     ),
     object_versions=extend_schema(
-        summary="See available ATLAS versions for ATLAS-ID",
+        summary="See all versions of the ATLAS object",
         description=textwrap.dedent(
             """
-            See all imported versions available to use.
+            This endpoint will show the STIX versions of the object (`modified` property) and what ATLAS versions it appears in.
+
+            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
             """
         ),
     ),
@@ -594,7 +616,7 @@ class AtlasView(viewsets.ViewSet):
     lookup_url_kwarg = 'atlas_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
-        OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.T0000.001`'),
+        OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.TA0002`, `AML.T0000`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -608,7 +630,7 @@ class AtlasView(viewsets.ViewSet):
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], label='Filter the results by STIX Object type.')
-        atlas_version = CharFilter(label="Filter the results by the version of ATLAS")
+        atlas_version = CharFilter(label="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.5.2`. You can get a full list of versions on the GET ATLAS versions endpoint.")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -640,7 +662,16 @@ class AtlasView(viewsets.ViewSet):
     def retrieve_object_relationships(self, request, *args, atlas_id=None, **kwargs):
         return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, relationship_mode=True)
         
-    @extend_schema(summary="See available ATLAS versions", description="See all imported versions available to use, and which version is the default (latest)")
+    @extend_schema(
+        summary="See available ATLAS versions",
+        description=textwrap.dedent(
+            """
+            It is possible to import multiple versions of ATLAS using the POST MITRE ATLAS endpoint. By default, all endpoints will only return the latest version of ATLAS objects (which generally suits most use-cases).
+
+            This endpoint allows you to see all imported versions of MITRE ATLAS available to use, and which version is the latest (the default version for the objects returned).
+            """
+            ),
+        )
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_mitre_versions()
@@ -677,7 +708,13 @@ class AtlasView(viewsets.ViewSet):
     ),
     object_versions=extend_schema(
         summary="See available Location versions for Location-ID",
-        description="See all imported versions available to use.",
+        description=textwrap.dedent(
+            """
+            It is possible to import multiple versions of Locations using the POST Locations endpoint. By default, all endpoints will only return the latest version of Locations objects (which generally suits most use-cases).
+
+            This endpoint allows you to see all imported versions of Locations available to use, and which version is the latest (the default version for the objects returned).
+            """
+        ),
     ),
 )  
 class LocationView(viewsets.ViewSet):
@@ -751,7 +788,11 @@ class LocationView(viewsets.ViewSet):
     ),
     object_versions=extend_schema(
         summary="See available TLP versions for TLP-ID",
-        description="See all imported versions available to use.",
+        description=textwrap.dedent(
+            """
+            See all imported versions available to use.
+            """
+        ),
     ),
 )  
 class TLPView(viewsets.ViewSet):
