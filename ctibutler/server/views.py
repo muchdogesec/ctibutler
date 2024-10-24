@@ -384,36 +384,63 @@ class AttackView(viewsets.ViewSet):
                 summary=f"Download MITRE ATT&CK {matrix_name_human} Objects",
                 description=textwrap.dedent(
                     """
-                    Use this endpoint to update MITRE ATT&CK records.\n\n
-                    The following key/values are accepted in the body of the request:\n\n
-                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `15_1` for `15.1`\n\n
+                    Use this endpoint to update MITRE ATT&CK records.
+
+                    The following key/values are accepted in the body of the request:
+
+                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `15_1` for `15.1`
+
                     The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
                     """
                 ),
             ),
             list_objects=extend_schema(
-                summary=f'Get MITRE ATT&CK {matrix_name_human} objects',
-                description=f"Search and filter MITRE ATT&CK {matrix_name_human} results.\n\nThis endpoint with return the entire {matrix_name_human} matrix for reference. However, Vulnerabilities are linked to ATT&CK Techniques and Sub-Techniques only. For reference, these are represented as `attack-pattern` STIX objects.",
+                summary=f'Search and filter MITRE ATT&CK {matrix_name_human} objects',
+                description=textwrap.dedent(
+                    """
+                    Search and filter MITRE ATT&CK {matrix_name_human} results.
+
+                    This endpoint with return the entire {matrix_name_human} matrix for reference. However, Vulnerabilities are linked to ATT&CK Techniques and Sub-Techniques only. For reference, these are represented as `attack-pattern` STIX objects.
+                    """
+                    ),
                 filters=True,
             ),
             retrieve_objects=extend_schema(
-                summary=f'Get an MITRE ATT&CK {matrix_name_human} object',
-                description=f"Get an MITRE ATT&CK {matrix_name_human} object by its STIX ID. To search and filter objects to get an ID use the GET MITRE ATT&CK {matrix_name_human} Objects endpoint.",
+                summary=f'Get a specific MITRE ATT&CK {matrix_name_human} object by its ID',
+                description=textwrap.dedent(
+                    """
+                    Get an MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1047`).
+
+                    If you do not know the ID of the object you can use the GET MITRE ATT&CK {matrix_name_human} Objects endpoin to find it.
+                    """
+                ),
                 filters=False,
             ),
             versions=extend_schema(
-                summary=f"See available MITRE ATT&CK {matrix_name_human} versions",
-                description=f"It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK {matrix_name_human} endpoints. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).\n\nThis endpoint allows you to see all imported versions of MITRE ATT&CK {matrix_name_human} available to use, and which version is the default (latest). Typically this endpoint is only interesting for researchers looking to retrieve older ATT&CK versions.",
-            ),
-            object_versions=extend_schema(
-                summary=f"See available MITRE ATT&CK {matrix_name_human} versions for ATT&CK-ID",
-                description="See all imported versions available to use.",
-            ),
-            retrieve_object_relationships=extend_schema(
-                summary=f'Get Relationships for MITRE ATT&CK {matrix_name_human} Object of ATT&CK-ID',
+                summary=f"Get a list of MITRE ATT&CK {matrix_name_human} versions stored in the database",
                 description=textwrap.dedent(
                     """
-                    Return relationships.
+                    It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK {matrix_name_human} endpoints. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
+
+                    This endpoint allows you to see all imported versions of MITRE ATT&CK {matrix_name_human} available to use, and which version is the default (latest). Typically this endpoint is only interesting for researchers looking to retrieve older ATT&CK versions because you can filter objects by a specific version of ATT&CK on the object endpoints.
+                    """
+                ),
+            ),
+            object_versions=extend_schema(
+                summary=f"See all version of the MITRE ATT&CK {matrix_name_human} object",
+                description=textwrap.dedent(
+                    """
+                    This endpoint will show the STIX version of the object `modified` and what MITRE ATT&CK versions it appears in.
+
+                    The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+                    """,
+                ),
+            ),
+            retrieve_object_relationships=extend_schema(
+                summary=f'Get the Relationships linked to the MITRE ATT&CK {matrix_name_human} Object',
+                description=textwrap.dedent(
+                    """
+                    This endpoint will return all the STIX `relationship` objects where the ATT&CK object is found as a `source_ref` or a `target_ref`.
                     """
                 ),
             ),
