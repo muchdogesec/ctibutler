@@ -71,7 +71,7 @@ class AttackView(viewsets.ViewSet):
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in ATTACK_TYPES], label='Filter the results by STIX Object type.')
-        attack_version = CharFilter(label="Filter the results by the version of ATT&CK")
+        attack_version = CharFilter(label="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
 
     
     def create(self, request, *args, **kwargs):
@@ -90,7 +90,7 @@ class AttackView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('attack_version', description="Filter the results by the version of ATT&CK")
+                OpenApiParameter('attack_version', description="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>", detail=False)
@@ -100,7 +100,7 @@ class AttackView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('attack_version', description="Filter the results by the version of ATT&CK")
+                OpenApiParameter('attack_version', description="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/relationships", detail=False)
@@ -131,7 +131,7 @@ class AttackView(viewsets.ViewSet):
                 summary=f"Download MITRE ATT&CK {matrix_name_human} Objects",
                 description=textwrap.dedent(
                     """
-                    Use this endpoint to update MITRE ATT&CK records.
+                    Use this endpoint to update MITRE ATT&CK records. [More information about MITRE ATT&CK here](https://attack.mitre.org/).
 
                     The following key/values are accepted in the body of the request:
 
@@ -205,7 +205,7 @@ class AttackView(viewsets.ViewSet):
         summary="Download MITRE CWE objects",
         description=textwrap.dedent(
             """
-            Use this data to update CWE records.
+            Use this data to update CWE records. [More information about MITRE CWE here](https://cwe.mitre.org/).
 
             The following key/values are accepted in the body of the request:
 
@@ -262,7 +262,7 @@ class CweView(viewsets.ViewSet):
     lookup_url_kwarg = 'cwe_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
-        OpenApiParameter('cwe_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CWE ID, e.g CWE-73'),
+        OpenApiParameter('cwe_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CWE ID, e.g `CWE-242`, `CWE-250`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -276,7 +276,7 @@ class CweView(viewsets.ViewSet):
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         # type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], label='Filter the results by STIX Object type.')
-        cwe_version = CharFilter(label="Filter the results by the version of CWE")
+        cwe_version = CharFilter(label="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -293,7 +293,7 @@ class CweView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('cwe_version', description="Filter the results by the version of CWE")
+                OpenApiParameter('cwe_version', description="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>", detail=False)
@@ -303,7 +303,7 @@ class CweView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('cwe_version', description="Filter the results by the version of CWE")
+                OpenApiParameter('cwe_version', description="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>/relationships", detail=False)
@@ -328,7 +328,7 @@ class CweView(viewsets.ViewSet):
         summary="Download MITRE CAPEC objects",
         description=textwrap.dedent(
             """
-            Use this data to update MITRE CAPEC records.
+            Use this data to update MITRE CAPEC records. [More information about MITRE CAPEC here](https://capec.mitre.org/).
 
             The following key/values are accepted in the body of the request:
 
@@ -399,7 +399,7 @@ class CapecView(viewsets.ViewSet):
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in CAPEC_TYPES], label='Filter the results by STIX Object type.')
-        capec_version = CharFilter(label="Filter the results by the version of CAPEC")
+        capec_version = CharFilter(label="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
 
     
     def create(self, request, *args, **kwargs):
@@ -417,7 +417,7 @@ class CapecView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('capec_version', description="Filter the results by the version of CAPEC")
+                OpenApiParameter('capec_version', description="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>", detail=False)
@@ -426,7 +426,7 @@ class CapecView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('capec_version', description="Filter the results by the version of CAPEC")
+                OpenApiParameter('capec_version', description="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>/relationships", detail=False)
@@ -538,14 +538,14 @@ class JobView(viewsets.ModelViewSet):
         responses={201: serializers.JobSerializer
         },
         request=serializers.MitreTaskSerializer,
-        summary="Download ATLAS objects",
+        summary="Download MITRE ATLAS objects",
         description=textwrap.dedent(
             """
-            Use this data to update ATLAS records.
+            Use this data to update ATLAS records. [More information about MITRE ATLAS here](https://atlas.mitre.org/).
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of ATLAS you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).
+            * `version` (required): the version of ATLAS you want to download in the format `N_N`, e.g. `4_5_2` for `4.5.2`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -553,13 +553,21 @@ class JobView(viewsets.ModelViewSet):
         ),
     ),
     list_objects=extend_schema(
-        summary='Get ATLAS objects',
-        description='Search and filter ATLAS results. This endpoint will return `weakness` objects. It is most useful for finding ATLAS IDs that can be used to filter Vulnerability records with on the GET CVE objects endpoints.',
+        summary='Search and filter MITRE ATLAS objects',
+        description=textwrap.dedent(
+            """
+            Search and filter MITRE ATLAS objects.
+            """
+        ),
         filters=True,
     ),
     retrieve_objects=extend_schema(
         summary='Get a ATLAS object',
-        description='Get an ATLAS object by its STIX ID. To search and filter ATLAS objects to get an ID use the GET Objects endpoint.',
+        description=textwrap.dedent(
+            """
+            Get an ATLAS object by its STIX ID. To search and filter ATLAS objects to get an ID use the GET Objects endpoint.
+            """
+        ),
         filters=False,
     ),
     retrieve_object_relationships=extend_schema(
@@ -574,7 +582,11 @@ class JobView(viewsets.ModelViewSet):
     ),
     object_versions=extend_schema(
         summary="See available ATLAS versions for ATLAS-ID",
-        description="See all imported versions available to use.",
+        description=textwrap.dedent(
+            """
+            See all imported versions available to use.
+            """
+        ),
     ),
 )  
 class AtlasView(viewsets.ViewSet):
