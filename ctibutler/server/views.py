@@ -306,7 +306,7 @@ class AttackView(viewsets.ViewSet):
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
-        OpenApiParameter('attack_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATT&CK ID, e.g `TA0006`'),
+        OpenApiParameter('attack_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATT&CK ID, e.g `T1659`, `TA0043`, `S0066`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -388,7 +388,7 @@ class AttackView(viewsets.ViewSet):
 
                     The following key/values are accepted in the body of the request:
 
-                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `15_1` for `15.1`
+                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `15_1` for `15.1`. You can see all [Enterprise versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7), [Mobile versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_mobile.py#L7), or [ICS versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_ics.py#L7).
 
                     The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
                     """
@@ -409,7 +409,7 @@ class AttackView(viewsets.ViewSet):
                 summary=f'Get a specific MITRE ATT&CK {matrix_name_human} object by its ID',
                 description=textwrap.dedent(
                     """
-                    Get an MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1047`).
+                    Get an MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
 
                     If you do not know the ID of the object you can use the GET MITRE ATT&CK {matrix_name_human} Objects endpoin to find it.
                     """
@@ -459,16 +459,23 @@ class AttackView(viewsets.ViewSet):
         summary="Download CWE objects",
         description=textwrap.dedent(
             """
-            Use this data to update CWE records.\n\n
-            The following key/values are accepted in the body of the request:\n\n
-            * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_cwe.py#L7).\n\n
+            Use this data to update CWE records.
+
+            The following key/values are accepted in the body of the request:
+
+            * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_cwe.py#L7).
+
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
         ),
     ),
     list_objects=extend_schema(
         summary='Get CWE objects',
-        description='Search and filter CWE results. This endpoint will return `weakness` objects. It is most useful for finding CWE IDs that can be used to filter Vulnerability records with on the GET CVE objects endpoints.',
+        description=textwrap.dedent(
+            """
+            Search and filter CWE results. This endpoint will return `weakness` objects. It is most useful for finding CWE IDs that can be used to filter Vulnerability records with on the GET CVE objects endpoints.
+            """
+        ),
         filters=True,
     ),
     retrieve_objects=extend_schema(
