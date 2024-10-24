@@ -291,20 +291,39 @@ class ArangoDBHelper:
                 "types": list(types),
         }
         if value := self.query.get('value'):
-            bind_vars['search_value'] = value
+            bind_vars['search_value'] = value.lower()
             other_filters.append(
                 """
                 (
-                    CONTAINS(doc.value, @search_value) OR
-                    CONTAINS(doc.name, @search_value) OR
-                    CONTAINS(doc.path, @search_value) OR
-                    CONTAINS(doc.key, @search_value) OR
-                    CONTAINS(doc.number, @search_value) OR
-                    CONTAINS(doc.string, @search_value) OR
-                    CONTAINS(doc.hash, @search_value) OR
-                    CONTAINS(doc.symbol, @search_value) OR
-                    CONTAINS(doc.address, @search_value) OR
-                    (doc.type == 'file' AND @search_value IN doc.hashes)
+                    doc.type == 'artifact' AND CONTAINS(LOWER(doc.payload_bin), @search_value) OR
+                    doc.type == 'autonomous-system' AND CONTAINS(LOWER(doc.number), @search_value) OR
+                    doc.type == 'bank-account' AND CONTAINS(LOWER(doc.iban_number), @search_value) OR
+                    doc.type == 'bank-card' AND CONTAINS(LOWER(doc.number), @search_value) OR
+                    doc.type == 'cryptocurrency-transaction' AND CONTAINS(LOWER(doc.hash), @search_value) OR
+                    doc.type == 'cryptocurrency-wallet' AND CONTAINS(LOWER(doc.hash), @search_value) OR
+                    doc.type == 'directory' AND CONTAINS(LOWER(doc.path), @search_value) OR
+                    doc.type == 'domain-name' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'email-addr' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'email-message' AND CONTAINS(LOWER(doc.body), @search_value) OR
+                    doc.type == 'file' AND CONTAINS(LOWER(doc.name), @search_value) OR
+                    doc.type == 'ipv4-addr' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'ipv6-addr' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'mac-addr' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'mutex' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'network-traffic' AND CONTAINS(LOWER(doc.protocols), @search_value) OR
+                    doc.type == 'phone-number' AND CONTAINS(LOWER(doc.number), @search_value) OR
+                    doc.type == 'process' AND CONTAINS(LOWER(doc.pid), @search_value) OR
+                    doc.type == 'software' AND CONTAINS(LOWER(doc.name), @search_value) OR
+                    doc.type == 'url' AND CONTAINS(LOWER(doc.value), @search_value) OR
+                    doc.type == 'user-account' AND CONTAINS(LOWER(doc.display_name), @search_value) OR
+                    doc.type == 'user-agent' AND CONTAINS(LOWER(doc.string), @search_value) OR
+                    doc.type == 'windows-registry-key' AND CONTAINS(LOWER(doc.key), @search_value) OR
+                    doc.type == 'x509-certificate' AND CONTAINS(LOWER(doc.subject), @search_value)
+                    //generic
+                    OR
+                    CONTAINS(LOWER(doc.value), @search_value) OR
+                    CONTAINS(LOWER(doc.name), @search_value) OR
+                    CONTAINS(LOWER(doc.number), @search_value)
                 )
                 """.strip()
             )
