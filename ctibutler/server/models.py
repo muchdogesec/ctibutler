@@ -14,8 +14,6 @@ class JobType(models.TextChoices):
     ATTACK_UPDATE   = "attack-update"
     CWE_UPDATE      = "cwe-update"
     CAPEC_UPDATE    = "capec-update"
-    CVE_UPDATE      = "cve-update"
-    CPE_UPDATE      = "cpe-update"
     CTI_PROCESSOR   = "arango-cti-processor"
     ATLAS_UPDATE    = "atlas-update"
     LOCATION_UPDATE = "location-update"
