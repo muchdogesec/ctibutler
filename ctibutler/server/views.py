@@ -141,9 +141,7 @@ class AttackView(viewsets.ViewSet):
                 summary=f'Search and filter MITRE ATT&CK {matrix_name_human} objects',
                 description=textwrap.dedent(
                     """
-                    Search and filter MITRE ATT&CK {matrix_name_human} results.
-
-                    This endpoint with return the entire {matrix_name_human} matrix for reference. However, Vulnerabilities are linked to ATT&CK Techniques and Sub-Techniques only. For reference, these are represented as `attack-pattern` STIX objects.
+                    Search and filter MITRE ATT&CK {matrix_name_human} objects.
                     """
                     ),
                 filters=True,
@@ -152,9 +150,9 @@ class AttackView(viewsets.ViewSet):
                 summary=f'Get a specific MITRE ATT&CK {matrix_name_human} object by its ID',
                 description=textwrap.dedent(
                     """
-                    Get an MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
+                    Get a MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
 
-                    If you do not know the ID of the object you can use the GET MITRE ATT&CK {matrix_name_human} Objects endpoin to find it.
+                    If you do not know the ID of the object you can use the GET MITRE ATT&CK {matrix_name_human} Objects endpoint to find it.
                     """
                 ),
                 filters=False,
@@ -199,7 +197,7 @@ class AttackView(viewsets.ViewSet):
         responses={201: serializers.JobSerializer
         },
         request=serializers.MitreTaskSerializer,
-        summary="Download CWE objects",
+        summary="Download MITRE CWE objects",
         description=textwrap.dedent(
             """
             Use this data to update CWE records.
@@ -213,28 +211,40 @@ class AttackView(viewsets.ViewSet):
         ),
     ),
     list_objects=extend_schema(
-        summary='Get CWE objects',
+        summary='Search and filter MITRE CWE objects',
         description=textwrap.dedent(
             """
-            Search and filter CWE results. This endpoint will return `weakness` objects. It is most useful for finding CWE IDs that can be used to filter Vulnerability records with on the GET CVE objects endpoints.
+            Search and filter MITRE CAPEC objects.
             """
         ),
         filters=True,
     ),
     retrieve_objects=extend_schema(
         summary='Get a CWE object',
-        description='Get an CWE object by its STIX ID. To search and filter CWE objects to get an ID use the GET Objects endpoint.',
+        description=textwrap.dedent(
+            """
+            Get an CWE object by its ID (e.g. `CWE-242` `CWE-250`).
+
+            If you do not know the ID of the object you can use the GET MITRE CWE Objects endpoint to find it.
+            """
+        ),
         filters=False,
     ),
     object_versions=extend_schema(
-        summary="See available CWE versions for CWE-ID",
-        description="See all imported versions available to use.",
-    ),
-    retrieve_object_relationships=extend_schema(
-        summary='Get Relationships for Object',
+        summary="See all versions of the CWE object",
         description=textwrap.dedent(
             """
-            Return relationships.
+            This endpoint will show the STIX version of the object modified and what CWE versions it appears in.
+
+            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+            """
+        ),
+    ),
+    retrieve_object_relationships=extend_schema(
+        summary='Get the Relationships linked to MITRE CWE Object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the CWE object is found as a source_ref or a target_ref.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
@@ -256,7 +266,7 @@ class CweView(viewsets.ViewSet):
 
     class filterset_class(FilterSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`.')
-        cwe_id = BaseCSVFilter(label='Filter the results by the CWE ID of the object. e.g. `CWE-242`.')
+        cwe_id = BaseCSVFilter(label='Filter the results by the CWE ID of the object. e.g. `CWE-242` `CWE-250`.')
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         # type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], label='Filter the results by STIX Object type.')
@@ -309,35 +319,54 @@ class CweView(viewsets.ViewSet):
         responses={201: serializers.JobSerializer
         },
         request=serializers.MitreTaskSerializer,
-        summary="Download CAPEC objects",
+        summary="Download MITRE CAPEC objects",
         description=textwrap.dedent(
             """
-            Use this data to update CAPEC records.\n\n
-            The following key/values are accepted in the body of the request:\n\n
-            * `version` (required): the version of CAPEC you want to download in the format `N_N`, e.g. `3_9` for `3.9`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_capec.py#L7).\n\n
+            Use this data to update MITRE CAPEC records.
+
+            The following key/values are accepted in the body of the request:
+
+            * `version` (required): the version of CAPEC you want to download in the format `N_N`, e.g. `3_9` for `3.9`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_capec.py#L7).
+
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
         ),
     ),
     list_objects=extend_schema(
-        summary='Get CAPEC objects',
-        description="Search and filter CAPEC results.",
+        summary='Search and filter MITRE CAPEC objects',
+        description=textwrap.dedent(
+            """
+            Search and filter MITRE CAPEC objects.
+            """
+        ),
         filters=True,
     ),
     retrieve_objects=extend_schema(
         summary='Get a CAPEC object',
-        description='Get an CAPEC object by its STIX ID. To search and filter objects to get an ID use the GET Objects endpoint.',
+        description=textwrap.dedent(
+            """
+            Get a CAPEC object by its ID (e.g. `CAPEC-112`, `CAPEC-699`).
+
+            If you do not know the ID of the object you can use the GET MITRE CAPEC Objects endpoint to find it.
+            """
+        ),
         filters=False,
     ),
     object_versions=extend_schema(
-        summary="See available CAPEC versions for CAPEC-ID",
-        description="See all imported versions available to use.",
-    ),
-    retrieve_object_relationships=extend_schema(
-        summary='Get Relationships for Object',
+        summary="See all versions of the MITRE CAPEC object",
         description=textwrap.dedent(
             """
-            Return relationships.
+            This endpoint will show the STIX version of the object modified and what CAPEC versions it appears in.
+
+            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+            """
+        ),
+    ),
+    retrieve_object_relationships=extend_schema(
+        summary='Get the Relationships linked to MITRE CAPEC Object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the CAPEC object is found as a source_ref or a target_ref.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
@@ -349,7 +378,7 @@ class CapecView(viewsets.ViewSet):
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
-        OpenApiParameter('capec_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CAPEC ID, e.g CAPEC-699'),
+        OpenApiParameter('capec_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CAPEC ID, e.g `CAPEC-112`, `CAPEC-699`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -359,7 +388,7 @@ class CapecView(viewsets.ViewSet):
 
     class filterset_class(FilterSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`.')
-        capec_id = BaseCSVFilter(label='Filter the results by the CAPEC ID of the object. e.g. `CAPEC-112`.')
+        capec_id = BaseCSVFilter(label='Filter the results by the CAPEC ID of the object. e.g. `CAPEC-112`, `CAPEC-699`.')
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in CAPEC_TYPES], label='Filter the results by STIX Object type.')
