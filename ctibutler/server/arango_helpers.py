@@ -106,6 +106,15 @@ CAPEC_TYPES = set([
 ]
 )
 
+LOCATION_SUBTYPES = set(
+[
+  "intermediate-region",
+  "sub-region-code",
+  "region-code",
+  "country"
+]
+)
+
 CVE_SORT_FIELDS = [
     "modified_descending",
     "modified_ascending",

@@ -2,12 +2,12 @@ import re
 from django.shortcuts import render
 from rest_framework import viewsets, filters, status, decorators
 
-from ctibutler.server.arango_helpers import ATLAS_TYPES, CVE_SORT_FIELDS, LOCATION_TYPES, TLP_TYPES, ArangoDBHelper, ATTACK_TYPES, CWE_TYPES, SOFTWARE_TYPES, CAPEC_TYPES
+from ctibutler.server.arango_helpers import ATLAS_TYPES, CVE_SORT_FIELDS, LOCATION_TYPES, TLP_TYPES, ArangoDBHelper, ATTACK_TYPES, CWE_TYPES, SOFTWARE_TYPES, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.utils import Pagination, Response, Ordering, split_mitre_version
 from ctibutler.worker.tasks import new_task
 from . import models
 from ctibutler.server import serializers
-from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, MultipleChoiceFilter, NumberFilter, NumericRangeFilter, DateTimeFilter
+from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, MultipleChoiceFilter, NumberFilter, NumericRangeFilter, DateTimeFilter, BaseInFilter
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from textwrap import dedent
@@ -760,6 +760,7 @@ class LocationView(viewsets.ViewSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
         alpha3_code = CharFilter(label="Filter by alpha-3 code, e.g MEX")
+        location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], label="Filter by location type")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -778,6 +779,9 @@ class LocationView(viewsets.ViewSet):
         if helper.query_as_array('alpha3_code'):
             more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @alpha_matchers]")
             more_binds['alpha_matchers'] = [dict(source_name='alpha-3', external_id=code) for code in helper.query_as_array('alpha3_code')]
+        if helper.query_as_array('location_type'):
+            more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @location_type_matchers]")
+            more_binds['location_type_matchers'] = [dict(source_name='type', external_id=code) for code in helper.query_as_array('location_type')]
         return helper.get_weakness_or_capec_objects(types=LOCATION_TYPES, more_binds=more_binds, more_filters=more_filters)
     
     @extend_schema(
