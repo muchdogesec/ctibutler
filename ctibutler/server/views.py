@@ -815,12 +815,12 @@ class LocationView(viewsets.ViewSet):
         )
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_mitre_versions(version_prefix='')
+        return ArangoDBHelper(self.arango_collection, request).get_mitre_versions()
         
     @extend_schema(filters=False)
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id, version_prefix='')
+        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id)
    
 
      
@@ -924,9 +924,9 @@ class TLPView(viewsets.ViewSet):
         )
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_mitre_versions(version_prefix='v')
+        return ArangoDBHelper(self.arango_collection, request).get_mitre_versions()
         
     @extend_schema(filters=False)
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id, version_prefix='v')
+        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id)
