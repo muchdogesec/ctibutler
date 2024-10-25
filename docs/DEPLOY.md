@@ -1,8 +1,6 @@
-##
+# Basic Cloud deployment steps
 
 For those wanting to deploy to a Cloud server, here's a simple guide (that is not production ready).
-
-
 
 Create an Ubuntu server on a Cloud provider. We like https://www.hetzner.com/cloud/
 
@@ -14,22 +12,27 @@ Create an Ubuntu server on a Cloud provider. We like https://www.hetzner.com/clo
 sudo adduser ctibutler
 ```
 
-### 0.2 Make user sudoer
-
 ```shell
-sudo usermod -aG sudo ctibutler
-```
-
-### 0.3 Restart SSH server
-
-```shell
+sudo usermod -aG sudo ctibutler && \
 sudo service ssh restart
 ```
 
-### 0.4 Use ctibutler user
+### 0.2 Copy SSH keys
 
 ```shell
-su ctibutler
+cd /home/ctibutler
+mkdir .ssh/
+vi .ssh/authorized_keys
+```
+
+Add SSH keys
+
+Now logout and check created user can authenticate as user before next step, else you will be locked out
+
+### 0.3 Disable root login
+
+```shell
+sudo vi /etc/ssh/sshd_config
 ```
 
 ## 1. Install Docker on Your VPS
@@ -37,36 +40,15 @@ su ctibutler
 ### 1.1: Update the package list
 
 ```shell
-sudo apt update
-```
-### 1.2 Install required packages
-
-```shell
-sudo apt install apt-transport-https ca-certificates curl software-properties-common
-```
-
-### 1.3: Add Docker’s official GPG key and repository
-
-```shell
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-```
-
-### 1.4: Install Docker
-
-```shell
-sudo apt update
-sudo apt install docker-ce
-```
-```shell
-sudo usermod -aG docker ctibutler
-sudo newgrp docker
-```
-
-## 2 Install Docker Compose
-
-```shell
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo apt update && \
+sudo apt install apt-transport-https ca-certificates curl software-properties-common && \
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null  && \
+sudo apt update && \
+sudo apt install docker-ce && \
+sudo usermod -aG docker ctibutler && \
+sudo newgrp docker && \
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
 sudo chmod +x /usr/local/bin/docker-compose
 ```
 
@@ -75,13 +57,8 @@ sudo chmod +x /usr/local/bin/docker-compose
 ### 3.1 Pull the ArangoDB Docker image
 
 ```shell
-docker pull arangodb/arangodb:latest
-```
-
-### 3.2 Make a directory to ensure persistent storage
-
-```
-sudo mkdir -p /var/lib/arangodb_data
+docker pull arangodb/arangodb:latest && \
+sudo mkdir -p /var/lib/arangodb_data && \
 sudo chown -R $USER:$USER /var/lib/arangodb_data
 ```
 
@@ -102,19 +79,17 @@ docker ps
 ### 4. Clone the Repository
 
 ```shell
-sudo apt install git
-cd /etc
-git clone https://github.com/muchdogesec/ctibutler.git
-cd ctibutler
+sudo apt install git && \
+cd /etc && \
+sudo git clone https://github.com/muchdogesec/ctibutler.git && \
+cd ctibutler && \
+sudo cp .env.example .env
 ```
-
-### 5. Run the app
 
 Setup your env file with variables
 
 ```shell
-cp .env.example .env
-vi .env
+sudo vi .env
 ```
 
 Changing
@@ -123,13 +98,14 @@ Changing
 ARANGODB_HOST_URL='http://host.docker.internal:8529'
 ARANGODB_USERNAME=root
 ARANGODB_PASSWORD=yourpassword
+DJANGO_ALLOWED_HOSTS=yourserverip
 ```
 
-Replace `yourpassword` with what you set earlier
+Replace `yourpassword` with what you set earlier and `yourserverip` with the ip address / domain of your server
 
 ```shell
-docker compose build
-docker compose up -d
+docker compose build && \
+docker compose up -d && \
 docker ps
 ```
 
@@ -159,12 +135,11 @@ sudo ufw default deny
 sudo ufw allow 22 #ssh
 sudo ufw allow 8006 #ctibutler
 sudo ufw allow 8529 #arangodb
+sudo ufw allow 443 #ssl
+sudo ufw allow 80 #http
 ```
-
-To ensure config is saved when changed install iptables-persistent: 
 
 ```shell
-sudo apt-get install iptables-persistent
-sudo sh -c "iptables-save > /etc/iptables/rules.v4"
-sudo sh -c "ip6tables-save > /etc/iptables/rules.v6"
+sudo ufw enable
 ```
+
