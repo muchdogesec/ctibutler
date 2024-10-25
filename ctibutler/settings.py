@@ -31,7 +31,6 @@ DEBUG = os.getenv("DJANGO_DEBUG", False)
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', "localhost 127.0.0.1 [::1]").split()
 
-
 MEDIA_ROOT = Path("/var/www/ctibutler_files/media/uploads")
 
 STATIC_ROOT = MEDIA_ROOT.with_name("staticfiles")
