@@ -759,6 +759,7 @@ class LocationView(viewsets.ViewSet):
     class filterset_class(FilterSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
+        alpha3_code = CharFilter(label="Filter by alpha-3 code, e.g MEX")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -771,7 +772,13 @@ class LocationView(viewsets.ViewSet):
     
     @decorators.action(methods=['GET'], url_path="objects", detail=False)
     def list_objects(self, request, *args, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_weakness_or_capec_objects(types=LOCATION_TYPES)
+        more_filters = []
+        helper = ArangoDBHelper(self.arango_collection, request)
+        more_binds = dict()
+        if helper.query_as_array('alpha3_code'):
+            more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @alpha_matchers]")
+            more_binds['alpha_matchers'] = [dict(source_name='alpha-3', external_id=code) for code in helper.query_as_array('alpha3_code')]
+        return helper.get_weakness_or_capec_objects(types=LOCATION_TYPES, more_binds=more_binds, more_filters=more_filters)
     
     @extend_schema(
             parameters=[
@@ -891,7 +898,7 @@ class TLPView(viewsets.ViewSet):
         return ArangoDBHelper(self.arango_collection, request).get_object(stix_id)
     
 
-    
+
     @extend_schema(
             parameters=[
                 OpenApiParameter('tlp_version', description="Filter the results by the version of TLP")

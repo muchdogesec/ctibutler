@@ -525,7 +525,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
-    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id'):
+    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id', more_binds={}, more_filters=[]):
         version_param = lookup_kwarg.replace('_id', '_version')
         filters = []
         if new_types := self.query_as_array('type'):
@@ -534,6 +534,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         bind_vars = {
                 "@collection": self.collection,
                 "types": list(types),
+                **more_binds
         }
         if q := self.query.get(version_param):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
@@ -565,7 +566,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('@filters', '\n'.join(filters))
+        """.replace('@filters', '\n'.join(filters+more_filters))
         return self.execute_query(query, bind_vars=bind_vars)
 
     def get_softwares(self):
