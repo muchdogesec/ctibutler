@@ -178,7 +178,7 @@ class AttackView(viewsets.ViewSet):
                     """
                     This endpoint will show the STIX versions of the object (`modified` property) and what MITRE ATT&CK versions it appears in.
 
-                    The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+                    The data returned is useful to see when and object has changed.
                     """,
                 ),
             ),
@@ -242,7 +242,7 @@ class AttackView(viewsets.ViewSet):
             """
             This endpoint will show the STIX versions of the object (`modified` property) and what CWE versions it appears in.
 
-            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+            The data returned is useful to see when and object has changed.
             """
         ),
     ),
@@ -374,7 +374,7 @@ class CweView(viewsets.ViewSet):
             """
             This endpoint will show the STIX versions of the object (`modified` property) and what CAPEC versions it appears in.
 
-            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+            The data returned is useful to see when and object has changed.
             """
         ),
     ),
@@ -606,7 +606,7 @@ class JobView(viewsets.ModelViewSet):
             """
             This endpoint will show the STIX versions of the object (`modified` property) and what ATLAS versions it appears in.
 
-            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+            The data returned is useful to see when and object has changed.
             """
         ),
     ),
@@ -728,7 +728,7 @@ class AtlasView(viewsets.ViewSet):
             """
             This endpoint will show the STIX versions of the object (`modified` property) and what Location versions it appears in.
 
-            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
+            The data returned is useful to see when and object has changed.
             """
         ),
     ),
