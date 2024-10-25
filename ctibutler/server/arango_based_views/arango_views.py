@@ -104,7 +104,12 @@ class QueryParams:
         OpenApiParameter('sort', enum=SMO_SORT_FIELDS),
     ]
 
-    
+@extend_schema_view(
+    retrieve=extend_schema(
+        summary="Get a STIX Object",
+        description="Get a STIX Object by its ID",
+    )
+)
 class SingleObjectView(viewsets.ViewSet):
     lookup_url_kwarg = "object_id"
     openapi_tags = ["Objects"]
@@ -117,9 +122,6 @@ class SingleObjectView(viewsets.ViewSet):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_objects_by_id(
             kwargs.get(self.lookup_url_kwarg)
         )
-    
-class SingleObjectReportsView(SingleObjectView):
-    pass
     
    
 @extend_schema_view(
@@ -139,7 +141,8 @@ class SingleObjectReportsView(SingleObjectView):
         description="Using the SDO ID, you can find all reports the SDO is mentioned in",
     ),
 )
-class SDOView(SingleObjectReportsView):
+class SDOView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_sdos()
    
@@ -191,7 +194,8 @@ class SDOView(SingleObjectReportsView):
         description="Using the SCO ID, you can find all reports the SCO is mentioned in",
     ),
 )
-class SCOView(SingleObjectReportsView):
+class SCOView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         matcher = {}
         if post_id := request.query_params.dict().get("post_id"):
@@ -216,7 +220,8 @@ class SCOView(SingleObjectReportsView):
         ),
     )
 )
-class SMOView(SingleObjectView):
+class SMOView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_smos()
 
@@ -238,7 +243,8 @@ class SMOView(SingleObjectView):
             ),
         ),
 )
-class SROView(SingleObjectView):
+class SROView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_sros()
 

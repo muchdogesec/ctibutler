@@ -44,6 +44,7 @@ router.register("attack-mobile", views.AttackView.attack_view('mobile'), "attack
 router.register("attack-ics", views.AttackView.attack_view('ics'), "attack-ics-view")
 router.register("attack-enterprise", views.AttackView.attack_view('enterprise'), "attack-enterprise-view")
 ## objects
+router.register("object", arango_views.SingleObjectView, "object-view-orig")
 router.register('objects/smos', arango_views.SMOView, "object-view-smo")
 router.register('objects/scos', arango_views.SCOView, "object-view-sco")
 router.register('objects/sros', arango_views.SROView, "object-view-sro")
