@@ -691,28 +691,44 @@ class AtlasView(viewsets.ViewSet):
         summary="Download Location objects",
         description=textwrap.dedent(
             """
-            Use this data to update Location records.\n\n\n\n
+            Use this data to update Location records.
+
+            The following key/values are accepted in the body of the request:
+
+            * `version` (required): the versions of Locations you want to download. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
+            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
+
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
             """
         ),
     ),
     list_objects=extend_schema(
         summary='Get Location objects',
-        description='Search and filter Location results. This endpoint will return `weakness` objects. It is most useful for finding Location IDs that can be used to filter Vulnerability records with on the GET CVE objects endpoints.',
+        description=textwrap.dedent(
+            """
+            Search and filter Location objects.
+            """
+        ),
         filters=True,
     ),
     retrieve_objects=extend_schema(
         summary='Get a Location object',
-        description='Get an Location object by its STIX ID. To search and filter Location objects to get an ID use the GET Objects endpoint.',
+        description=textwrap.dedent(
+            """
+            Get a Location object by its STIX ID (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)
+            
+            If you do not know the ID of the object you can use the GET MITRE ATLAS Objects endpoint to find it.
+            """
+        ),
         filters=False,
     ),
     object_versions=extend_schema(
-        summary="See available Location versions for Location-ID",
+        summary="See all versions of the Location object",
         description=textwrap.dedent(
             """
-            It is possible to import multiple versions of Locations using the POST Locations endpoint. By default, all endpoints will only return the latest version of Locations objects (which generally suits most use-cases).
+            This endpoint will show the STIX versions of the object (`modified` property) and what Location versions it appears in.
 
-            This endpoint allows you to see all imported versions of Locations available to use, and which version is the latest (the default version for the objects returned).
+            The data returned is useful to see when and object has changed. If you want to see the actual changes, use the diff endpoint.
             """
         ),
     ),
@@ -731,7 +747,7 @@ class LocationView(viewsets.ViewSet):
     arango_collection = "location_vertex_collection"
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--64db2878-ae36-46ab-b47a-f71fff575aba`.')
+        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
 
     def create(self, request, *args, **kwargs):
