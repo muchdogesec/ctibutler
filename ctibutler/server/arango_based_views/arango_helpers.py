@@ -92,6 +92,7 @@ SMO_SORT_FIELDS = [
 SMO_TYPES = set([
     "marking-definition",
     "extension-definition",
+    "language-content",
 ])
 
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"]).union(SMO_TYPES)
