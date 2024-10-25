@@ -40,7 +40,7 @@ class StixVersionsSerializer(serializers.Serializer):
 
 class MitreObjectVersions(serializers.Serializer):
     modified = serializers.DateTimeField()
-    notes = serializers.ListField(child=serializers.CharField())
+    versions = serializers.ListField(child=serializers.CharField())
 
 
 class ACPSerializer(serializers.Serializer):

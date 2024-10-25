@@ -492,12 +492,12 @@ RETURN KEEP(d, KEYS(d, TRUE))
         FILTER doc.external_references[? ANY FILTER MATCHES(CURRENT, @matcher)]
         COLLECT modified = doc.modified INTO group
         SORT modified DESC
-        RETURN {modified, notes: UNIQUE(group[*].doc._stix2arango_note)}
+        RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
         """
         bind_vars = {'@collection': self.collection, 'matcher': dict(external_id=external_id, source_name=source_name)}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
-            mod['notes'] = self.clean_and_sort_versions(mod['notes'], prefix=version_prefix)
+            mod['versions'] = self.clean_and_sort_versions(mod['versions'], prefix=version_prefix)
         return Response(versions)
     
     def get_modified_versions(self, stix_id=None, version_prefix='v'):
@@ -507,12 +507,12 @@ RETURN KEEP(d, KEYS(d, TRUE))
         FILTER doc.id == @stix_id AND STARTS_WITH(doc._stix2arango_note, "version=")
         COLLECT modified = doc.modified INTO group
         SORT modified DESC
-        RETURN {modified, notes: UNIQUE(group[*].doc._stix2arango_note)}
+        RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
         """
         bind_vars = {'@collection': self.collection, 'stix_id': stix_id}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
-            mod['notes'] = self.clean_and_sort_versions(mod['notes'], prefix=version_prefix)
+            mod['versions'] = self.clean_and_sort_versions(mod['versions'], prefix=version_prefix)
         return Response(versions)
     
     def clean_and_sort_versions(self, versions, prefix='v'):
@@ -746,8 +746,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         types = SDO_TYPES
         if new_types := self.query_as_array('types'):
             types = types.intersection(new_types)
-        if not self.query_as_bool('include_txt2stix_notes', False):
-            types.remove('note')
+            
         bind_vars = {
             "@collection": self.collection,
             "types": list(types),
