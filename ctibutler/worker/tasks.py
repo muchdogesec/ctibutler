@@ -98,7 +98,7 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
             raise NotImplementedError("Unknown type for mitre task")
     
     temp_dir = str(Path(tempfile.gettempdir())/f"ctibutler/mitre-{mitre_type}--{str(job.id)}")
-    task = download_file.si(url, temp_dir, job_id=job.id) | upload_file.s(collection_name, stix2arango_note=f'version={version}', job_id=job.id)
+    task = download_file.si(url, temp_dir, job_id=job.id) | upload_file.s(collection_name, stix2arango_note=f'version={version}', job_id=job.id, params=job.parameters)
     return (task | remove_temp_and_set_completed.si(temp_dir, job_id=job.id))
 
 def date_range(start_date: date, end_date: date):
@@ -150,7 +150,7 @@ def download_file(urlpath, tempdir, job_id=None):
 
 
 @app.task(base=CustomTask)
-def upload_file(filename, collection_name, stix2arango_note=None, job_id=None):
+def upload_file(filename, collection_name, stix2arango_note=None, job_id=None, params=dict()):
     if not filename:
         return
     if not stix2arango_note:
@@ -162,7 +162,7 @@ def upload_file(filename, collection_name, stix2arango_note=None, job_id=None):
         database=settings.ARANGODB_DATABASE,
         collection=collection_name,
         stix2arango_note=stix2arango_note,
-        ignore_embedded_relationships=False,
+        ignore_embedded_relationships=params.get('ignore_embedded_relationships', False),
         host_url=settings.ARANGODB_HOST_URL,
         username=settings.ARANGODB_USERNAME,
         password=settings.ARANGODB_PASSWORD,
