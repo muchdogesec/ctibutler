@@ -125,21 +125,12 @@ All non-essential ports should be blocked using ufw.
 First switch off ufw (to ensure we don't kick ourselves off server when blocking all ports): 
 
 ```shell
-sudo ufw disable
-```
-
-Then block all ports: 
-
-```shell
-sudo ufw default deny
-sudo ufw allow 22 #ssh
-sudo ufw allow 8006 #ctibutler
-sudo ufw allow 8529 #arangodb
-sudo ufw allow 443 #ssl
-sudo ufw allow 80 #http
-```
-
-```shell
+sudo ufw disable && \
+sudo ufw default deny && \
+sudo ufw allow 22 && \
+sudo ufw allow 8006 && \
+sudo ufw allow 8529 && \
+sudo ufw allow 443 && \
+sudo ufw allow 80 && \
 sudo ufw enable
 ```
-
