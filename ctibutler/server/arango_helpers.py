@@ -10,6 +10,9 @@ from drf_spectacular.types import OpenApiTypes
 from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
+
+import textwrap
+
 SDO_TYPES = set(
     [
         "report",
@@ -206,13 +209,21 @@ class ArangoDBHelper:
         return cls.get_schema_operation_parameters() + [
             OpenApiParameter(
                 "include_embedded_refs",
-                description="whether to include embedded relationships in the results. default true",
+                description=textwrap.dedent(
+                    """
+                    If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`.
+                    """
+                ),
                 type=OpenApiTypes.BOOL
             ),
             OpenApiParameter(
                 "relationship_direction",
                 enum=["source_ref", "target_ref"],
-                description="Filters the results to only include where results are in the specified SRO property. default is all",
+                description=textwrap.dedent(
+                    """
+                    Filters the results to only include SROs which have this object in the specified SRO property (e.g. setting `source_ref` will only return SROs where the object is shown in the `source_ref` property). Default is both.
+                    """
+                ),
             ),
         ]
     @classmethod
