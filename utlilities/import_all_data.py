@@ -47,7 +47,7 @@ location_versions = [
 ]
 
 # Function to initiate attack updates with version
-def initiate_attack_update(endpoint, version):
+def initiate_update(endpoint, version):
     data = {
         "version": version
     }
@@ -111,37 +111,37 @@ def monitor_job_status(job_id, job_name):
 def monitor_jobs():
     # Step 1: attack-enterprise updates
     for version in attack_enterprise_versions:
-        job_id = initiate_attack_update("attack-enterprise", version)
+        job_id = initiate_update("attack-enterprise", version)
         if job_id:
             monitor_job_status(job_id, f"attack-enterprise (version {version})")
 
     # Step 2: attack-ics updates
     for version in attack_ics_versions:
-        job_id = initiate_attack_update("attack-ics", version)
+        job_id = initiate_update("attack-ics", version)
         if job_id:
             monitor_job_status(job_id, f"attack-ics (version {version})")
 
     # Step 3: attack-mobile update
     for version in attack_mobile_versions:
-        job_id = initiate_attack_update("attack-mobile", version)
+        job_id = initiate_update("attack-mobile", version)
         if job_id:
             monitor_job_status(job_id, f"attack-mobile (version {version})")
 
     # Step 4: CAPEC update
     for version in capec_versions:
-        job_id = initiate_capec_update(version)
+        job_id = initiate_update("capec", version)
         if job_id:
             monitor_job_status(job_id, f"CAPEC (version {version})")
 
     # Step 5: CWE update
     for version in cwe_versions:
-        job_id = initiate_cwe_update(version)
+        job_id = initiate_update("cwe", version)
         if job_id:
             monitor_job_status(job_id, f"CWE (version {version})")
 
     # Step 6 TLP update
     for version in tlp_versions:
-        job_id = initiate_tlp_update(version)
+        job_id = initiate_update("tlp", version)
         if job_id:
             monitor_job_status(job_id, f"TLP (version {version})")
 
@@ -153,7 +153,7 @@ def monitor_jobs():
 
     # Step 8: ATLAS update
     for version in atlas_versions:
-        job_id = initiate_atlas_update(version)
+        job_id = initiate_update("atlas", version)
         if job_id:
             monitor_job_status(job_id, f"ATLAS (version {version})")
 

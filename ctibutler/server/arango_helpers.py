@@ -449,7 +449,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         bind_vars = {'@collection': self.collection}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         versions = sorted([
-            v[14:].replace('_', ".")
+            v.split("=")[1].replace('_', ".")
             for v in versions
         ], key=utils.split_mitre_version, reverse=True)
         versions = [f"v{v}" for v in versions]
