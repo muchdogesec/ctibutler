@@ -782,6 +782,36 @@ class LocationView(viewsets.ViewSet):
     def retrieve_objects(self, request, *args, stix_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_object(stix_id)
     
+      
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('location_version', description="Filter the results by the version of Location")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/relationships", detail=False)
+    def retrieve_object_relationships(self, request, *args, stix_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True)
+        
+    @extend_schema(
+        summary="See available Location versions",
+        description=textwrap.dedent(
+            """
+            It is possible to import multiple versions of Location using the POST Location endpoint. By default, all endpoints will only return the latest version of Location objects (which generally suits most use-cases).
+
+            This endpoint allows you to see all imported versions of Location available to use, and which version is the latest (the default version for the objects returned).
+            """
+            ),
+        )
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    def versions(self, request, *args, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_mitre_versions(version_prefix='')
+        
+    @extend_schema(filters=False)
+    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
+    def object_versions(self, request, *args, stix_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id, version_prefix='')
+   
+
      
 @extend_schema_view(
     create=extend_schema(
@@ -860,3 +890,32 @@ class TLPView(viewsets.ViewSet):
     def retrieve_objects(self, request, *args, stix_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_object(stix_id)
     
+
+    
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('tlp_version', description="Filter the results by the version of TLP")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/relationships", detail=False)
+    def retrieve_object_relationships(self, request, *args, stix_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True)
+        
+    @extend_schema(
+        summary="See available TLP versions",
+        description=textwrap.dedent(
+            """
+            It is possible to import multiple versions of TLP using the POST TLP endpoint. By default, all endpoints will only return the latest version of TLP objects (which generally suits most use-cases).
+
+            This endpoint allows you to see all imported versions of TLP available to use, and which version is the latest (the default version for the objects returned).
+            """
+            ),
+        )
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    def versions(self, request, *args, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_mitre_versions(version_prefix='v')
+        
+    @extend_schema(filters=False)
+    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
+    def object_versions(self, request, *args, stix_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id, version_prefix='v')

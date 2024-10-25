@@ -465,7 +465,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
             RETURN KEEP(doc, KEYS(doc, true))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
 
-    def get_mitre_versions(self, stix_id=None):
+    def get_mitre_versions(self, stix_id=None, version_prefix='v'):
         query = """
         FOR doc IN @@collection
         FILTER STARTS_WITH(doc._stix2arango_note, "version=")
@@ -473,14 +473,10 @@ RETURN KEEP(d, KEYS(d, TRUE))
         """
         bind_vars = {'@collection': self.collection}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
-        versions = sorted([
-            v.split("=")[1].replace('_', ".")
-            for v in versions
-        ], key=utils.split_mitre_version, reverse=True)
-        versions = [f"v{v}" for v in versions]
+        versions = self.clean_and_sort_versions(versions, prefix=version_prefix)
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
-    def get_mitre_modified_versions(self, external_id=None, source_name='mitre-attack'):
+    def get_mitre_modified_versions(self, external_id=None, source_name='mitre-attack', version_prefix='v'):
 
         query = """
         FOR doc IN @@collection
@@ -492,12 +488,30 @@ RETURN KEEP(d, KEYS(d, TRUE))
         bind_vars = {'@collection': self.collection, 'matcher': dict(external_id=external_id, source_name=source_name)}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
-            notes = sorted([
-                'v'+v[14:].replace('_', ".")
-                for v in mod['notes']
-                ], key=utils.split_mitre_version, reverse=True)
-            mod['notes'] = notes
+            mod['notes'] = self.clean_and_sort_versions(mod['notes'], prefix=version_prefix)
         return Response(versions)
+    
+    def get_modified_versions(self, stix_id=None, version_prefix='v'):
+
+        query = """
+        FOR doc IN @@collection
+        FILTER doc.id == @stix_id AND STARTS_WITH(doc._stix2arango_note, "version=")
+        COLLECT modified = doc.modified INTO group
+        SORT modified DESC
+        RETURN {modified, notes: UNIQUE(group[*].doc._stix2arango_note)}
+        """
+        bind_vars = {'@collection': self.collection, 'stix_id': stix_id}
+        versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
+        for mod in versions:
+            mod['notes'] = self.clean_and_sort_versions(mod['notes'], prefix=version_prefix)
+        return Response(versions)
+    
+    def clean_and_sort_versions(self, versions, prefix='v'):
+        versions = sorted([
+            v.split("=")[1].replace('_', ".")
+            for v in versions
+        ], key=utils.split_mitre_version, reverse=True)
+        return [f"{prefix}{v}" for v in versions]
 
     def get_cve_versions(self, cve_id: str):
         query = """
@@ -746,7 +760,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         """
         return self.execute_query(query, bind_vars=bind_vars)
 
-    def get_object(self, stix_id):
+    def get_object(self, stix_id, relationship_mode=False):
         bind_vars={'@collection': self.collection, 'stix_id': stix_id}
         filters = ['FILTER doc._is_latest']
 
@@ -756,7 +770,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars)
+            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
 
     def get_relationships_for_ext_id(self, ext_id):
         bind_vars={'@collection': self.collection, 'ext_matcher': {'external_id': ext_id}}
