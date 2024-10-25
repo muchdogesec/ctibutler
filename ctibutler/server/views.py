@@ -496,12 +496,22 @@ class ACPView(viewsets.ViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        description="Search and filter Jobs. Jobs are triggered for each time a data download request is executed (e.g. GET ATT&CK). The response of these requests will contain a Job ID. Note, Jobs also include Arango CTI Processor runs to join the data together.\n\nNote, for job types `cpe-update` and `cve-update` you might see a lot of urls marked as `errors`. This is expected. This simply means there is no data for the day requested and the script is not smart enough to handle it gracefully.",
+        description=textwrap.dedent(
+            """
+            Search and filter Jobs. Jobs are triggered for each time a data download request is executed (e.g. POST ATT&CK) or requests to join data (e.g. POST Arango CTI Processor). 
+            """
+        ),
         summary="Get Jobs",
         responses={200: serializers.JobSerializer}
     ),
     retrieve=extend_schema(
-        description="Get information about a specific Job. To retrieve a Job ID, use the GET Jobs endpoint.\n\nNote, for job types `cpe-update` and `cve-update` you might see a lot of urls marked as `errors`. This is expected. This simply means there is no data for the day requested and the script is not smart enough to handle it gracefully.",
+        description=textwrap.dedent(
+            """
+            Get information about a specific Job. To retrieve a Job ID, use the GET Jobs endpoint.
+
+            Note, for job types `cpe-update` and `cve-update` you might see a lot of urls marked as `errors`. This is expected. This simply means there is no data for the day requested and the script is not smart enough to handle it gracefully.
+            """
+        ),
         summary="Get a Job by ID",
     ),
 )

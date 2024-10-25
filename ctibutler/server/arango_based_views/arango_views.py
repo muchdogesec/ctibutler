@@ -139,7 +139,7 @@ class SingleObjectReportsView(SingleObjectView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SDO_PARAMS,
-        summary="Get STIX Domain Objects",
+        summary="Search and filter STIX Domain Objects",
         description="Search for domain objects (aka TTPs). If you have the object ID already, you can use the base GET Objects endpoint.",
     ),
     reports=extend_schema(
@@ -160,11 +160,13 @@ class SDOView(SingleObjectReportsView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SCO_PARAMS,
-        summary="Get STIX Cyber Observable Objects",
+        summary="Search and filter STIX Cyber Observable Objects",
         description=textwrap.dedent(
             """
-            Search for STIX Cyber Observable Objects (aka Indicators of Compromise). If you have the object ID already, you can use the base GET Objects endpoint.\n\n
+            Search for STIX Cyber Observable Objects (aka Indicators of Compromise). If you have the object ID already, you can use the base GET Objects endpoint.
+
             Note the `value` filter searches the following object properties;
+
             * `artifact.payload_bin`
             * `autonomous-system.number`
             * `bank-account.iban_number`
@@ -214,8 +216,12 @@ class SCOView(SingleObjectReportsView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SMO_PARAMS,
-        summary="Get STIX Meta Objects",
-        description="Search for meta objects. If you have the object ID already, you can use the base GET Objects endpoint.",
+        summary="Search and filter STIX Meta Objects",
+        description=textwrap.dedent(
+            """
+            Search for meta objects. If you have the object ID already, you can use the base GET Objects endpoint.
+            """
+        ),
     )
 )
 class SMOView(SingleObjectView):
@@ -232,8 +238,12 @@ class SMOView(SingleObjectView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SRO_PARAMS,
-        summary="Get STIX Relationship Objects",
-        description="Search for relationship objects. This endpoint is particularly useful to search what Objects an SCO or SDO is linked to.",
+        summary="Search and filter STIX Relationship Objects",
+        description=textwrap.dedent(
+            """
+            Search for relationship objects. This endpoint is particularly useful to search what Objects an SCO or SDO is linked to.
+            """
+            ),
         ),
 )
 class SROView(SingleObjectView):
