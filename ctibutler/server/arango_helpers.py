@@ -5,6 +5,7 @@ from arango import ArangoClient
 from django.conf import settings
 from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from ..server import utils
 if typing.TYPE_CHECKING:
@@ -204,22 +205,14 @@ class ArangoDBHelper:
     def get_relationship_schema_operation_parameters(cls):
         return cls.get_schema_operation_parameters() + [
             OpenApiParameter(
-                "target_ref",
-                many=True,
-                explode=False,
-                description="Filter the results on the `target_ref` fields. The value entered should be a full ID of a STIX SDO or SCO.",
+                "include_embedded_refs",
+                description="whether to include embedded relationships in the results. default true",
+                type=OpenApiTypes.BOOL
             ),
             OpenApiParameter(
-                "source_ref",
-                many=True,
-                explode=False,
-                description="Filter the results on the `source_ref` fields. The value entered should be a full ID of a STIX SDO or SCO.",
-            ),
-            OpenApiParameter(
-                "relationship_type",
-                many=True,
-                explode=False,
-                description="Filter the results on the `relationship_type` field. Search is wildcard. For example, `in` will return `relationship` objects with `relationship_type`s; `found-in`, `located-in`, etc.",
+                "relationship_direction",
+                enum=["source_ref", "target_ref"],
+                description="Filters the results to only include where results are in the specified SRO property. default is all",
             ),
         ]
     @classmethod
@@ -791,10 +784,19 @@ RETURN KEEP(d, KEYS(d, TRUE))
             binds['rel_relationship_type'] = term.lower()
             other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
 
+        directions = dict(source_ref="_from", target_ref="_to")
+        if term := directions.get(self.query.get('relationship_direction')):
+            directions = [term]
+        else:
+            directions = list(directions.values())
+
+        binds['directions'] = directions
+        binds['include_embedded_refs'] = self.query_as_bool('include_embedded_refs', True)
+
         new_query = """
         LET matched_ids = (@docs_query)[*]._id
         FOR d IN @@view
-        FILTER d.type == 'relationship' AND [d._from, d._to] ANY IN matched_ids
+        FILTER d.type == 'relationship' AND VALUES(KEEP(d, @directions)) ANY IN matched_ids AND (NOT d._is_ref OR @include_embedded_refs)
         @other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
