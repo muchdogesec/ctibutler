@@ -45,7 +45,7 @@ import textwrap
     ),
     retrieve_object_relationships=extend_schema(
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
-        parameters=ArangoDBHelper.get_schema_operation_parameters(),
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
 )  
 class AttackView(viewsets.ViewSet):
@@ -254,7 +254,7 @@ class AttackView(viewsets.ViewSet):
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
-        parameters=ArangoDBHelper.get_schema_operation_parameters(),
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
 )  
 class CweView(viewsets.ViewSet):
@@ -386,7 +386,7 @@ class CweView(viewsets.ViewSet):
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
-        parameters=ArangoDBHelper.get_schema_operation_parameters(),
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
 )
 class CapecView(viewsets.ViewSet):
@@ -608,7 +608,7 @@ class JobView(viewsets.ModelViewSet):
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
-        parameters=ArangoDBHelper.get_schema_operation_parameters(),
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     object_versions=extend_schema(
         summary="See all versions of the ATLAS object",

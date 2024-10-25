@@ -199,6 +199,29 @@ class ArangoDBHelper:
                     container: container_schema
                 }
         }
+
+    @classmethod
+    def get_relationship_schema_operation_parameters(cls):
+        return cls.get_schema_operation_parameters() + [
+            OpenApiParameter(
+                "target_ref",
+                many=True,
+                explode=False,
+                description="Filter the results on the `target_ref` fields. The value entered should be a full ID of a STIX SDO or SCO.",
+            ),
+            OpenApiParameter(
+                "source_ref",
+                many=True,
+                explode=False,
+                description="Filter the results on the `source_ref` fields. The value entered should be a full ID of a STIX SDO or SCO.",
+            ),
+            OpenApiParameter(
+                "relationship_type",
+                many=True,
+                explode=False,
+                description="Filter the results on the `relationship_type` field. Search is wildcard. For example, `in` will return `relationship` objects with `relationship_type`s; `found-in`, `located-in`, etc.",
+            ),
+        ]
     @classmethod
     def get_schema_operation_parameters(self):
         parameters = [
@@ -372,7 +395,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
                 "types": list(types),
         }
 
-
         if q := self.query.get(f'attack_version'):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
@@ -398,7 +420,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
             bind_vars['description'] = q.lower()
             filters.append('FILTER CONTAINS(LOWER(doc.description), @description)')
 
-
         query = """
             FOR doc in @@collection
             FILTER CONTAINS(@types, doc.type)
@@ -423,10 +444,10 @@ RETURN KEEP(d, KEYS(d, TRUE))
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
-    
+
     def get_cxe_object(self, cve_id, type="vulnerability", var='name', version_param='cve_version', relationship_mode=False):
         bind_vars={'@collection': self.collection, 'obj_name': cve_id, "type":type, 'var':var}
-        #return Response(bind_vars)
+        # return Response(bind_vars)
         filters = ['FILTER doc._is_latest']
         if q := self.query.get(version_param):
             bind_vars['stix_modified'] = q
@@ -454,8 +475,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         ], key=utils.split_mitre_version, reverse=True)
         versions = [f"v{v}" for v in versions]
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
-    
-    
+
     def get_mitre_modified_versions(self, external_id=None, source_name='mitre-attack'):
 
         query = """
@@ -474,7 +494,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
                 ], key=utils.split_mitre_version, reverse=True)
             mod['notes'] = notes
         return Response(versions)
-
 
     def get_cve_versions(self, cve_id: str):
         query = """
@@ -723,11 +742,10 @@ RETURN KEEP(d, KEYS(d, TRUE))
         """
         return self.execute_query(query, bind_vars=bind_vars)
 
-
     def get_object(self, stix_id):
         bind_vars={'@collection': self.collection, 'stix_id': stix_id}
         filters = ['FILTER doc._is_latest']
-        
+
         return self.execute_query('''
             FOR doc in @@collection
             FILTER doc.id == @stix_id
@@ -735,11 +753,11 @@ RETURN KEEP(d, KEYS(d, TRUE))
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars)
-    
+
     def get_relationships_for_ext_id(self, ext_id):
         bind_vars={'@collection': self.collection, 'ext_matcher': {'external_id': ext_id}}
         filters = ['FILTER doc._is_latest']
-        
+
         return self.execute_query('''
             LET docs = (FOR doc in @@collection
             FILTER MATCHES(doc.external_references[0], @ext_matcher)
@@ -747,16 +765,38 @@ RETURN KEEP(d, KEYS(d, TRUE))
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true)))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars)
-    
+
     def get_relationships(self, docs_query, binds):
         regex = r"KEEP\((\w+),\s*\w+\(.*?\)\)"
         binds['@view'] = settings.VIEW_NAME
+        other_filters = []
+
+        if term := self.query_as_array('source_ref'):
+            binds['rel_source_ref'] = term
+            other_filters.append('FILTER d.source_ref IN @rel_source_ref')
+
+        if terms := self.query_as_array('source_ref_type'):
+            binds['rel_source_ref_type'] = terms
+            other_filters.append('FILTER SPLIT(d.source_ref, "--")[0] IN @rel_source_ref_type')
+
+        if term := self.query_as_array('target_ref'):
+            binds['rel_target_ref'] = term
+            other_filters.append('FILTER d.target_ref IN @rel_target_ref')
+
+        if terms := self.query_as_array('target_ref_type'):
+            binds['rel_target_ref_type'] = terms
+            other_filters.append('FILTER SPLIT(d.target_ref, "--")[0] IN @rel_target_ref_type')
+
+        if term := self.query.get('relationship_type'):
+            binds['rel_relationship_type'] = term.lower()
+            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
+
         new_query = """
         LET matched_ids = (@docs_query)[*]._id
         FOR d IN @@view
         FILTER d.type == 'relationship' AND [d._from, d._to] ANY IN matched_ids
+        @other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
-        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', '')))
+        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))).replace('@other_filters', "\n".join(other_filters))
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
-  
