@@ -7,53 +7,55 @@ from drf_spectacular.utils import OpenApiParameter
 if typing.TYPE_CHECKING:
     from ctibutler import settings
 
-SDO_TYPES = set(
-    [
-        "report",
-        "note",
-        "indicator",
-        "attack-pattern",
-        "weakness",
-        "campaign",
-        "course-of-action",
-        "infrastructure",
-        "intrusion-set",
-        "malware",
-        "threat-actor",
-        "tool",
-        "identity",
-        "location",
-    ]
-)
+SDO_TYPES = set([
+    "attack-pattern",
+    "campaign",
+    "course-of-action",
+    "grouping",
+    "identity",
+    "incident",
+    "indicator",
+    "infrastructure",
+    "intrusion-set",
+    "location",
+    "malware",
+    "malware-analysis",
+    "note",
+    "observed-data",
+    "opinion",
+    "report",
+    "threat-actor",
+    "sighting",
+    "tool",
+    "vulnerability"
+])
 
-SCO_TYPES = set(
-    [
-        "artifact",
-        "autonomous-system",
-        "bank-account",
-        "bank-card",
-        "cryptocurrency-transaction",
-        "cryptocurrency-wallet",
-        "directory",
-        "domain-name",
-        "email-addr",
-        "email-message",
-        "file",
-        "ipv4-addr",
-        "ipv6-addr",
-        "mac-addr",
-        "mutex",
-        "network-traffic",
-        "phone-number",
-        "process",
-        "software",
-        "url",
-        "user-account",
-        "user-agent",
-        "windows-registry-key",
-        "x509-certificate"
-    ]
-)
+SCO_TYPES = set([
+    "artifact",
+    "autonomous-system",
+    "bank-account",
+    "bank-card",
+    "cryptocurrency-transaction",
+    "cryptocurrency-wallet",
+    "directory",
+    "domain-name",
+    "email-addr",
+    "email-message",
+    "file",
+    "ipv4-addr",
+    "ipv6-addr",
+    "mac-addr",
+    "mutex",
+    "network-traffic",
+    "phone-number",
+    "process",
+    "software",
+    "url",
+    "user-account",
+    "user-agent",
+    "windows-registry-key",
+    "x509-certificate"
+])
 SDO_SORT_FIELDS = [
     "name_ascending",
     "name_descending",
