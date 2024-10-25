@@ -70,12 +70,7 @@ You can access the Swagger UI for the API in a browser at: http://127.0.0.1:8006
 
 ## Quickstart
 
-Once you've got CTI Butler running, you can use the following script to import all current and historical data;
-
-```shell
-pip3 install requests
-python3 utilities/import_all_data.py
-```
+Once you've got CTI Butler running, you can use the following script to import all current and historical data. See `utilities/README.md`
 
 ## Support
 
