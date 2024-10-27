@@ -31,6 +31,8 @@ import textwrap
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+
+            Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
         ),
     ),
@@ -139,6 +141,8 @@ class AttackView(viewsets.ViewSet):
                     * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
                     The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+
+                    Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
                     """
                 ),
             ),
@@ -147,6 +151,24 @@ class AttackView(viewsets.ViewSet):
                 description=textwrap.dedent(
                     """
                     Search and filter MITRE ATT&CK {matrix_name_human} objects.
+
+                    MITRE ATT&CK objects map to STIX objects as follows
+
+                    * Collection: `x-mitre-collection`
+                    * Matrix: `x-mitre-matrix`
+                    * Tactic: `x-mitre-tactic`
+                    * Techniques: `attack-pattern`
+                    * Sub-techniques: `attack-pattern` where `x_mitre_is_subtechnique = true` (Enterprise, Mobile only)
+                    * Mitigation: `course-of-action`
+                    * Groups: `intrusion-set`
+                    * Software (malicious): `malware`
+                    * Software (benign): `tool` (Enterprise, Mobile only)
+                    * Campaign: `campaign`
+                    * Data Source: `x-mitre-data-source`
+                    * Data Component: `x-mitre-data-component`
+                    * Asset: `x-mitre-asset` (ICS only)
+                    * Identity: `identity` (for MITRE and DOGESEC)
+                    * Marking definitions: `marking-definitions` for TLPs (v1) and copyright statements
                     """
                     ),
                 filters=True,
@@ -187,6 +209,10 @@ class AttackView(viewsets.ViewSet):
                 description=textwrap.dedent(
                     """
                     This endpoint will return all the STIX `relationship` objects where the ATT&CK object is found as a `source_ref` or a `target_ref`.
+
+                    If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
+
+                    MITRE ATT&CK objects can also be `target_ref` from CAPECs objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
                     """
                 ),
             ),
@@ -213,6 +239,8 @@ class AttackView(viewsets.ViewSet):
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+
+            Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
         ),
     ),
@@ -220,7 +248,14 @@ class AttackView(viewsets.ViewSet):
         summary='Search and filter MITRE CWE objects',
         description=textwrap.dedent(
             """
-            Search and filter MITRE CAPEC objects.
+            Search and filter MITRE CWE objects.
+
+            The following STIX object types can be returned in this response:
+
+            * `weakness`: represent the CWE object
+            * `grouping`: groups the CWE object by external groupings, [as shown here](https://cwe.mitre.org/data/index.html).
+            * `identity`: the cwe2stix identity
+            * `marking-definitions`: for cwe2stix and TLPs (v2)
             """
         ),
         filters=True,
@@ -251,6 +286,10 @@ class AttackView(viewsets.ViewSet):
         description=textwrap.dedent(
             """
             This endpoint will return all the STIX relationship objects where the CWE object is found as a source_ref or a target_ref.
+
+            If you want to see an overview of how MITRE CWE objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
+
+            MITRE CWE objects can also be `source_ref` to CAPEC objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
@@ -345,6 +384,8 @@ class CweView(viewsets.ViewSet):
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+
+            Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
         ),
     ),
@@ -577,6 +618,8 @@ class JobView(viewsets.ModelViewSet):
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+
+            Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
         ),
     ),
@@ -709,6 +752,8 @@ class AtlasView(viewsets.ViewSet):
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+
+            Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
         ),
     ),
