@@ -904,16 +904,24 @@ class LocationView(viewsets.ViewSet):
     ),
     list_objects=extend_schema(
         summary='Get TLP objects',
-        description='Search and filter TLP results. This endpoint will return `weakness` objects. It is most useful for finding TLP IDs that can be used to filter Vulnerability records with on the GET CVE objects endpoints.',
+        description=textwrap.dedent(
+            """
+            Search and filter TLP results. This endpoint will return `marking-definition` objects.
+            """
+        ),
         filters=True,
     ),
     retrieve_objects=extend_schema(
         summary='Get a TLP object',
-        description='Get an TLP object by its STIX ID. To search and filter TLP objects to get an ID use the GET Objects endpoint.',
+        description=textwrap.dedent(
+            """
+            Get an TLP object by its STIX ID. To search and filter TLP objects to get an ID use the GET Objects endpoint.
+            """
+        ),
         filters=False,
     ),
     object_versions=extend_schema(
-        summary="See available TLP versions for TLP-ID",
+        summary="See available TLP versions for TLP STIX ID",
         description=textwrap.dedent(
             """
             See all imported versions available to use.
