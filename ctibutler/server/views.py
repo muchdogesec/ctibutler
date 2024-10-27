@@ -761,7 +761,12 @@ class AtlasView(viewsets.ViewSet):
         summary='Get Location objects',
         description=textwrap.dedent(
             """
-            Search and filter Location objects.
+            Search and filter Location objects. Four types of Locations are supported;
+
+            * Countries (e.g. `France`)
+            * Intermediate regions (e.g. `Channel Islands`)
+            * Sub-regions (e.g. `Western Europe`)
+            * Regions (e.g. `Europe`)
             """
         ),
         filters=True,
@@ -804,7 +809,7 @@ class LocationView(viewsets.ViewSet):
     class filterset_class(FilterSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
-        alpha3_code = CharFilter(label="Filter by alpha-3 code, e.g MEX")
+        alpha3_code = CharFilter(label="Filter by alpha-3 code of the country (e.g `MEX`, `GER`). Only works with country type locations.")
         location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], label="Filter by location type")
 
     def create(self, request, *args, **kwargs):
