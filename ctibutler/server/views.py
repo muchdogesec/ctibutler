@@ -212,7 +212,7 @@ class AttackView(viewsets.ViewSet):
 
                     If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
 
-                    MITRE ATT&CK objects can also be `target_ref` from CAPECs objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
+                    MITRE ATT&CK Enterprise objects can also be `target_ref` from CAPECs objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
                     """
                 ),
             ),
@@ -394,6 +394,13 @@ class CweView(viewsets.ViewSet):
         description=textwrap.dedent(
             """
             Search and filter MITRE CAPEC objects.
+
+            The following STIX object types can be returned in this response:
+
+            * `attack-pattern`: represent CAPECs
+            * `course-of-action`: represents ways to respond to CAPECs
+            * `identity`: for MITRE and DOGESEC
+            * `marking-definitions`: for TLPs (v1) and copyright statements            
             """
         ),
         filters=True,
@@ -424,6 +431,10 @@ class CweView(viewsets.ViewSet):
         description=textwrap.dedent(
             """
             This endpoint will return all the STIX relationship objects where the CAPEC object is found as a source_ref or a target_ref.
+
+            MITRE CAPEC objects can also be `source_ref` from ATT&CK Enterprise objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
+
+            MITRE CAPEC objects can also be `target_ref` to CWE objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
@@ -549,8 +560,6 @@ class ACPView(viewsets.ViewSet):
         description=textwrap.dedent(
             """
             Get information about a specific Job. To retrieve a Job ID, use the GET Jobs endpoint.
-
-            Note, for job types `cpe-update` and `cve-update` you might see a lot of urls marked as `errors`. This is expected. This simply means there is no data for the day requested and the script is not smart enough to handle it gracefully.
             """
         ),
         summary="Get a Job by ID",
