@@ -10,12 +10,15 @@ We offer a fully hosted web version of CTI Butler which includes many additional
 
 A web API for the following STIX 2.1 datasets:
 
-* MITRE ATT&CK
+* MITRE ATT&CK Enterprise
+* MITRE ATT&CK ICS
+* MITRE ATT&CK Mobile
 * MITRE CAPEC
 * MITRE CWE
 * MITRE ATLAS
 * Locations
 * TLP
+* DISARM
 
 ## Install
 
