@@ -45,6 +45,8 @@ def create_celery_task_from_job(job: Job):
             task = run_mitre_task(data, job, 'capec')
         case models.JobType.CTI_PROCESSOR:
             task = run_acp_task(data, job)
+        case models.JobType.DISARM_UPDATE:
+            task = run_mitre_task(data, job, 'disarm')
     task.set_immutable(True)
     return task
 
@@ -93,7 +95,10 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
             collection_name = 'tlp'
         case "location":
             url = urljoin(settings.LOCATION_BUCKET_ROOT_PATH, f"locations-bundle-{version}.json")
-            collection_name = mitre_type
+            collection_name = "location"
+        case "disarm":
+            url = urljoin(settings.DISARM_BUCKET_ROOT_PATH, f"disarm-bundle-v{version}.json")
+            collection_name = "disarm"
         case _:
             raise NotImplementedError("Unknown type for mitre task")
     

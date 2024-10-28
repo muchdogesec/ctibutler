@@ -176,6 +176,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},
         {"name": "CAPEC", "description": "Manage and search MITRE CAPEC objects."},
         {"name": "CWE", "description": "Manage and search MITRE CWE objects."},
+        {"name": "DISARM", "description": "Manage and search MITRE DISARM objects."},
         {"name": "ATLAS", "description": "Manage and search MITRE ATLAS objects."},
         {"name": "Location", "description": "Manage and search Location objects."},
         {"name": "TLP", "description": "Manage and search TLP objects."},
@@ -199,4 +200,5 @@ ATTACK_ICS_BUCKET_ROOT_PATH = os.environ["ATTACK_ICS_BUCKET_ROOT_PATH"]
 ATLAS_BUCKET_ROOT_PATH = os.environ["ATLAS_BUCKET_ROOT_PATH"]
 LOCATION_BUCKET_ROOT_PATH = os.environ["LOCATION_BUCKET_ROOT_PATH"]
 TLP_BUCKET_ROOT_PATH = os.environ["TLP_BUCKET_ROOT_PATH"]
+DISARM_BUCKET_ROOT_PATH = os.environ["DISARM_BUCKET_ROOT_PATH"]
 

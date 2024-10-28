@@ -38,6 +38,7 @@ router.register("tlp", views.TLPView, "tlp-view")
 ## mitre cwe/capec/atlas
 router.register("cwe", views.CweView, "cwe-view")
 router.register("atlas", views.AtlasView, "atlas-view")
+router.register("disarm", views.DisarmView, "disarm-view")
 router.register("capec", views.CapecView, "capec-view")
 ## mitre att&ck
 router.register("attack-mobile", views.AttackView.attack_view('mobile'), "attack-mobile-view")

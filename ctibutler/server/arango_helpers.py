@@ -82,6 +82,14 @@ CWE_TYPES = set([
 ]
 )
 
+DISARM_TYPES = set([
+  "attack-pattern",
+  "identity",
+  "marking-definition",
+  "x-mitre-matrix",
+  "x-mitre-tactic"
+])
+
 ATLAS_TYPES = set([
   "attack-pattern",
   "course-of-action",
