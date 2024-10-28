@@ -8,7 +8,7 @@ from ctibutler.worker.tasks import new_task
 from . import models
 from ctibutler.server import serializers
 from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, MultipleChoiceFilter, NumberFilter, NumericRangeFilter, DateTimeFilter, BaseInFilter
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 from textwrap import dedent
 # Create your views here.
@@ -17,8 +17,6 @@ import textwrap
 
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
         request=serializers.MitreTaskSerializer,
         summary="Download ATT&CK Objects",
         description=textwrap.dedent(
@@ -75,7 +73,6 @@ class AttackView(viewsets.ViewSet):
         type = ChoiceFilter(choices=[(f,f) for f in ATTACK_TYPES], label='Filter the results by STIX Object type.')
         attack_version = CharFilter(label="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
 
-    
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -85,11 +82,10 @@ class AttackView(viewsets.ViewSet):
         job_s = serializers.JobSerializer(instance=job)
         return Response(job_s.data, status=status.HTTP_201_CREATED)
 
-    
     @decorators.action(methods=['GET'], url_path="objects", detail=False)
     def list_objects(self, request, *args, **kwargs):
         return ArangoDBHelper('', request).get_attack_objects(self.matrix)
-    
+
     @extend_schema(
             parameters=[
                 OpenApiParameter('attack_version', description="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
@@ -98,8 +94,7 @@ class AttackView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>", detail=False)
     def retrieve_objects(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id)
-        
-    
+
     @extend_schema(
             parameters=[
                 OpenApiParameter('attack_version', description="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
@@ -108,26 +103,47 @@ class AttackView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, relationship_mode=True)
-        
+
     @extend_schema()
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_mitre_versions()
-    
+
     @extend_schema(filters=False)
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_mitre_modified_versions(attack_id)
-    
 
     @classmethod
     def attack_view(cls, matrix_name: str):
         matrix_name_human = matrix_name.title()
         if matrix_name == 'ics':
             matrix_name_human = "ICS"
+
         @extend_schema_view(
             create=extend_schema(
-                responses={201: serializers.JobSerializer
+                responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                    "id": "fbc43f28-6929-4b55-9559-326191701e48",
+                                    "type": "attack-update",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-25T14:21:02.850924Z",
+                                    "completion_time": "2024-10-25T14:22:09.966635Z",
+                                    "parameters": {
+                                        "matrix": matrix_name,
+                                        "version": "1_0",
+                                        "ignore_embedded_relationships": True,
+                                    },
+                                },
+                            )
+                        ],
+                    )
                 },
                 request=serializers.MitreTaskSerializer,
                 summary=f"Download MITRE ATT&CK {matrix_name_human} Objects",
@@ -147,7 +163,7 @@ class AttackView(viewsets.ViewSet):
                 ),
             ),
             list_objects=extend_schema(
-                summary=f'Search and filter MITRE ATT&CK {matrix_name_human} objects',
+                summary=f"Search and filter MITRE ATT&CK {matrix_name_human} objects",
                 description=textwrap.dedent(
                     """
                     Search and filter MITRE ATT&CK {matrix_name_human} objects.
@@ -170,11 +186,11 @@ class AttackView(viewsets.ViewSet):
                     * Identity: `identity` (for MITRE and DOGESEC)
                     * Marking definitions: `marking-definitions` for TLPs (v1) and copyright statements
                     """
-                    ),
+                ),
                 filters=True,
             ),
             retrieve_objects=extend_schema(
-                summary=f'Get a specific MITRE ATT&CK {matrix_name_human} object by its ID',
+                summary=f"Get a specific MITRE ATT&CK {matrix_name_human} object by its ID",
                 description=textwrap.dedent(
                     """
                     Get a MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
@@ -205,7 +221,7 @@ class AttackView(viewsets.ViewSet):
                 ),
             ),
             retrieve_object_relationships=extend_schema(
-                summary=f'Get the Relationships linked to the MITRE ATT&CK {matrix_name_human} Object',
+                summary=f"Get the Relationships linked to the MITRE ATT&CK {matrix_name_human} Object",
                 description=textwrap.dedent(
                     """
                     This endpoint will return all the STIX `relationship` objects where the ATT&CK object is found as a `source_ref` or a `target_ref`.
@@ -216,17 +232,36 @@ class AttackView(viewsets.ViewSet):
                     """
                 ),
             ),
-        )  
+        )
         class TempAttackView(cls):
             matrix = matrix_name
             openapi_tags = [f"ATT&CK {matrix_name_human}"]
         TempAttackView.__name__ = f'{matrix_name.title()}AttackView'
         return TempAttackView
-    
+
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
+        responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                    "id": "85e78220-6387-4be1-81ea-b8373c89aa92",
+                                    "type": "cwe-update",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-25T10:39:25.925090Z",
+                                    "completion_time": "2024-10-25T10:39:41.551515Z",
+                                    "parameters": {
+                                        "version": "4_15"
+                                    }
+                                },
+                            )
+                        ],
+                    )
+                },
         request=serializers.MitreTaskSerializer,
         summary="Download MITRE CWE objects",
         description=textwrap.dedent(
@@ -367,11 +402,30 @@ class CweView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, cwe_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_cwe_vertex_collection', request).get_mitre_modified_versions(cwe_id, source_name='cwe')
- 
+
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
+        responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                    "id": "d18c2179-3b05-4d24-bd34-d4935ad30e23",
+                                    "type": "capec-update",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-25T10:38:25.850756Z",
+                                    "completion_time": "2024-10-25T10:38:39.369972Z",
+                                    "parameters": {
+                                        "version": "3_9"
+                                    }
+                                },
+                            )
+                        ],
+                    )
+                },
         request=serializers.MitreTaskSerializer,
         summary="Download MITRE CAPEC objects",
         description=textwrap.dedent(
@@ -512,11 +566,31 @@ class CapecView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, capec_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_capec_vertex_collection', request).get_mitre_modified_versions(capec_id, source_name='capec')
-    
+
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
+        responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                    "id": "972730a4-3f99-47d5-ba6a-5bce0c749081",
+                                    "type": "arango-cti-processor",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-22T12:37:56.999198Z",
+                                    "completion_time": "2024-10-22T12:38:09.323409Z",
+                                    "parameters": {
+                                        "mode": "cwe-capec",
+                                        "ignore_embedded_relationships": True
+                                    }
+                                },
+                            )
+                        ],
+                    )
+                },
         summary="Trigger arango_cti_processor `mode` to generate relationships.",
         description=textwrap.dedent(
             """
@@ -610,11 +684,30 @@ class JobView(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-      
+
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
+        responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                     "id": "eb050fc4-c075-4c1b-9d6c-09f498f24dda",
+                                    "type": "atlas-update",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-22T13:02:38.795046Z",
+                                    "completion_time": "2024-10-22T13:02:39.904610Z",
+                                    "parameters": {
+                                        "version": "4_5_2"
+                                    }
+                                },
+                            )
+                        ],
+                    )
+                },
         request=serializers.MitreTaskSerializer,
         summary="Download MITRE ATLAS objects",
         description=textwrap.dedent(
@@ -742,13 +835,31 @@ class AtlasView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, atlas_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_atlas_vertex_collection', request).get_mitre_modified_versions(atlas_id, source_name='atlas')
-   
 
-      
+
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
+        responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                     "id": "e6dab411-162b-4797-82b1-8355a9d51138",
+                                    "type": "location-update",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-24T15:04:38.328698Z",
+                                    "completion_time": "2024-10-24T15:04:47.655397Z",
+                                    "parameters": {
+                                        "version": "ac1bbfc"
+                                    }
+                                },
+                            )
+                        ],
+                    )
+                },
         request=serializers.MitreTaskSerializer,
         summary="Download Location objects",
         description=textwrap.dedent(
@@ -880,13 +991,31 @@ class LocationView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, stix_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id)
-   
 
-     
+
 @extend_schema_view(
     create=extend_schema(
-        responses={201: serializers.JobSerializer
-        },
+        responses={
+                    201: OpenApiResponse(
+                        serializers.JobSerializer,
+                        examples=[
+                            OpenApiExample(
+                                "",
+                                value={
+                                    "id": "30f548ef-adfc-4ca4-9352-5ba6525f71c9",
+                                    "type": "tlp-update",
+                                    "state": "pending",
+                                    "errors": [],
+                                    "run_datetime": "2024-10-25T10:39:55.956831Z",
+                                    "completion_time": "2024-10-25T10:40:04.977128Z",
+                                    "parameters": {
+                                        "version": "1"
+                                    }
+                                },
+                            )
+                        ],
+                    )
+                },
         request=serializers.MitreTaskSerializer,
         summary="Download TLP objects",
         description=textwrap.dedent(
