@@ -905,6 +905,14 @@ class AtlasView(viewsets.ViewSet):
             """
         ),
     ),
+    retrieve_object_relationships=extend_schema(
+        summary='placeholder summary location',
+        description=textwrap.dedent(
+            """
+            placeholder description location
+            """
+        ),
+    )
 )  
 class LocationView(viewsets.ViewSet):
     openapi_tags = ["Location"]
@@ -1052,6 +1060,14 @@ class LocationView(viewsets.ViewSet):
             """
         ),
     ),
+    retrieve_object_relationships=extend_schema(
+        summary='placeholder summary tlp',
+        description=textwrap.dedent(
+            """
+            placeholder description tlp
+            """
+        ),
+    )
 )  
 class TLPView(viewsets.ViewSet):
     openapi_tags = ["TLP"]
