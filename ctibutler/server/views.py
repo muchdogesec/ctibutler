@@ -931,6 +931,7 @@ class LocationView(viewsets.ViewSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
         alpha3_code = CharFilter(label="Filter by alpha-3 code of the country (e.g `MEX`, `GER`). Only works with country type locations.")
+        alpha2_code = CharFilter(label="Filter by alpha-2 code of the country (e.g `MX`, `DE`). Only works with country type locations.")
         location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], label="Filter by location type")
 
     def create(self, request, *args, **kwargs):
@@ -948,8 +949,11 @@ class LocationView(viewsets.ViewSet):
         helper = ArangoDBHelper(self.arango_collection, request)
         more_binds = dict()
         if helper.query_as_array('alpha3_code'):
-            more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @alpha_matchers]")
-            more_binds['alpha_matchers'] = [dict(source_name='alpha-3', external_id=code) for code in helper.query_as_array('alpha3_code')]
+            more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @alpha3_matchers]")
+            more_binds['alpha3_matchers'] = [dict(source_name='alpha-3', external_id=code) for code in helper.query_as_array('alpha3_code')]
+        if helper.query_as_array('alpha2_code'):
+            more_filters.append("FILTER doc.country IN @alpha2_matchers")
+            more_binds['alpha2_matchers'] = helper.query_as_array('alpha2_code')
         if helper.query_as_array('location_type'):
             more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @location_type_matchers]")
             more_binds['location_type_matchers'] = [dict(source_name='type', external_id=code) for code in helper.query_as_array('location_type')]
