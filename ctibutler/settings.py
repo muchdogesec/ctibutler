@@ -145,6 +145,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "ctibutler.server.autoschema.CustomAutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],
+    'EXCEPTION_HANDLER': "ctibutler.server.utils.custom_exception_handler",
 }
 
 STIX_NAMESPACE = uuid.UUID('e92c648d-03eb-59a5-a318-9a36e6f8057c')

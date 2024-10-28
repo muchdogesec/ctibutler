@@ -6,7 +6,19 @@ from django.utils.encoding import force_str
 from django.db.models import Q
 from datetime import datetime
 from rest_framework import response
+from rest_framework.views import exception_handler
 
+
+def custom_exception_handler(exc, context):
+    # Call REST framework's default exception handler first,
+    # to get the standard error response.
+    resp = exception_handler(exc, context)
+
+    # Now add the HTTP status code to the response.
+    if resp is not None:
+        resp.data = dict(code=resp.status_code, details=resp.data)
+
+    return resp
 
 class Pagination(pagination.PageNumberPagination):
     max_page_size = settings.MAXIMUM_PAGE_SIZE

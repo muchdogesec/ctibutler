@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, filters, status, decorators
 
 from ctibutler.server.arango_helpers import ATLAS_TYPES, CVE_SORT_FIELDS, LOCATION_TYPES, TLP_TYPES, ArangoDBHelper, ATTACK_TYPES, CWE_TYPES, SOFTWARE_TYPES, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering, split_mitre_version
 from ctibutler.worker.tasks import new_task
 from . import models
@@ -17,34 +18,16 @@ import textwrap
 
 @extend_schema_view(
     create=extend_schema(
-        request=serializers.MitreTaskSerializer,
-        summary="Download ATT&CK Objects",
-        description=textwrap.dedent(
-            """
-            Use this data to update ATT&CK records.
-
-            The following key/values are accepted in the body of the request:
-
-            * `version` (required): the version of ATT&CK you want to download in the format `N_N`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7).
-            * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
-
-            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
-
-            Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
-            """
-        ),
     ),
     list_objects=extend_schema(
-        summary='Get ATT&CK objects',
-        description="Search and filter ATT&CK results.",
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
         filters=True
     ),
     retrieve_objects=extend_schema(
-        summary='Get an ATT&CK object',
-        description="Get an ATT&CK object by its STIX ID. To search and filter objects to get an ID use the GET Objects endpoint.",
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_object_relationships=extend_schema(
-        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
+        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
 )  
@@ -143,7 +126,8 @@ class AttackView(viewsets.ViewSet):
                                 },
                             )
                         ],
-                    )
+                    ),
+                    400: DEFAULT_400_ERROR
                 },
                 request=serializers.MitreTaskSerializer,
                 summary=f"Download MITRE ATT&CK {matrix_name_human} Objects",
@@ -260,7 +244,7 @@ class AttackView(viewsets.ViewSet):
                                 },
                             )
                         ],
-                    )
+                    ), 400: DEFAULT_400_ERROR
                 },
         request=serializers.MitreTaskSerializer,
         summary="Download MITRE CWE objects",
@@ -294,6 +278,7 @@ class AttackView(viewsets.ViewSet):
             """
         ),
         filters=True,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_objects=extend_schema(
         summary='Get a CWE object',
@@ -305,6 +290,7 @@ class AttackView(viewsets.ViewSet):
             """
         ),
         filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     object_versions=extend_schema(
         summary="See all versions of the CWE object",
@@ -327,7 +313,7 @@ class AttackView(viewsets.ViewSet):
             MITRE CWE objects can also be `source_ref` to CAPEC objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
+        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
 )  
@@ -424,7 +410,7 @@ class CweView(viewsets.ViewSet):
                                 },
                             )
                         ],
-                    )
+                    ), 400: DEFAULT_400_ERROR
                 },
         request=serializers.MitreTaskSerializer,
         summary="Download MITRE CAPEC objects",
@@ -458,6 +444,7 @@ class CweView(viewsets.ViewSet):
             """
         ),
         filters=True,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_objects=extend_schema(
         summary='Get a CAPEC object',
@@ -469,6 +456,7 @@ class CweView(viewsets.ViewSet):
             """
         ),
         filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     object_versions=extend_schema(
         summary="See all versions of the MITRE CAPEC object",
@@ -491,7 +479,7 @@ class CweView(viewsets.ViewSet):
             MITRE CAPEC objects can also be `target_ref` to CWE objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
+        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
 )
@@ -589,7 +577,7 @@ class CapecView(viewsets.ViewSet):
                                 },
                             )
                         ],
-                    )
+                    ), 400: DEFAULT_400_ERROR
                 },
         summary="Trigger arango_cti_processor `mode` to generate relationships.",
         description=textwrap.dedent(
@@ -628,7 +616,7 @@ class ACPView(viewsets.ViewSet):
             """
         ),
         summary="Get Jobs",
-        responses={200: serializers.JobSerializer}
+        responses={200: serializers.JobSerializer, 400: DEFAULT_400_ERROR}
     ),
     retrieve=extend_schema(
         description=textwrap.dedent(
@@ -637,6 +625,7 @@ class ACPView(viewsets.ViewSet):
             """
         ),
         summary="Get a Job by ID",
+        responses={200: serializers.JobSerializer, 400: DEFAULT_404_ERROR},
     ),
 )
 class JobView(viewsets.ModelViewSet):
@@ -706,7 +695,7 @@ class JobView(viewsets.ModelViewSet):
                                 },
                             )
                         ],
-                    )
+                    ), 400: DEFAULT_400_ERROR
                 },
         request=serializers.MitreTaskSerializer,
         summary="Download MITRE ATLAS objects",
@@ -733,6 +722,7 @@ class JobView(viewsets.ModelViewSet):
             """
         ),
         filters=True,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_objects=extend_schema(
         summary='Get an ATLAS object',
@@ -744,6 +734,7 @@ class JobView(viewsets.ModelViewSet):
             """
         ),
         filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_object_relationships=extend_schema(
         summary='Get the Relationships linked to the MITRE ATLAS Object',
@@ -752,7 +743,7 @@ class JobView(viewsets.ModelViewSet):
             This endpoint will return all the STIX relationship objects where the ATLAS object is found as a source_ref or a target_ref.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship')},
+        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     object_versions=extend_schema(
@@ -858,7 +849,7 @@ class AtlasView(viewsets.ViewSet):
                                 },
                             )
                         ],
-                    )
+                    ), 400: DEFAULT_400_ERROR
                 },
         request=serializers.MitreTaskSerializer,
         summary="Download Location objects",
@@ -890,6 +881,7 @@ class AtlasView(viewsets.ViewSet):
             """
         ),
         filters=True,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_objects=extend_schema(
         summary='Get a Location object',
@@ -901,6 +893,7 @@ class AtlasView(viewsets.ViewSet):
             """
         ),
         filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     object_versions=extend_schema(
         summary="See all versions of the Location object",
@@ -1014,7 +1007,7 @@ class LocationView(viewsets.ViewSet):
                                 },
                             )
                         ],
-                    )
+                    ), 400: DEFAULT_400_ERROR
                 },
         request=serializers.MitreTaskSerializer,
         summary="Download TLP objects",
@@ -1039,6 +1032,7 @@ class LocationView(viewsets.ViewSet):
             """
         ),
         filters=True,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_objects=extend_schema(
         summary='Get a TLP object',
@@ -1048,6 +1042,7 @@ class LocationView(viewsets.ViewSet):
             """
         ),
         filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     object_versions=extend_schema(
         summary="See available TLP versions for TLP STIX ID",
