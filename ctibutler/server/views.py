@@ -904,6 +904,7 @@ class AtlasView(viewsets.ViewSet):
             The data returned is useful to see when and object has changed.
             """
         ),
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_object_relationships=extend_schema(
         summary='placeholder summary location',
@@ -912,6 +913,9 @@ class AtlasView(viewsets.ViewSet):
             placeholder description location
             """
         ),
+        filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     )
 )  
 class LocationView(viewsets.ViewSet):
@@ -930,7 +934,7 @@ class LocationView(viewsets.ViewSet):
     class filterset_class(FilterSet):
         id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
-        alpha3_code = CharFilter(label="Filter by alpha-3 code of the country (e.g `MEX`, `GER`). Only works with country type locations.")
+        alpha3_code = CharFilter(label="Filter by alpha-3 code of the country (e.g `MEX`, `USA`). Only works with country type locations.")
         alpha2_code = CharFilter(label="Filter by alpha-2 code of the country (e.g `MX`, `DE`). Only works with country type locations.")
         location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], label="Filter by location type")
 
@@ -961,12 +965,12 @@ class LocationView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                # OpenApiParameter('location_version', description="Filter the results by the version of Location")
+                OpenApiParameter('location_version', description="Filter the results by the version of Location")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>", detail=False)
     def retrieve_objects(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id)
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, version_param='location_version')
     
       
     @extend_schema(
@@ -976,7 +980,7 @@ class LocationView(viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True)
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True, version_param='location_version')
         
     @extend_schema(
         summary="See available Location versions",
@@ -1071,6 +1075,9 @@ class LocationView(viewsets.ViewSet):
             placeholder description tlp
             """
         ),
+        filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     )
 )  
 class TLPView(viewsets.ViewSet):
@@ -1105,12 +1112,12 @@ class TLPView(viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                # OpenApiParameter('TLP_version', description="Filter the results by the version of TLP")
+                OpenApiParameter('tlp_version', description="Filter the results by the version of TLP")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>", detail=False)
     def retrieve_objects(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id)
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, version_param='tlp_version')
     
 
 
@@ -1121,7 +1128,7 @@ class TLPView(viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True)
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True, version_param='tlp_version')
         
     @extend_schema(
         summary="See available TLP versions",
