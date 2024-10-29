@@ -38,12 +38,14 @@ router.register("tlp", views.TLPView, "tlp-view")
 ## mitre cwe/capec/atlas
 router.register("cwe", views.CweView, "cwe-view")
 router.register("atlas", views.AtlasView, "atlas-view")
+router.register("disarm", views.DisarmView, "disarm-view")
 router.register("capec", views.CapecView, "capec-view")
 ## mitre att&ck
 router.register("attack-mobile", views.AttackView.attack_view('mobile'), "attack-mobile-view")
 router.register("attack-ics", views.AttackView.attack_view('ics'), "attack-ics-view")
 router.register("attack-enterprise", views.AttackView.attack_view('enterprise'), "attack-enterprise-view")
 ## objects
+router.register("object", arango_views.SingleObjectView, "object-view-orig")
 router.register('objects/smos', arango_views.SMOView, "object-view-smo")
 router.register('objects/scos', arango_views.SCOView, "object-view-sco")
 router.register('objects/sros', arango_views.SROView, "object-view-sro")

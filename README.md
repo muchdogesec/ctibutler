@@ -10,12 +10,21 @@ We offer a fully hosted web version of CTI Butler which includes many additional
 
 A web API for the following STIX 2.1 datasets:
 
-* MITRE ATT&CK
+* MITRE ATT&CK Enterprise
+* MITRE ATT&CK ICS
+* MITRE ATT&CK Mobile
 * MITRE CAPEC
 * MITRE CWE
 * MITRE ATLAS
 * Locations
 * TLP
+* DISARM
+
+## tl;dr
+
+[![Vulmatch](https://img.youtube.com/vi/84SgT-ess4E/0.jpg)](https://www.youtube.com/watch?v=84SgT-ess4E)
+
+[Watch the demo](https://www.youtube.com/watch?v=84SgT-ess4E).
 
 ## Install
 
@@ -70,12 +79,7 @@ You can access the Swagger UI for the API in a browser at: http://127.0.0.1:8006
 
 ## Quickstart
 
-Once you've got CTI Butler running, you can use the following script to import all current and historical data;
-
-```shell
-pip3 install requests
-python3 utilities/import_all_data.py
-```
+Once you've got CTI Butler running, you can use the following script to import all current and historical data. See `utilities/README.md`
 
 ## Support
 

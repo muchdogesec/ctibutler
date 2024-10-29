@@ -7,46 +7,55 @@ from drf_spectacular.utils import OpenApiParameter
 if typing.TYPE_CHECKING:
     from ctibutler import settings
 
-SDO_TYPES = set(
-    [
-        "report",
-        "note",
-        "indicator",
-        "attack-pattern",
-        "weakness",
-        "campaign",
-        "course-of-action",
-        "infrastructure",
-        "intrusion-set",
-        "malware",
-        "threat-actor",
-        "tool",
-        "identity",
-        "location",
-    ]
-)
+SDO_TYPES = set([
+    "attack-pattern",
+    "campaign",
+    "course-of-action",
+    "grouping",
+    "identity",
+    "incident",
+    "indicator",
+    "infrastructure",
+    "intrusion-set",
+    "location",
+    "malware",
+    "malware-analysis",
+    "note",
+    "observed-data",
+    "opinion",
+    "report",
+    "threat-actor",
+    "sighting",
+    "tool",
+    "vulnerability"
+])
 
-SCO_TYPES = set(
-    [
-        "ipv4-addr",
-        "network-traffic",
-        "ipv6-addr",
-        "domain-name",
-        "url",
-        "file",
-        "directory",
-        "email-addr",
-        "mac-addr",
-        "windows-registry-key",
-        "autonomous-system",
-        "user-agent",
-        "cryptocurrency-wallet",
-        "cryptocurrency-transaction",
-        "bank-card",
-        "bank-account",
-        "phone-number",
-    ]
-)
+SCO_TYPES = set([
+    "artifact",
+    "autonomous-system",
+    "bank-account",
+    "bank-card",
+    "cryptocurrency-transaction",
+    "cryptocurrency-wallet",
+    "directory",
+    "domain-name",
+    "email-addr",
+    "email-message",
+    "file",
+    "ipv4-addr",
+    "ipv6-addr",
+    "mac-addr",
+    "mutex",
+    "network-traffic",
+    "phone-number",
+    "process",
+    "software",
+    "url",
+    "user-account",
+    "user-agent",
+    "windows-registry-key",
+    "x509-certificate"
+])
 SDO_SORT_FIELDS = [
     "name_ascending",
     "name_descending",
@@ -83,6 +92,7 @@ SMO_SORT_FIELDS = [
 SMO_TYPES = set([
     "marking-definition",
     "extension-definition",
+    "language-content",
 ])
 
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"]).union(SMO_TYPES)
@@ -382,8 +392,6 @@ class ArangoDBHelper:
         if new_types := self.query_as_array('types'):
             types = types.intersection(new_types)
         
-        if not self.query_as_bool('include_txt2stix_notes', False):
-            types.remove('note')
 
         bind_vars = {
             "@collection": self.collection,
@@ -462,10 +470,6 @@ class ArangoDBHelper:
             bind_vars['target_ref_type'] = terms
             other_filters.append('SPLIT(doc.target_ref, "--")[0] IN @target_ref_type')
 
-        if not self.query_as_bool('include_txt2stix_notes', False):
-            other_filters.append('"note" NOT IN [SPLIT(doc.target_ref, "--")[0], SPLIT(doc.source_ref, "--")[0]]')
-
-
         if term := self.query.get('relationship_type'):
             bind_vars['relationship_type'] = term
             other_filters.append("CONTAINS(doc.relationship_type, @relationship_type)")
@@ -494,13 +498,11 @@ class ArangoDBHelper:
             "@view": self.collection,
             "matcher": dict(_obstracts_post_id=str(post_id), _obstracts_feed_id=str(feed_id)),
             "types": list(OBJECT_TYPES.intersection(types.split(","))) if types else None,
-            "include_txt2stix_notes": self.query_as_bool('include_txt2stix_notes', False),
         }
         query = """
             FOR doc in @@view
             FILTER doc.type IN @types OR NOT @types
             FILTER MATCHES(doc, @matcher)
-            FILTER @include_txt2stix_notes OR doc.type != "note"
 
             COLLECT id = doc.id INTO docs
             LET doc = FIRST(FOR d in docs[*].doc SORT d.modified OR d.created DESC RETURN d)

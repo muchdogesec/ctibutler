@@ -5,10 +5,14 @@ from arango import ArangoClient
 from django.conf import settings
 from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
+
+import textwrap
+
 SDO_TYPES = set(
     [
         "report",
@@ -78,6 +82,14 @@ CWE_TYPES = set([
 ]
 )
 
+DISARM_TYPES = set([
+  "attack-pattern",
+  "identity",
+  "marking-definition",
+  "x-mitre-matrix",
+  "x-mitre-tactic"
+])
+
 ATLAS_TYPES = set([
   "attack-pattern",
   "course-of-action",
@@ -99,6 +111,15 @@ CAPEC_TYPES = set([
   "course-of-action",
   "identity",
   "marking-definition"
+]
+)
+
+LOCATION_SUBTYPES = set(
+[
+  "intermediate-region",
+  "sub-region-code",
+  "region-code",
+  "country"
 ]
 )
 
@@ -199,6 +220,29 @@ class ArangoDBHelper:
                     container: container_schema
                 }
         }
+
+    @classmethod
+    def get_relationship_schema_operation_parameters(cls):
+        return cls.get_schema_operation_parameters() + [
+            OpenApiParameter(
+                "include_embedded_refs",
+                description=textwrap.dedent(
+                    """
+                    If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`.
+                    """
+                ),
+                type=OpenApiTypes.BOOL
+            ),
+            OpenApiParameter(
+                "relationship_direction",
+                enum=["source_ref", "target_ref"],
+                description=textwrap.dedent(
+                    """
+                    Filters the results to only include SROs which have this object in the specified SRO property (e.g. setting `source_ref` will only return SROs where the object is shown in the `source_ref` property). Default is both.
+                    """
+                ),
+            ),
+        ]
     @classmethod
     def get_schema_operation_parameters(self):
         parameters = [
@@ -372,7 +416,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
                 "types": list(types),
         }
 
-
         if q := self.query.get(f'attack_version'):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
@@ -398,7 +441,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
             bind_vars['description'] = q.lower()
             filters.append('FILTER CONTAINS(LOWER(doc.description), @description)')
 
-
         query = """
             FOR doc in @@collection
             FILTER CONTAINS(@types, doc.type)
@@ -423,10 +465,10 @@ RETURN KEEP(d, KEYS(d, TRUE))
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
-    
+
     def get_cxe_object(self, cve_id, type="vulnerability", var='name', version_param='cve_version', relationship_mode=False):
         bind_vars={'@collection': self.collection, 'obj_name': cve_id, "type":type, 'var':var}
-        #return Response(bind_vars)
+        # return Response(bind_vars)
         filters = ['FILTER doc._is_latest']
         if q := self.query.get(version_param):
             bind_vars['stix_modified'] = q
@@ -448,33 +490,45 @@ RETURN KEEP(d, KEYS(d, TRUE))
         """
         bind_vars = {'@collection': self.collection}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
-        versions = sorted([
-            v[14:].replace('_', ".")
-            for v in versions
-        ], key=utils.split_mitre_version, reverse=True)
-        versions = [f"v{v}" for v in versions]
+        versions = self.clean_and_sort_versions(versions)
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
-    
-    
+
     def get_mitre_modified_versions(self, external_id=None, source_name='mitre-attack'):
 
         query = """
         FOR doc IN @@collection
-        FILTER doc.external_references[? ANY FILTER MATCHES(CURRENT, @matcher)]
+        FILTER doc.external_references[? ANY FILTER MATCHES(CURRENT, @matcher)] AND STARTS_WITH(doc._stix2arango_note, "version=")
         COLLECT modified = doc.modified INTO group
         SORT modified DESC
-        RETURN {modified, notes: UNIQUE(group[*].doc._stix2arango_note)}
+        RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
         """
         bind_vars = {'@collection': self.collection, 'matcher': dict(external_id=external_id, source_name=source_name)}
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
-            notes = sorted([
-                'v'+v[14:].replace('_', ".")
-                for v in mod['notes']
-                ], key=utils.split_mitre_version, reverse=True)
-            mod['notes'] = notes
+            mod['versions'] = self.clean_and_sort_versions(mod['versions'])
         return Response(versions)
+    
+    def get_modified_versions(self, stix_id=None):
 
+        query = """
+        FOR doc IN @@collection
+        FILTER doc.id == @stix_id AND STARTS_WITH(doc._stix2arango_note, "version=")
+        COLLECT modified = doc.modified INTO group
+        SORT modified DESC
+        RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
+        """
+        bind_vars = {'@collection': self.collection, 'stix_id': stix_id}
+        versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
+        for mod in versions:
+            mod['versions'] = self.clean_and_sort_versions(mod['versions'])
+        return Response(versions)
+    
+    def clean_and_sort_versions(self, versions):
+        versions = sorted([
+            v.split("=")[1].replace('_', ".")
+            for v in versions
+        ], key=utils.split_mitre_version, reverse=True)
+        return [f"{v}" for v in versions]
 
     def get_cve_versions(self, cve_id: str):
         query = """
@@ -488,7 +542,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
-    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id'):
+    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id', more_binds={}, more_filters=[]):
         version_param = lookup_kwarg.replace('_id', '_version')
         filters = []
         if new_types := self.query_as_array('type'):
@@ -497,6 +551,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         bind_vars = {
                 "@collection": self.collection,
                 "types": list(types),
+                **more_binds
         }
         if q := self.query.get(version_param):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
@@ -528,7 +583,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('@filters', '\n'.join(filters))
+        """.replace('@filters', '\n'.join(filters+more_filters))
         return self.execute_query(query, bind_vars=bind_vars)
 
     def get_softwares(self):
@@ -699,8 +754,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         types = SDO_TYPES
         if new_types := self.query_as_array('types'):
             types = types.intersection(new_types)
-        if not self.query_as_bool('include_txt2stix_notes', False):
-            types.remove('note')
+            
         bind_vars = {
             "@collection": self.collection,
             "types": list(types),
@@ -723,23 +777,22 @@ RETURN KEEP(d, KEYS(d, TRUE))
         """
         return self.execute_query(query, bind_vars=bind_vars)
 
-
-    def get_object(self, stix_id):
+    def get_object(self, stix_id, relationship_mode=False):
         bind_vars={'@collection': self.collection, 'stix_id': stix_id}
         filters = ['FILTER doc._is_latest']
-        
+
         return self.execute_query('''
             FOR doc in @@collection
             FILTER doc.id == @stix_id
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars)
-    
+            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
+
     def get_relationships_for_ext_id(self, ext_id):
         bind_vars={'@collection': self.collection, 'ext_matcher': {'external_id': ext_id}}
         filters = ['FILTER doc._is_latest']
-        
+
         return self.execute_query('''
             LET docs = (FOR doc in @@collection
             FILTER MATCHES(doc.external_references[0], @ext_matcher)
@@ -747,16 +800,47 @@ RETURN KEEP(d, KEYS(d, TRUE))
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true)))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars)
-    
+
     def get_relationships(self, docs_query, binds):
         regex = r"KEEP\((\w+),\s*\w+\(.*?\)\)"
         binds['@view'] = settings.VIEW_NAME
+        other_filters = []
+
+        if term := self.query_as_array('source_ref'):
+            binds['rel_source_ref'] = term
+            other_filters.append('FILTER d.source_ref IN @rel_source_ref')
+
+        if terms := self.query_as_array('source_ref_type'):
+            binds['rel_source_ref_type'] = terms
+            other_filters.append('FILTER SPLIT(d.source_ref, "--")[0] IN @rel_source_ref_type')
+
+        if term := self.query_as_array('target_ref'):
+            binds['rel_target_ref'] = term
+            other_filters.append('FILTER d.target_ref IN @rel_target_ref')
+
+        if terms := self.query_as_array('target_ref_type'):
+            binds['rel_target_ref_type'] = terms
+            other_filters.append('FILTER SPLIT(d.target_ref, "--")[0] IN @rel_target_ref_type')
+
+        if term := self.query.get('relationship_type'):
+            binds['rel_relationship_type'] = term.lower()
+            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
+
+        directions = dict(source_ref="_from", target_ref="_to")
+        if term := directions.get(self.query.get('relationship_direction')):
+            directions = [term]
+        else:
+            directions = list(directions.values())
+
+        binds['directions'] = directions
+        binds['include_embedded_refs'] = self.query_as_bool('include_embedded_refs', True)
+
         new_query = """
         LET matched_ids = (@docs_query)[*]._id
         FOR d IN @@view
-        FILTER d.type == 'relationship' AND [d._from, d._to] ANY IN matched_ids
+        FILTER d.type == 'relationship' AND VALUES(KEEP(d, @directions)) ANY IN matched_ids AND (NOT d._is_ref OR @include_embedded_refs)
+        @other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
-        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', '')))
+        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))).replace('@other_filters', "\n".join(other_filters))
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
-  

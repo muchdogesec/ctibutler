@@ -29,12 +29,6 @@ class QueryParams:
     )
     SCO_PARAMS = [value, sco_types, post_id, OpenApiParameter('sort', enum=SCO_SORT_FIELDS)]
 
-    include_txt2stix_notes = OpenApiParameter(
-        "include_txt2stix_notes",
-        type=bool,
-        default=False,
-        description="txt2stix creates 3 STIX note Objects that provide information about the processing job. This data is only really helpful for debugging issues, but not for intelligence sharing. Setting this parameters value to `true` will include these STIX note Objects in the response. Most of the time you want to set this parameter to `false` (the default value).",
-    )
     name = OpenApiParameter(
         "name",
         description="Allows results to be filtered on the `name` field of the SDO. Search is wildcard. For example, `Wanna` will return SDOs with the `name`; `WannaCry`, `WannaSmile`, etc.",
@@ -51,7 +45,7 @@ class QueryParams:
         enum=SDO_TYPES,
     )
 
-    SDO_PARAMS = [include_txt2stix_notes, name, labels, sdo_types, OpenApiParameter('sort', enum=SDO_SORT_FIELDS)]
+    SDO_PARAMS = [name, labels, sdo_types, OpenApiParameter('sort', enum=SDO_SORT_FIELDS)]
 
     source_ref = OpenApiParameter(
         "source_ref",
@@ -84,7 +78,6 @@ class QueryParams:
         target_ref,
         target_ref_type,
         relationship_type,
-        include_txt2stix_notes,
         OpenApiParameter('sort', enum=SRO_SORT_FIELDS),
     ]
 
@@ -96,7 +89,6 @@ class QueryParams:
         enum=OBJECT_TYPES,
     )
     OBJECTS_PARAMS = [
-        include_txt2stix_notes,
         types,
     ]
 
@@ -112,7 +104,12 @@ class QueryParams:
         OpenApiParameter('sort', enum=SMO_SORT_FIELDS),
     ]
 
-    
+@extend_schema_view(
+    retrieve=extend_schema(
+        summary="Get a STIX Object",
+        description="Get a STIX Object by its ID",
+    )
+)
 class SingleObjectView(viewsets.ViewSet):
     lookup_url_kwarg = "object_id"
     openapi_tags = ["Objects"]
@@ -126,9 +123,6 @@ class SingleObjectView(viewsets.ViewSet):
             kwargs.get(self.lookup_url_kwarg)
         )
     
-class SingleObjectReportsView(SingleObjectView):
-    pass
-    
    
 @extend_schema_view(
     retrieve=extend_schema(
@@ -139,7 +133,7 @@ class SingleObjectReportsView(SingleObjectView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SDO_PARAMS,
-        summary="Get STIX Domain Objects",
+        summary="Search and filter STIX Domain Objects",
         description="Search for domain objects (aka TTPs). If you have the object ID already, you can use the base GET Objects endpoint.",
     ),
     reports=extend_schema(
@@ -147,7 +141,8 @@ class SingleObjectReportsView(SingleObjectView):
         description="Using the SDO ID, you can find all reports the SDO is mentioned in",
     ),
 )
-class SDOView(SingleObjectReportsView):
+class SDOView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_sdos()
    
@@ -160,11 +155,13 @@ class SDOView(SingleObjectReportsView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SCO_PARAMS,
-        summary="Get STIX Cyber Observable Objects",
+        summary="Search and filter STIX Cyber Observable Objects",
         description=textwrap.dedent(
             """
-            Search for STIX Cyber Observable Objects (aka Indicators of Compromise). If you have the object ID already, you can use the base GET Objects endpoint.\n\n
+            Search for STIX Cyber Observable Objects (aka Indicators of Compromise). If you have the object ID already, you can use the base GET Objects endpoint.
+
             Note the `value` filter searches the following object properties;
+
             * `artifact.payload_bin`
             * `autonomous-system.number`
             * `bank-account.iban_number`
@@ -197,7 +194,8 @@ class SDOView(SingleObjectReportsView):
         description="Using the SCO ID, you can find all reports the SCO is mentioned in",
     ),
 )
-class SCOView(SingleObjectReportsView):
+class SCOView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         matcher = {}
         if post_id := request.query_params.dict().get("post_id"):
@@ -214,11 +212,16 @@ class SCOView(SingleObjectReportsView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SMO_PARAMS,
-        summary="Get STIX Meta Objects",
-        description="Search for meta objects. If you have the object ID already, you can use the base GET Objects endpoint.",
+        summary="Search and filter STIX Meta Objects",
+        description=textwrap.dedent(
+            """
+            Search for meta objects. If you have the object ID already, you can use the base GET Objects endpoint.
+            """
+        ),
     )
 )
-class SMOView(SingleObjectView):
+class SMOView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_smos()
 
@@ -232,11 +235,16 @@ class SMOView(SingleObjectView):
         responses=ArangoDBHelper.get_paginated_response_schema(),
         parameters=ArangoDBHelper.get_schema_operation_parameters()
         + QueryParams.SRO_PARAMS,
-        summary="Get STIX Relationship Objects",
-        description="Search for relationship objects. This endpoint is particularly useful to search what Objects an SCO or SDO is linked to.",
+        summary="Search and filter STIX Relationship Objects",
+        description=textwrap.dedent(
+            """
+            Search for relationship objects. This endpoint is particularly useful to search what Objects an SCO or SDO is linked to.
+            """
+            ),
         ),
 )
-class SROView(SingleObjectView):
+class SROView(viewsets.ViewSet):
+    openapi_tags = ["Objects"]
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper(settings.VIEW_NAME, request).get_sros()
 

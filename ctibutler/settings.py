@@ -24,13 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['DJANGO_SECRET']
+SECRET_KEY = os.environ.get('DJANGO_SECRET', "insecure_django_secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", False)
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', "localhost 127.0.0.1 [::1]").split()
 
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('DJANGO_CORS_ALLOW_ALL_ORIGINS', True)
+CORS_ALLOWED_ORIGINS = [os.environ.get('DJANGO_CORS_ALLOWED_ORIGINS', "http://127.0.0.1:8006")]
 
 MEDIA_ROOT = Path("/var/www/ctibutler_files/media/uploads")
 
@@ -146,6 +148,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "ctibutler.server.autoschema.CustomAutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],
+    'EXCEPTION_HANDLER': "ctibutler.server.utils.custom_exception_handler",
 }
 
 STIX_NAMESPACE = uuid.UUID('e92c648d-03eb-59a5-a318-9a36e6f8057c')
@@ -176,6 +179,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},
         {"name": "CAPEC", "description": "Manage and search MITRE CAPEC objects."},
         {"name": "CWE", "description": "Manage and search MITRE CWE objects."},
+        {"name": "DISARM", "description": "Manage and search MITRE DISARM objects."},
         {"name": "ATLAS", "description": "Manage and search MITRE ATLAS objects."},
         {"name": "Location", "description": "Manage and search Location objects."},
         {"name": "TLP", "description": "Manage and search TLP objects."},
@@ -199,4 +203,5 @@ ATTACK_ICS_BUCKET_ROOT_PATH = os.environ["ATTACK_ICS_BUCKET_ROOT_PATH"]
 ATLAS_BUCKET_ROOT_PATH = os.environ["ATLAS_BUCKET_ROOT_PATH"]
 LOCATION_BUCKET_ROOT_PATH = os.environ["LOCATION_BUCKET_ROOT_PATH"]
 TLP_BUCKET_ROOT_PATH = os.environ["TLP_BUCKET_ROOT_PATH"]
+DISARM_BUCKET_ROOT_PATH = os.environ["DISARM_BUCKET_ROOT_PATH"]
 
