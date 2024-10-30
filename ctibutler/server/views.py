@@ -35,7 +35,7 @@ class AttackView(viewsets.ViewSet):
     openapi_tags = ["ATT&CK"]
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`, `malware--04227b24-7817-4de1-9050-b7b1b57f5866`)'),
         OpenApiParameter('attack_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATT&CK ID, e.g `T1659`, `TA0043`, `S0066`'),
     ]
 
@@ -306,7 +306,7 @@ class AttackView(viewsets.ViewSet):
         summary='Get the Relationships linked to MITRE CWE Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the CWE object is found as a source_ref or a target_ref.
+            This endpoint will return all the STIX relationship objects where the CWE object is found as a `source_ref` or a `target_ref`.
 
             If you want to see an overview of how MITRE CWE objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
 
@@ -321,7 +321,7 @@ class CweView(viewsets.ViewSet):
     openapi_tags = ["CWE"]
     lookup_url_kwarg = 'cwe_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`)'),
         OpenApiParameter('cwe_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CWE ID, e.g `CWE-242`, `CWE-250`'),
     ]
 
@@ -331,7 +331,7 @@ class CweView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`.')
+        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`.')
         cwe_id = BaseCSVFilter(label='Filter the results by the CWE ID of the object. e.g. `CWE-242` `CWE-250`.')
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
@@ -472,7 +472,7 @@ class CweView(viewsets.ViewSet):
         summary='Get the Relationships linked to MITRE CAPEC Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the CAPEC object is found as a source_ref or a target_ref.
+            This endpoint will return all the STIX relationship objects where the CAPEC object is found as a `source_ref` or a `target_ref`.
 
             MITRE CAPEC objects can also be `source_ref` from ATT&CK Enterprise objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
 
@@ -487,7 +487,7 @@ class CapecView(viewsets.ViewSet):
     openapi_tags = ["CAPEC"]
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`)'),
         OpenApiParameter('capec_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CAPEC ID, e.g `CAPEC-112`, `CAPEC-699`'),
     ]
 
@@ -740,7 +740,7 @@ class JobView(viewsets.ModelViewSet):
         summary='Get the Relationships linked to the MITRE ATLAS Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the ATLAS object is found as a source_ref or a target_ref.
+            This endpoint will return all the STIX relationship objects where the ATLAS object is found as a `source_ref` or a `target_ref`.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
@@ -761,7 +761,7 @@ class AtlasView(viewsets.ViewSet):
     openapi_tags = ["ATLAS"]
     lookup_url_kwarg = 'atlas_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`)'),
         OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.TA0002`, `AML.T0000`'),
     ]
 
@@ -771,7 +771,7 @@ class AtlasView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`.')
+        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`.')
         atlas_id = BaseCSVFilter(label='Filter the results by the ATLAS ID of the object. e.g. `AML.T0000.001`.')
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
@@ -907,10 +907,12 @@ class AtlasView(viewsets.ViewSet):
         responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_object_relationships=extend_schema(
-        summary='placeholder summary location',
+        summary='Get the Relationships linked to the Location object',
         description=textwrap.dedent(
             """
-            placeholder description location
+            This endpoint will return all the STIX relationship objects where the Location object is found as a `source_ref` or a `target_ref`.
+
+            If you want to see an overview of how Location objects are linked, [see this diagram](https://miro.com/app/board/uXjVKAj06DQ=/).
             """
         ),
         filters=False,
@@ -922,7 +924,7 @@ class LocationView(viewsets.ViewSet):
     openapi_tags = ["Location"]
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID of the object (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -1084,7 +1086,7 @@ class TLPView(viewsets.ViewSet):
     openapi_tags = ["TLP"]
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487`, `marking-definition--bab4a63c-aed9-4cf5-a766-dfca5abac2bb`)'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -1094,7 +1096,7 @@ class TLPView(viewsets.ViewSet):
     arango_collection = "tlp_vertex_collection"
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `marking-definition--64db2878-ae36-46ab-b47a-f71fff575aba`.')
+        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487`, `marking-definition--bab4a63c-aed9-4cf5-a766-dfca5abac2bb`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. e.g `clear`, `amber`.')
 
     def create(self, request, *args, **kwargs):
@@ -1182,7 +1184,7 @@ class TLPView(viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of DISARM you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_disarm.py#L7).
+            * `version` (required): the version of DISARM you want to download in the format `N_N`, e.g. `1_5` for `1.5`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_disarm.py#L7).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -1234,7 +1236,7 @@ class TLPView(viewsets.ViewSet):
         summary='Get the Relationships linked to MITRE DISARM Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the DISARM object is found as a source_ref or a target_ref.
+            This endpoint will return all the STIX relationship objects where the DISARM object is found as a `source_ref` or a `target_ref`.
 
             If you want to see an overview of how MITRE DISARM objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
 
@@ -1249,7 +1251,7 @@ class DisarmView(viewsets.ViewSet):
     openapi_tags = ["DISARM"]
     lookup_url_kwarg = 'disarm_id'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`)'),
         OpenApiParameter('disarm_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The DISARM ID, e.g `TA05`, `TA01`'),
     ]
     arango_collection = 'disarm_vertex_collection'
@@ -1259,7 +1261,7 @@ class DisarmView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `x-mitre-tactic--f3496f30-5625-5b6d-8297-ddc074fb26c2`.')
+        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`.')
         disarm_id = BaseCSVFilter(label='Filter the results by the DISARM ID of the object. e.g. `TA05` `TA01`.')
         description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
