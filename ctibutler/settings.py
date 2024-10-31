@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'arango_objects_views.app.ArangoObjectsViewApp',
+    'dogesec_commons.objects.app.ArangoObjectsViewApp',
     'drf_spectacular',
     'django.contrib.postgres',
     'ctibutler.server',
