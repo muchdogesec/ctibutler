@@ -22,7 +22,7 @@ A web API for the following STIX 2.1 datasets:
 
 ## tl;dr
 
-[![Vulmatch](https://img.youtube.com/vi/84SgT-ess4E/0.jpg)](https://www.youtube.com/watch?v=84SgT-ess4E)
+[![CTI Butler](https://img.youtube.com/vi/84SgT-ess4E/0.jpg)](https://www.youtube.com/watch?v=84SgT-ess4E)
 
 [Watch the demo](https://www.youtube.com/watch?v=84SgT-ess4E).
 
