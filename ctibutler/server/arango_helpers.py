@@ -117,8 +117,8 @@ CAPEC_TYPES = set([
 LOCATION_SUBTYPES = set(
 [
   "intermediate-region",
-  "sub-region-code",
-  "region-code",
+  "sub-region",
+  "region",
   "country"
 ]
 )
@@ -777,9 +777,12 @@ RETURN KEEP(d, KEYS(d, TRUE))
         """
         return self.execute_query(query, bind_vars=bind_vars)
 
-    def get_object(self, stix_id, relationship_mode=False):
+    def get_object(self, stix_id, relationship_mode=False, version_param=None):
         bind_vars={'@collection': self.collection, 'stix_id': stix_id}
         filters = ['FILTER doc._is_latest']
+        if version_param and self.query.get(version_param):
+            bind_vars['mitre_version'] = "version="+self.query.get(version_param).replace('.', '_').strip('v')
+            filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
 
         return self.execute_query('''
             FOR doc in @@collection

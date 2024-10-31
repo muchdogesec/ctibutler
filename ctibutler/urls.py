@@ -21,7 +21,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from ctibutler.server import views
-from ctibutler.server.arango_based_views import arango_views
+import dogesec_commons.objects.views as arango_views
 
 
 API_VERSION = "v1"
