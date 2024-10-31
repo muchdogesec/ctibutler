@@ -59,6 +59,9 @@ def parse_arguments():
     parser.add_argument('--atlas_versions', type=str, help="Comma-separated versions for ATLAS updates.")
     parser.add_argument('--location_versions', type=str, help="Comma-separated versions for Location updates.")
     
+    # New argument for ignore_embedded_relationships
+    parser.add_argument('--ignore_embedded_relationships', type=bool, default=False, help="Set to True to ignore embedded relationships in the update.")
+    
     return parser.parse_args()
 
 # Convert comma-separated CLI arguments into a list of versions
@@ -69,11 +72,12 @@ def get_versions_from_arg(arg_value, default_versions):
         return default_versions
 
 # Function to initiate attack updates with version
-def initiate_update(endpoint, version):
+def initiate_update(endpoint, version, ignore_embedded_relationships):
     data = {
-        "version": version
+        "version": version,
+        "ignore_embedded_relationships": ignore_embedded_relationships
     }
-    print(f"Initiating {endpoint} update with version: {version}")
+    print(f"Initiating {endpoint} update with version: {version}, ignore_embedded_relationships: {ignore_embedded_relationships}")
     response = requests.post(f'{base_url}/{endpoint}/', headers=headers, json=data)
     
     if response.status_code == 201:
@@ -119,75 +123,61 @@ def monitor_job_status(job_id, job_name):
 
 # Function to monitor and initiate multiple jobs
 def monitor_jobs(args):
+    ignore_embedded_relationships = args.ignore_embedded_relationships  # Use this in each request
+
     # Step 1: attack-enterprise updates
     attack_enterprise_versions = get_versions_from_arg(args.attack_enterprise_versions, default_attack_enterprise_versions)
-    if args.attack_enterprise_versions:
-        print(f"User specified versions for attack-enterprise: {attack_enterprise_versions}")
     for version in attack_enterprise_versions:
-        job_id = initiate_update("attack-enterprise", version)
+        job_id = initiate_update("attack-enterprise", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"attack-enterprise (version {version})")
 
     # Step 2: attack-ics updates
     attack_ics_versions = get_versions_from_arg(args.attack_ics_versions, default_attack_ics_versions)
-    if args.attack_ics_versions:
-        print(f"User specified versions for attack-ics: {attack_ics_versions}")
     for version in attack_ics_versions:
-        job_id = initiate_update("attack-ics", version)
+        job_id = initiate_update("attack-ics", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"attack-ics (version {version})")
 
     # Step 3: attack-mobile updates
     attack_mobile_versions = get_versions_from_arg(args.attack_mobile_versions, default_attack_mobile_versions)
-    if args.attack_mobile_versions:
-        print(f"User specified versions for attack-mobile: {attack_mobile_versions}")
     for version in attack_mobile_versions:
-        job_id = initiate_update("attack-mobile", version)
+        job_id = initiate_update("attack-mobile", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"attack-mobile (version {version})")
 
     # Step 4: CAPEC updates
     capec_versions = get_versions_from_arg(args.capec_versions, default_capec_versions)
-    if args.capec_versions:
-        print(f"User specified versions for CAPEC: {capec_versions}")
     for version in capec_versions:
-        job_id = initiate_update("capec", version)
+        job_id = initiate_update("capec", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"CAPEC (version {version})")
 
     # Step 5: CWE updates
     cwe_versions = get_versions_from_arg(args.cwe_versions, default_cwe_versions)
-    if args.cwe_versions:
-        print(f"User specified versions for CWE: {cwe_versions}")
     for version in cwe_versions:
-        job_id = initiate_update("cwe", version)
+        job_id = initiate_update("cwe", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"CWE (version {version})")
 
     # Step 6: TLP updates
     tlp_versions = get_versions_from_arg(args.tlp_versions, default_tlp_versions)
-    if args.tlp_versions:
-        print(f"User specified versions for TLP: {tlp_versions}")
     for version in tlp_versions:
-        job_id = initiate_update("tlp", version)
+        job_id = initiate_update("tlp", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"TLP (version {version})")
 
-    # Step 7: Location update
+    # Step 7: Location updates
     location_versions = get_versions_from_arg(args.location_versions, default_location_versions)
-    if args.location_versions:
-        print(f"User specified versions for Location: {location_versions}")
     for version in location_versions:
-        job_id = initiate_update("location", version)
+        job_id = initiate_update("location", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"Location (version {version})")
 
-    # Step 8: ATLAS update
+    # Step 8: ATLAS updates
     atlas_versions = get_versions_from_arg(args.atlas_versions, default_atlas_versions)
-    if args.atlas_versions:
-        print(f"User specified versions for ATLAS: {atlas_versions}")
     for version in atlas_versions:
-        job_id = initiate_update("atlas", version)
+        job_id = initiate_update("atlas", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"ATLAS (version {version})")
 
