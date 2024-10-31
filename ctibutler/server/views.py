@@ -1071,10 +1071,10 @@ class LocationView(viewsets.ViewSet):
         ),
     ),
     retrieve_object_relationships=extend_schema(
-        summary='placeholder summary tlp',
+        summary='Get all Relationships linked to the TLP object',
         description=textwrap.dedent(
             """
-            placeholder description tlp
+            This endpoint will return all the STIX `relationship` objects where the TLP object is found as a `source_ref` or a `target_ref`. Note, at present this endpoint only considers embedded relationships and not relationships to other knowledgebases as thousands of relationships might exists (e.g. TLP GREEN is used extensively) thus does not make sense to return all these objects using this endpoint).
             """
         ),
         filters=False,
