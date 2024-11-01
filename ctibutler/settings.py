@@ -144,7 +144,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "ctibutler.server.autoschema.CustomAutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "ctibutler.server.autoschema.CtibutlerAutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],
     'EXCEPTION_HANDLER': "ctibutler.server.utils.custom_exception_handler",
