@@ -49,12 +49,12 @@ class AttackView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`, `malware--04227b24-7817-4de1-9050-b7b1b57f5866`.')
-        attack_id = BaseCSVFilter(label='The ATT&CK IDs of the object wanted. e.g. `T1659`, `TA0043`, `S0066`.')
-        description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in ATTACK_TYPES], label='Filter the results by STIX Object type.')
-        attack_version = CharFilter(label="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`, `malware--04227b24-7817-4de1-9050-b7b1b57f5866`.')
+        attack_id = BaseCSVFilter(help_text='The ATT&CK IDs of the object wanted. e.g. `T1659`, `TA0043`, `S0066`.')
+        description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
+        type = ChoiceFilter(choices=[(f,f) for f in ATTACK_TYPES], help_text='Filter the results by STIX Object type.')
+        attack_version = CharFilter(help_text="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -331,12 +331,12 @@ class CweView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`.')
-        cwe_id = BaseCSVFilter(label='Filter the results by the CWE ID of the object. e.g. `CWE-242` `CWE-250`.')
-        description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        # type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], label='Filter the results by STIX Object type.')
-        cwe_version = CharFilter(label="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`.')
+        cwe_id = BaseCSVFilter(help_text='Filter the results by the CWE ID of the object. e.g. `CWE-242` `CWE-250`.')
+        description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
+        # type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], help_text='Filter the results by STIX Object type.')
+        cwe_version = CharFilter(help_text="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -497,12 +497,12 @@ class CapecView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`.')
-        capec_id = BaseCSVFilter(label='Filter the results by the CAPEC ID of the object. e.g. `CAPEC-112`, `CAPEC-699`.')
-        description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in CAPEC_TYPES], label='Filter the results by STIX Object type.')
-        capec_version = CharFilter(label="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`.')
+        capec_id = BaseCSVFilter(help_text='Filter the results by the CAPEC ID of the object. e.g. `CAPEC-112`, `CAPEC-699`.')
+        description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
+        type = ChoiceFilter(choices=[(f,f) for f in CAPEC_TYPES], help_text='Filter the results by STIX Object type.')
+        capec_version = CharFilter(help_text="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
 
     
     def create(self, request, *args, **kwargs):
@@ -658,10 +658,10 @@ class JobView(viewsets.ModelViewSet):
             return choices
         
         type = ChoiceFilter(
-            label='Filter the results by the type of Job',
+            help_text='Filter the results by the type of Job',
             choices=get_type_choices(), method='filter_type'
         )
-        state = Filter(label='Filter the results by the state of the Job')
+        state = Filter(help_text='Filter the results by the state of the Job')
 
         def filter_type(self, qs, field_name, value: str):
             query = {field_name: value}
@@ -771,12 +771,12 @@ class AtlasView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`.')
-        atlas_id = BaseCSVFilter(label='Filter the results by the ATLAS ID of the object. e.g. `AML.T0000.001`.')
-        description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], label='Filter the results by STIX Object type.')
-        atlas_version = CharFilter(label="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.5.2`. You can get a full list of versions on the GET ATLAS versions endpoint.")
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`.')
+        atlas_id = BaseCSVFilter(help_text='Filter the results by the ATLAS ID of the object. e.g. `AML.T0000.001`.')
+        description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
+        type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
+        atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.5.2`. You can get a full list of versions on the GET ATLAS versions endpoint.")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -934,11 +934,11 @@ class LocationView(viewsets.ViewSet):
     arango_collection = "location_vertex_collection"
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
-        alpha3_code = CharFilter(label="Filter by alpha-3 code of the country (e.g `MEX`, `USA`). Only works with country type locations.")
-        alpha2_code = CharFilter(label="Filter by alpha-2 code of the country (e.g `MX`, `DE`). Only works with country type locations.")
-        location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], label="Filter by location type")
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `Ca` will return all names that contain the string `Tur`, e.g `Turkey`, `Turkmenistan`.')
+        alpha3_code = CharFilter(help_text="Filter by alpha-3 code of the country (e.g `MEX`, `USA`). Only works with country type locations.")
+        alpha2_code = CharFilter(help_text="Filter by alpha-2 code of the country (e.g `MX`, `DE`). Only works with country type locations.")
+        location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], help_text="Filter by location type")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -1096,8 +1096,8 @@ class TLPView(viewsets.ViewSet):
     arango_collection = "tlp_vertex_collection"
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487`, `marking-definition--bab4a63c-aed9-4cf5-a766-dfca5abac2bb`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. e.g `clear`, `amber`.')
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487`, `marking-definition--bab4a63c-aed9-4cf5-a766-dfca5abac2bb`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. e.g `clear`, `amber`.')
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -1261,12 +1261,12 @@ class DisarmView(viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(label='Filter the results using the STIX ID of an object. e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`.')
-        disarm_id = BaseCSVFilter(label='Filter the results by the DISARM ID of the object. e.g. `TA05` `TA01`.')
-        description = CharFilter(label='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
-        name = CharFilter(label='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in DISARM_TYPES], label='Filter the results by STIX Object type.')
-        disarm_version = CharFilter(label="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`.')
+        disarm_id = BaseCSVFilter(help_text='Filter the results by the DISARM ID of the object. e.g. `TA05` `TA01`.')
+        description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
+        name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
+        type = ChoiceFilter(choices=[(f,f) for f in DISARM_TYPES], help_text='Filter the results by STIX Object type.')
+        disarm_version = CharFilter(help_text="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
