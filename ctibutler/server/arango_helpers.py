@@ -428,6 +428,9 @@ RETURN KEEP(d, KEYS(d, TRUE))
                 "FILTER doc.id in @ids"
             )
 
+        bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
+        bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
+
         if value := self.query_as_array('attack_id'):
             bind_vars['attack_ids'] = value
             filters.append(
@@ -443,12 +446,13 @@ RETURN KEEP(d, KEYS(d, TRUE))
 
         query = """
             FOR doc in @@collection
-            FILTER CONTAINS(@types, doc.type)
+            FILTER CONTAINS(@types, doc.type) AND (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
         """.replace('@filters', '\n'.join(filters))
         return self.execute_query(query, bind_vars=bind_vars)
+
 
     def get_object_by_external_id(self, ext_id, relationship_mode=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id}
