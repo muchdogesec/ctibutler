@@ -438,7 +438,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
             filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
 
         if q := self.query.get('alias'):
-            bind_vars['alias'] = q
+            bind_vars['alias'] = q.lower()
             filters.append('FILTER doc.x_mitre_aliases[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
 
         if q := self.query.get('description'):
