@@ -1,6 +1,6 @@
 from typing import List
 from drf_spectacular.openapi import AutoSchema
-from .utils import ErrorSerializer
+from dogesec_commons.utils.serializers import CommonErrorSerializer as ErrorSerializer
 from drf_spectacular.utils import OpenApiResponse, OpenApiExample
 import uritemplate
 from dogesec_commons.utils.autoschema import CustomAutoSchema

@@ -66,13 +66,6 @@ class MinMaxDateFilter(BaseFilterBackend):
         return parameters
 
 
-
-class ErrorSerializer(serializers.Serializer):
-    message = serializers.CharField(required=True)
-    code    = serializers.IntegerField(required=True)
-    details = serializers.DictField(required=False)
-
-
 class Response(response.Response):
     DEFAULT_HEADERS = {
         'Access-Control-Allow-Origin': '*',

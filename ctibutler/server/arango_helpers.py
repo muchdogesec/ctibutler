@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 import re
 import typing
@@ -6,7 +7,7 @@ from django.conf import settings
 from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-
+from rest_framework.validators import ValidationError
 from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
@@ -136,6 +137,21 @@ CVE_SORT_FIELDS = [
     "cvss_base_score_descending",
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
+
+
+def positive_int(integer_string, cutoff=None, default=1):
+    """
+    Cast a string to a strictly positive integer.
+    """
+    with contextlib.suppress(ValueError, TypeError):
+        ret = int(integer_string)
+        if ret <= 0:
+            return default
+        if cutoff:
+            return min(ret, cutoff)
+        return ret
+    return default
+
 class ArangoDBHelper:
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
@@ -162,11 +178,12 @@ class ArangoDBHelper:
         if not query_str:
             return default
         return query_str.lower() == 'true'
+    
     @classmethod
     def get_page_params(cls, request):
         kwargs = request.GET.copy()
-        page_number = int(kwargs.get('page', 1))
-        page_limit  = min(int(kwargs.get('page_size', ArangoDBHelper.page_size)), ArangoDBHelper.max_page_size)
+        page_number = positive_int(kwargs.get('page'))
+        page_limit = positive_int(kwargs.get('page_size'), cutoff=ArangoDBHelper.max_page_size, default=ArangoDBHelper.page_size)
         return page_number, page_limit
 
     @classmethod
@@ -217,7 +234,7 @@ class ArangoDBHelper:
                         "type": "integer",
                         "example": cls.page_size * cls.max_page_size,
                     },
-                    container: container_schema
+                    container: {'type': 'array', 'items': container_schema}
                 }
         }
 
@@ -282,8 +299,11 @@ class ArangoDBHelper:
         if paginate:
             return self.get_paginated_response(container or self.container, cursor, self.page, self.page_size, cursor.statistics()["fullCount"])
         return list(cursor)
+   
     def get_offset_and_count(self, count, page) -> tuple[int, int]:
         page = page or 1
+        if page >= 2**32:
+            raise ValidationError(f"invalid page `{page}`")
         offset = (page-1)*count
         return offset, count
 
