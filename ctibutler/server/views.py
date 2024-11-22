@@ -16,6 +16,11 @@ from textwrap import dedent
 
 import textwrap
 
+REVOKED_AND_DEPRECATED_PARAMS = [
+    OpenApiParameter('include_revoked', type=OpenApiTypes.BOOL, description="By default all objects with `revoked` are ignored. Set this to `true` to include them."),
+    OpenApiParameter('include_deprecated', type=OpenApiTypes.BOOL, description="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them."),
+]
+
 @extend_schema_view(
     create=extend_schema(
     ),
@@ -25,10 +30,11 @@ import textwrap
     ),
     retrieve_objects=extend_schema(
         responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        parameters=REVOKED_AND_DEPRECATED_PARAMS,
     ),
     retrieve_object_relationships=extend_schema(
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
-        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters() + REVOKED_AND_DEPRECATED_PARAMS,
     ),
 )  
 class AttackView(viewsets.ViewSet):
@@ -78,7 +84,7 @@ class AttackView(viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>", detail=False)
     def retrieve_objects(self, request, *args, attack_id=None, **kwargs):
-        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id)
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, revokable=True)
 
     @extend_schema(
             parameters=[
@@ -87,14 +93,14 @@ class AttackView(viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, attack_id=None, **kwargs):
-        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, relationship_mode=True)
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, relationship_mode=True, revokable=True)
 
     @extend_schema()
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_mitre_versions()
 
-    @extend_schema(filters=False)
+    @extend_schema(filters=False, parameters=REVOKED_AND_DEPRECATED_PARAMS)
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_mitre_modified_versions(attack_id)
