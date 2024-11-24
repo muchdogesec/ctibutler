@@ -1,8 +1,11 @@
 ## Setup env
 
 ```shell
-pip3 install requests
-```
+python3 -m venv ctibutler-venv
+source ctibutler-venv/bin/activate
+# install requirements
+pip3 install -r requirements.txt
+````
 
 ## Download all data
 

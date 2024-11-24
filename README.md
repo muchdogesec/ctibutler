@@ -37,13 +37,15 @@ git clone https://github.com/muchdogesec/ctibutler
 
 ### Configuration options
 
-Obstracts has various settings that are defined in an `.env` file.
+CTI Butler has various settings that are defined in an `.env` file.
 
-To create one using the default settings:
+To create a template for the file:
 
 ```shell
 cp .env.example .env
 ```
+
+To see more information about how to set the variables, and what they do, read the `.env.markdown` file.
 
 #### A note on ArangoDB secrets
 

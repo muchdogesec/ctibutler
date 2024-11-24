@@ -428,6 +428,9 @@ RETURN KEEP(d, KEYS(d, TRUE))
                 "FILTER doc.id in @ids"
             )
 
+        bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
+        bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
+
         if value := self.query_as_array('attack_id'):
             bind_vars['attack_ids'] = value
             filters.append(
@@ -447,14 +450,15 @@ RETURN KEEP(d, KEYS(d, TRUE))
 
         query = """
             FOR doc in @@collection
-            FILTER CONTAINS(@types, doc.type)
+            FILTER CONTAINS(@types, doc.type) AND (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
         """.replace('@filters', '\n'.join(filters))
         return self.execute_query(query, bind_vars=bind_vars)
 
-    def get_object_by_external_id(self, ext_id, relationship_mode=False):
+
+    def get_object_by_external_id(self, ext_id, relationship_mode=False, revokable=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id}
         filters = ['FILTER doc._is_latest']
         for version_param in ['attack_version', 'cwe_version', 'capec_version']:
@@ -462,6 +466,12 @@ RETURN KEEP(d, KEYS(d, TRUE))
                 bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
                 filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
                 break
+        
+        if revokable:
+            bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
+            bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
+            filters.append('FILTER (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)')
+        
         return self.execute_query('''
             FOR doc in @@collection
             FILTER doc.external_references[0].external_id == @ext_id
@@ -498,15 +508,20 @@ RETURN KEEP(d, KEYS(d, TRUE))
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
     def get_mitre_modified_versions(self, external_id=None, source_name='mitre-attack'):
-
         query = """
         FOR doc IN @@collection
         FILTER doc.external_references[? ANY FILTER MATCHES(CURRENT, @matcher)] AND STARTS_WITH(doc._stix2arango_note, "version=")
+        FILTER (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated) // for MITRE ATT&CK, check if revoked
         COLLECT modified = doc.modified INTO group
         SORT modified DESC
         RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
         """
-        bind_vars = {'@collection': self.collection, 'matcher': dict(external_id=external_id, source_name=source_name)}
+        bind_vars = {
+            '@collection': self.collection, 'matcher': dict(external_id=external_id, source_name=source_name),
+            # include_deprecated / include_revoked
+            'include_revoked': self.query_as_bool('include_revoked', False),
+            'include_deprecated': self.query_as_bool('include_deprecated', False),
+            }
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
             mod['versions'] = self.clean_and_sort_versions(mod['versions'])
