@@ -442,7 +442,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
 
         if q := self.query.get('alias'):
             bind_vars['alias'] = q.lower()
-            filters.append('FILTER doc.x_mitre_aliases[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
+            filters.append('FILTER APPEND(doc.aliases, doc.x_mitre_aliases)[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
 
         if q := self.query.get('description'):
             bind_vars['description'] = q.lower()
