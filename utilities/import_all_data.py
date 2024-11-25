@@ -31,7 +31,7 @@ default_attack_mobile_versions = [
 ]
 default_cwe_versions = [
     "4_5", "4_6", "4_7", "4_8", "4_9", "4_10", "4_11", "4_12", "4_13",
-    "4_14", "4_15",
+    "4_14", "4_15", "4_16"
 ]
 default_capec_versions = [
     "3_5", "3_6", "3_7", "3_8", "3_9"
@@ -44,6 +44,9 @@ default_atlas_versions = [
 ]
 default_location_versions = [
     "ac1bbfc"
+]
+default_disarm_versions = [
+    "1_2", "1_3", "1_4", "1_5"
 ]
 
 # Parse CLI arguments
@@ -58,7 +61,9 @@ def parse_arguments():
     parser.add_argument('--tlp_versions', type=str, help="Comma-separated versions for TLP updates.")
     parser.add_argument('--atlas_versions', type=str, help="Comma-separated versions for ATLAS updates.")
     parser.add_argument('--location_versions', type=str, help="Comma-separated versions for Location updates.")
-    
+    parser.add_argument('--disarm_versions', type=str, help="Comma-separated versions for DISARM updates.")
+
+
     # New argument for ignore_embedded_relationships
     parser.add_argument('--ignore_embedded_relationships', type=bool, default=False, help="Set to True to ignore embedded relationships in the update.")
     
@@ -180,6 +185,13 @@ def monitor_jobs(args):
         job_id = initiate_update("atlas", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"ATLAS (version {version})")
+
+    # Step 9: DISARM updates
+    disarm_versions = get_versions_from_arg(args.disarm_versions, default_disarm_versions)
+    for version in disarm_versions:
+        job_id = initiate_update("atlas", version, ignore_embedded_relationships)
+        if job_id:
+            monitor_job_status(job_id, f"DISARM (version {version})")
 
 # Run the script
 if __name__ == "__main__":
