@@ -47,20 +47,6 @@ cp .env.example .env
 
 To see more information about how to set the variables, and what they do, read the `.env.markdown` file.
 
-#### A note on ArangoDB secrets
-
-Note, this script will not install an ArangoDB instance.
-
-If you're new to ArangoDB, [you can install the community edition quickly by following the instructions here](https://arangodb.com/community-server/).
-
-If you are running ArangoDB locally, be sure to set `ARANGODB_HOST_URL='http://host.docker.internal:8529'` in the `.env` file otherwise you will run into networking errors.
-
-The script will create a database called `ctibutler_database`. The user selected for the `ARANGODB_USERNAME` should have read+write permissions to this database.
-
-#### A note on Django and Postgres secrets
-
-Note, if you intend on using this for testing, you can leave these variables as is. However, these need to be changed in a production install for security.
-
 ### Build the Docker Image
 
 ```shell
