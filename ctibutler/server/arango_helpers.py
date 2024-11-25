@@ -287,125 +287,6 @@ class ArangoDBHelper:
         offset = (page-1)*count
         return offset, count
 
-    def get_vulnerabilities(self):
-        binds = {}
-        filters = []
-
-        if q := self.query.get('cvss_base_score_min'):
-            binds['cvss_base_score_min'] = float(q)
-            filters.append("FILTER VALUES(doc.x_cvss)[? FILTER CURRENT.base_score >= @cvss_base_score_min]")
-
-        if value := self.query_as_array('stix_id'):
-            binds['stix_ids'] = value
-            filters.append(
-                "FILTER doc.id in @stix_ids"
-            )
-
-        if q := self.query.get('epss_score_min'):
-            binds['epss_score_min'] = float(q)
-            filters.append("FILTER doc.x_epss.score >= @epss_score_min")
-
-        if q := self.query.get('epss_percentile_min'):
-            binds['epss_percentile_min'] = float(q)
-            filters.append("FILTER doc.x_epss.percentile >= @epss_percentile_min")
-
-        for v in ['created', 'modified']:
-            mn, mx = f'{v}_min', f'{v}_max'
-            if q := self.query.get(mn):
-                binds[mn] = q
-                filters.append(f"FILTER doc.{v} >= @{mn}")
-
-            if q := self.query.get(mx):
-                binds[mx] = q
-                filters.append(f"FILTER doc.{v} <= @{mx}")
-
-        if q := self.query_as_array('cpes_vulnerable'):
-            binds['cpes_vulnerable'] = q
-            filters.append('''
-            LET vulnerable_cpes = (FOR d in nvd_cve_edge_collection FILTER d._from == indicator_ref AND d.relationship_type == 'is-vulnerable' AND DOCUMENT(d._to).cpe IN @cpes_vulnerable RETURN TRUE)
-            FILTER LENGTH(vulnerable_cpes) > 0
-            ''')
-        if q := self.query_as_array('cpes_in_pattern'):
-            binds['cpes_in_pattern'] = q
-            filters.append('''
-            LET cpes_in_pattern = (FOR d in nvd_cve_edge_collection FILTER d._from == indicator_ref AND d.relationship_type == 'pattern-contains' AND DOCUMENT(d._to).cpe IN @cpes_in_pattern RETURN TRUE)
-            FILTER LENGTH(cpes_in_pattern) > 0
-            ''')
-
-        if q := self.query_as_array('cve_id'):
-            binds['cve_ids'] = q
-            filters.append('FILTER doc.external_references[0].external_id IN @cve_ids')
-
-        if (q := self.query_as_bool('has_kev', None)) != None:
-            binds['has_kev'] = q
-            filters.append('''
-            LET hasKev = LENGTH(FOR d IN nvd_cve_edge_collection FILTER doc._id == d._to AND d.relationship_type == 'sighting-of' RETURN d._from) > 0
-            FILTER hasKev == @has_kev
-            ''')
-
-        if q := self.query_as_array('weakness_id'):
-            binds['weakness_ids'] = q
-            filters.append('''
-                FILTER LENGTH(FOR d IN nvd_cve_edge_collection FILTER doc._id == d._from AND d.relationship_type == 'exploited-using' AND LAST(SPLIT(d.description, ' ')) IN @weakness_ids LIMIT 1 RETURN TRUE) > 0
-                ''')
-
-        query = """
-FOR doc IN nvd_cve_vertex_collection
-FILTER doc.type == 'vulnerability' AND doc._is_latest
-LET indicator_ref = FIRST(FOR d IN nvd_cve_edge_collection FILTER doc._id == d._to RETURN d._from)
-@filters
-@sort_stmt
-LIMIT @offset, @count
-RETURN KEEP(doc, KEYS(doc, true))
-    """.replace(
-            "@filters", "\n".join(filters)
-        ).replace(
-            "@sort_stmt",
-            self.get_sort_stmt(
-                CVE_SORT_FIELDS,
-                {
-                    "epss_score": "doc.x_epss.score",
-                    "cvss_base_score": "FIRST(VALUES(doc.x_cvss)).base_score",
-                },
-            ),
-        )
-        # return Response(query)
-        return self.execute_query(query, bind_vars=binds)
-
-    def get_cve_bundle(self, cve_id: str):
-        query = '''
-LET cve_data = (
-  FOR doc IN nvd_cve_vertex_collection
-  FILTER doc._is_latest AND doc.name == @cve_id
-  RETURN doc
-)
-LET cve_rels = FLATTEN(
-    FOR doc IN nvd_cve_edge_collection
-    FILTER [doc._from, doc._to] ANY IN cve_data[*]._id
-    RETURN [doc, DOCUMENT(doc._from), DOCUMENT(doc._to)]
-    )
-    
-LET cwe_capec = FLATTEN(
-    FOR doc IN mitre_cwe_edge_collection
-    FILTER [doc._from, doc._to] ANY IN cve_rels[*]._id
-    RETURN [doc, DOCUMENT(doc._from), DOCUMENT(doc._to)]
-    )
-    
-LET capec_attack = FLATTEN(
-    FOR doc IN mitre_capec_edge_collection
-    FILTER [doc._from, doc._to] ANY IN cwe_capec[*]._id
-    RETURN [doc, DOCUMENT(doc._from), DOCUMENT(doc._to)]
-    )
-
-    
-FOR d in UNION_DISTINCT(cve_data, cve_rels, cwe_capec, capec_attack)
-
-LIMIT @offset, @count
-//RETURN KEEP(d, 'id', '_stix2arango_note', '_arango_cti_processor_note', 'description')
-RETURN KEEP(d, KEYS(d, TRUE))
-'''
-        return self.execute_query(query, bind_vars=dict(cve_id=cve_id.upper()))
-
     def get_attack_objects(self, matrix):
         filters = []
         types = ATTACK_TYPES
@@ -432,9 +313,9 @@ RETURN KEEP(d, KEYS(d, TRUE))
         bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
 
         if value := self.query_as_array('attack_id'):
-            bind_vars['attack_ids'] = value
+            bind_vars['attack_ids'] = [v.lower() for v in value]
             filters.append(
-                "FILTER doc.external_references[0].external_id in @attack_ids"
+                "FILTER LOWER(doc.external_references[0].external_id) in @attack_ids"
             )
         if q := self.query.get('name'):
             bind_vars['name'] = q.lower()
@@ -458,8 +339,8 @@ RETURN KEEP(d, KEYS(d, TRUE))
         return self.execute_query(query, bind_vars=bind_vars)
 
 
-    def get_object_by_external_id(self, ext_id, relationship_mode=False, revokable=False):
-        bind_vars={'@collection': self.collection, 'ext_id': ext_id}
+    def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False):
+        bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower()}
         filters = ['FILTER doc._is_latest']
         for version_param in ['attack_version', 'cwe_version', 'capec_version']:
             if q := self.query.get(version_param):
@@ -474,23 +355,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         
         return self.execute_query('''
             FOR doc in @@collection
-            FILTER doc.external_references[0].external_id == @ext_id
-            @filters
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
-
-    def get_cxe_object(self, cve_id, type="vulnerability", var='name', version_param='cve_version', relationship_mode=False):
-        bind_vars={'@collection': self.collection, 'obj_name': cve_id, "type":type, 'var':var}
-        # return Response(bind_vars)
-        filters = ['FILTER doc._is_latest']
-        if q := self.query.get(version_param):
-            bind_vars['stix_modified'] = q
-            filters[0] = 'FILTER doc.modified == @stix_modified'
-
-        return self.execute_query('''
-            FOR doc in @@collection
-            FILTER doc.type == @type AND doc[@var] == @obj_name
+            FILTER LOWER(doc.external_references[0].external_id) == @ext_id
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
@@ -507,17 +372,17 @@ RETURN KEEP(d, KEYS(d, TRUE))
         versions = self.clean_and_sort_versions(versions)
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
-    def get_mitre_modified_versions(self, external_id=None, source_name='mitre-attack'):
+    def get_mitre_modified_versions(self, external_id: str=None, source_name='mitre-attack'):
         query = """
         FOR doc IN @@collection
-        FILTER doc.external_references[? ANY FILTER MATCHES(CURRENT, @matcher)] AND STARTS_WITH(doc._stix2arango_note, "version=")
+        FILTER doc.external_references[? ANY FILTER LOWER(CURRENT.external_id) == @matcher.external_id AND @matcher.source_name == CURRENT.source_name] AND STARTS_WITH(doc._stix2arango_note, "version=")
         FILTER (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated) // for MITRE ATT&CK, check if revoked
         COLLECT modified = doc.modified INTO group
         SORT modified DESC
         RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
         """
         bind_vars = {
-            '@collection': self.collection, 'matcher': dict(external_id=external_id, source_name=source_name),
+            '@collection': self.collection, 'matcher': dict(external_id=external_id.lower(), source_name=source_name),
             # include_deprecated / include_revoked
             'include_revoked': self.query_as_bool('include_revoked', False),
             'include_deprecated': self.query_as_bool('include_deprecated', False),
@@ -528,7 +393,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
         return Response(versions)
     
     def get_modified_versions(self, stix_id=None):
-
         query = """
         FOR doc IN @@collection
         FILTER doc.id == @stix_id AND STARTS_WITH(doc._stix2arango_note, "version=")
@@ -548,18 +412,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
             for v in versions
         ], key=utils.split_mitre_version, reverse=True)
         return [f"{v}" for v in versions]
-
-    def get_cve_versions(self, cve_id: str):
-        query = """
-        FOR doc IN @@collection
-        FILTER doc.name == @cve_id
-        SORT doc.modified DESC
-        RETURN DISTINCT doc.modified
-        """
-        bind_vars = {'@collection': self.collection, "cve_id": cve_id.upper()}
-        self.container = 'versions'
-        versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
-        return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
     def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id', more_binds={}, more_filters=[]):
         version_param = lookup_kwarg.replace('_id', '_version')
@@ -585,9 +437,9 @@ RETURN KEEP(d, KEYS(d, TRUE))
             )
 
         if value := self.query_as_array(lookup_kwarg):
-            bind_vars['ext_ids'] = value
+            bind_vars['ext_ids'] = [v.lower() for v in value]
             filters.append(
-                "FILTER doc.external_references[0].external_id in @ext_ids"
+                "FILTER LOWER(doc.external_references[0].external_id) in @ext_ids"
             )
         if q := self.query.get('name'):
             bind_vars['name'] = q.lower()
@@ -596,6 +448,7 @@ RETURN KEEP(d, KEYS(d, TRUE))
         if q := self.query.get('description'):
             bind_vars['description'] = q.lower()
             filters.append('FILTER CONTAINS(LOWER(doc.description), @description)')
+
         query = """
             FOR doc in @@collection
             FILTER CONTAINS(@types, doc.type)
@@ -603,197 +456,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
         """.replace('@filters', '\n'.join(filters+more_filters))
-        return self.execute_query(query, bind_vars=bind_vars)
-
-    def get_softwares(self):
-        filters = []
-        bind_vars = {
-                "@collection": 'nvd_cpe_vertex_collection',
-                "types": ['software'],
-        }
-        if value := self.query_as_array('id'):
-            bind_vars['ids'] = value
-            filters.append(
-                "FILTER doc.id in @ids"
-            )
-
-        if value := self.query_as_array('cpe_match_string'):
-            bind_vars['cpe_match_string'] = value
-            filters.append(
-                "FILTER @cpe_match_string[? ANY FILTER CONTAINS(doc.cpe, CURRENT)]"
-            )
-        if value := self.query.get('product_type'):
-            bind_vars['product_type'] = value[0]
-            filters.append(
-                "FILTER @product_type == SPLIT(doc.cpe, ':')[2]"
-            )
-
-        if value := self.query.get('product'):
-            bind_vars['product'] = value
-            filters.append(
-                "FILTER @product == SPLIT(doc.cpe, ':')[4]"
-            )
-        if value := self.query.get('vendor'):
-            bind_vars['vendor'] = value
-            filters.append(
-                "FILTER @vendor == SPLIT(doc.cpe, ':')[3]"
-            )
-
-        if q := self.query_as_array('cve_vulnerable'):
-            bind_vars['cve_vulnerable'] = q
-            filters.append('''
-            FILTER cve_matches[? ANY FILTER CURRENT[0]=='is-vulnerable' AND CURRENT[1] IN @cve_vulnerable]
-            ''')
-        if q := self.query_as_array('in_cve_pattern'):
-            bind_vars['in_cve_pattern'] = q
-            filters.append('''
-            FILTER cve_matches[? ANY FILTER CURRENT[0]=='pattern-contains' AND CURRENT[1] IN @in_cve_pattern]
-            ''')
-
-        if q := self.query.get('name'):
-            bind_vars['name'] = q
-            filters.append('FILTER CONTAINS(doc.name, @name)')
-
-        query = """
-            FOR doc in @@collection
-            FILTER CONTAINS(@types, doc.type) AND doc._is_latest
-            LET cve_matches = (FOR d in nvd_cve_edge_collection FILTER d._to == doc._id AND d.relationship_type IN ['is-vulnerable', 'pattern-contains'] RETURN [d.relationship_type, FIRST(SPLIT(d.description, ' '))])
-
-            @filters
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('@filters', '\n'.join(filters))
-        return self.execute_query(query, bind_vars=bind_vars)
-
-    def get_software_by_name(self, cpe_name):
-        return self.execute_query('''
-        FOR doc in @@collection
-        FILTER doc.cpe == @cpe_name AND doc._is_latest
-        LIMIT @offset, @count
-        RETURN KEEP(doc, KEYS(doc, true))
-        ''', bind_vars={'@collection': self.collection, 'cpe_name': cpe_name})
-
-    def get_reports(self, id=None):
-        bind_vars = {
-                "@collection": self.collection,
-                "type": 'report',
-        }
-        query = """
-            FOR doc in @@collection
-            FILTER doc.type == @type AND doc._is_latest
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-        """
-        return self.execute_query(query, bind_vars=bind_vars)
-    def get_report_by_id(self, id):
-        bind_vars = {
-                "@collection": self.collection,
-                "id": id,
-                'type': 'report',
-        }
-        query = """
-            FOR doc in @@collection
-            FILTER doc.id == @id AND doc._is_latest AND doc.type == @type
-            LIMIT 1
-            RETURN KEEP(doc, KEYS(doc, true))
-        """
-        return self.execute_query(query, bind_vars=bind_vars, paginate=False)
-    def remove_report(self, id):
-        bind_vars = {
-                "@collection": self.collection,
-                'report_id': id,
-        }
-        query = """
-            FOR doc in @@collection
-            FILTER doc._stixify_report_id == @report_id AND doc._is_latest
-            RETURN doc._id
-        """
-        collections = {}
-        out = self.execute_query(query, bind_vars=bind_vars, paginate=False)
-        for key in out:
-            collection, key = key.split('/', 2)
-            collections[collection] = collections.get(collection, [])
-            collections[collection].append(key)
-        deletion_query = """
-            FOR _key in @objects
-            REMOVE {_key} IN @@collection
-            RETURN _key
-        """
-        for collection, objects in collections.items():
-            bind_vars = {
-                "@collection": collection,
-                "objects": objects,
-            }
-            self.execute_query(deletion_query, bind_vars, paginate=False)
-    def get_scos(self, matcher={}):
-        types = SCO_TYPES
-        other_filters = []
-        if new_types := self.query_as_array('types'):
-            types = types.intersection(new_types)
-        bind_vars = {
-                "@collection": self.collection,
-                "types": list(types),
-        }
-        if value := self.query.get('value'):
-            bind_vars['search_value'] = value
-            other_filters.append(
-                """
-                (
-                    CONTAINS(doc.value, @search_value) OR
-                    CONTAINS(doc.name, @search_value) OR
-                    CONTAINS(doc.path, @search_value) OR
-                    CONTAINS(doc.key, @search_value) OR
-                    CONTAINS(doc.number, @search_value) OR
-                    CONTAINS(doc.string, @search_value) OR
-                    CONTAINS(doc.hash, @search_value) OR
-                    CONTAINS(doc.symbol, @search_value) OR
-                    CONTAINS(doc.address, @search_value) OR
-                    (doc.type == 'file' AND @search_value IN doc.hashes)
-                )
-                """.strip()
-            )
-        # if post_id := self.query.get('post_id'):
-        #     matcher["_obstracts_post_id"] = post_id
-        # if report_id := self.query.get('report_id'):
-        #     matcher["_stixify_report_id"] = report_id
-        if matcher:
-            bind_vars['matcher'] = matcher
-            other_filters.insert(0, "MATCHES(doc, @matcher)")
-        if other_filters:
-            other_filters = "FILTER " + " AND ".join(other_filters)
-        query = f"""
-            FOR doc in @@collection
-            FILTER CONTAINS(@types, doc.type) AND doc._is_latest
-            {other_filters or ""}
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-        """
-        return self.execute_query(query, bind_vars=bind_vars)
-    def get_sdos(self):
-        types = SDO_TYPES
-        if new_types := self.query_as_array('types'):
-            types = types.intersection(new_types)
-            
-        bind_vars = {
-            "@collection": self.collection,
-            "types": list(types),
-        }
-        other_filters = []
-        if term := self.query.get('labels'):
-            bind_vars['labels'] = term
-            other_filters.append("COUNT(doc.labels[* CONTAINS(CURRENT, @labels)]) != 0")
-        if term := self.query.get('name'):
-            bind_vars['name'] = term
-            other_filters.append("CONTAINS(doc.name, @name)")
-        if other_filters:
-            other_filters = "FILTER " + " AND ".join(other_filters)
-        query = f"""
-            FOR doc in @@collection
-            FILTER doc.type IN @types AND doc._is_latest
-            {other_filters or ""}
-            LIMIT @offset, @count
-            RETURN  KEEP(doc, KEYS(doc, true))
-        """
         return self.execute_query(query, bind_vars=bind_vars)
 
     def get_object(self, stix_id, relationship_mode=False, version_param=None):
@@ -811,17 +473,6 @@ RETURN KEEP(d, KEYS(d, TRUE))
             RETURN KEEP(doc, KEYS(doc, true))
             '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
 
-    def get_relationships_for_ext_id(self, ext_id):
-        bind_vars={'@collection': self.collection, 'ext_matcher': {'external_id': ext_id}}
-        filters = ['FILTER doc._is_latest']
-
-        return self.execute_query('''
-            LET docs = (FOR doc in @@collection
-            FILTER MATCHES(doc.external_references[0], @ext_matcher)
-            @filters
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true)))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars)
 
     def get_relationships(self, docs_query, binds):
         regex = r"KEEP\((\w+),\s*\w+\(.*?\)\)"
