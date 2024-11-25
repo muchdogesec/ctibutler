@@ -20,13 +20,14 @@ Note, `ignore_embedded_relationships` is set to `true` above, as it is known to 
 
 ```shell
 python3 utilities/import_all_data.py \
-	--ignore_embedded_relationships False \
-	--attack_enterprise_versions 15_1 \
-	--attack_ics_versions 15_1 \
-	--attack_mobile_versions 15_1 \
-	--cwe_versions 4_15 \
+	--ignore_embedded_relationships True \
+	--attack_enterprise_versions 16_0 \
+	--attack_ics_versions 16_0 \
+	--attack_mobile_versions 16_0 \
+	--cwe_versions 4_16 \
 	--capec_versions 3_9 \
 	--tlp_versions 2 \
 	--atlas_versions 4_5_2 \
-	--location_versions ac1bbfc
+	--location_versions ac1bbfc \
+	--disarm_versions 1_5
 ```
