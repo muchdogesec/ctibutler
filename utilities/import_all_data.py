@@ -16,22 +16,22 @@ default_attack_enterprise_versions = [
     "1_0", "2_0", "3_0", "4_0", "5_0", "5_1", "5_2", "6_0", "6_1", "6_2", "6_3",
     "7_0", "7_1", "7_2", "8_0", "8_1", "8_2", "9_0", "10_0", "10_1", "11_0", 
     "11_1", "11_2", "11_3", "12_0", "12_1", "13_0", "13_1", "14_0", "14_1", 
-    "15_0", "15_1"
+    "15_0", "15_1", "16_0"
 ]
 default_attack_ics_versions = [
     "8_0", "8_1", "8_2", "9_0", "10_0", "10_1", "11_0", 
     "11_1", "11_2", "11_3", "12_0", "12_1", "13_0", "13_1", "14_0", "14_1", 
-    "15_0", "15_1"
+    "15_0", "15_1", "16_0"
 ]
 default_attack_mobile_versions = [
     "1_0", "2_0", "3_0", "4_0", "5_0", "5_1", "5_2", "6_0", "6_1", "6_2", "6_3",
     "7_0", "7_1", "7_2", "8_0", "8_1", "8_2", "9_0", "10_0", "10_1", "11_0-beta", 
     "11_1-beta", "11_2-beta", "11_3", "12_0", "12_1", "13_0", "13_1", "14_0", "14_1", 
-    "15_0", "15_1"
+    "15_0", "15_1", "16_0"
 ]
 default_cwe_versions = [
     "4_5", "4_6", "4_7", "4_8", "4_9", "4_10", "4_11", "4_12", "4_13",
-    "4_14", "4_15",
+    "4_14", "4_15", "4_16"
 ]
 default_capec_versions = [
     "3_5", "3_6", "3_7", "3_8", "3_9"
@@ -44,6 +44,9 @@ default_atlas_versions = [
 ]
 default_location_versions = [
     "ac1bbfc"
+]
+default_disarm_versions = [
+    "1_2", "1_3", "1_4", "1_5"
 ]
 
 # Parse CLI arguments
@@ -58,7 +61,9 @@ def parse_arguments():
     parser.add_argument('--tlp_versions', type=str, help="Comma-separated versions for TLP updates.")
     parser.add_argument('--atlas_versions', type=str, help="Comma-separated versions for ATLAS updates.")
     parser.add_argument('--location_versions', type=str, help="Comma-separated versions for Location updates.")
-    
+    parser.add_argument('--disarm_versions', type=str, help="Comma-separated versions for DISARM updates.")
+
+
     # New argument for ignore_embedded_relationships
     parser.add_argument('--ignore_embedded_relationships', type=bool, default=False, help="Set to True to ignore embedded relationships in the update.")
     
@@ -180,6 +185,13 @@ def monitor_jobs(args):
         job_id = initiate_update("atlas", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"ATLAS (version {version})")
+
+    # Step 9: DISARM updates
+    disarm_versions = get_versions_from_arg(args.disarm_versions, default_disarm_versions)
+    for version in disarm_versions:
+        job_id = initiate_update("atlas", version, ignore_embedded_relationships)
+        if job_id:
+            monitor_job_status(job_id, f"DISARM (version {version})")
 
 # Run the script
 if __name__ == "__main__":
