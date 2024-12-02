@@ -259,6 +259,10 @@ class ArangoDBHelper:
                     """
                 ),
             ),
+            OpenApiParameter(
+                "relationship_type",
+                description="filter by the `relationship_type` of the STIX SROs returned."
+            )
         ]
     @classmethod
     def get_schema_operation_parameters(self):
@@ -499,6 +503,10 @@ class ArangoDBHelper:
         binds['@view'] = settings.VIEW_NAME
         other_filters = []
 
+        if term := self.query.get('relationship_type'):
+            binds['rel_relationship_type'] = term.lower()
+            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type) OR CONTAINS(LOWER(d._arango_cti_processor_note), @rel_relationship_type)")
+
         if term := self.query_as_array('source_ref'):
             binds['rel_source_ref'] = term
             other_filters.append('FILTER d.source_ref IN @rel_source_ref')
@@ -514,10 +522,6 @@ class ArangoDBHelper:
         if terms := self.query_as_array('target_ref_type'):
             binds['rel_target_ref_type'] = terms
             other_filters.append('FILTER SPLIT(d.target_ref, "--")[0] IN @rel_target_ref_type')
-
-        if term := self.query.get('relationship_type'):
-            binds['rel_relationship_type'] = term.lower()
-            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
 
         directions = dict(source_ref="_from", target_ref="_to")
         if term := directions.get(self.query.get('relationship_direction')):
