@@ -523,21 +523,30 @@ class ArangoDBHelper:
             binds['rel_target_ref_type'] = terms
             other_filters.append('FILTER SPLIT(d.target_ref, "--")[0] IN @rel_target_ref_type')
 
-        directions = dict(source_ref="_from", target_ref="_to")
-        if term := directions.get(self.query.get('relationship_direction')):
-            directions = [term]
-        else:
-            directions = list(directions.values())
+        match self.query.get('relationship_direction'):
+            case 'source_ref':
+                direction_query = 'd._from IN matched_ids'
+            case 'target_ref':
+                direction_query = 'd._to IN matched_ids'
+            case _:
+                direction_query = 'd._from IN matched_ids OR d._to IN matched_ids'
 
-        binds['directions'] = directions
-        binds['include_embedded_refs'] = self.query_as_bool('include_embedded_refs', True)
+        if self.query_as_bool('include_embedded_refs', True):
+            embedded_refs_query = ''
+        else:
+            embedded_refs_query = 'AND d._is_ref != TRUE'
 
         new_query = """
         LET matched_ids = (@docs_query)[*]._id
         FOR d IN @@view
-        FILTER d.type == 'relationship' AND VALUES(KEEP(d, @directions)) ANY IN matched_ids AND (NOT d._is_ref OR @include_embedded_refs)
+        SEARCH d.type == 'relationship' AND (@direction_query) @include_embedded_refs
         @other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
-        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))).replace('@other_filters', "\n".join(other_filters))
+        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))) \
+            .replace('@other_filters', "\n".join(other_filters)) \
+            .replace('@direction_query', direction_query) \
+            .replace('@include_embedded_refs', embedded_refs_query)
+
+        print(new_query, __import__('json').dumps(binds))
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
