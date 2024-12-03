@@ -262,6 +262,10 @@ class ArangoDBHelper:
             OpenApiParameter(
                 "relationship_type",
                 description="filter by the `relationship_type` of the STIX SROs returned."
+            ),
+            OpenApiParameter(
+                "_arango_cti_processor_note",
+                description="Filter results by `_arango_cti_processor_note`"
             )
         ]
     @classmethod
@@ -505,7 +509,11 @@ class ArangoDBHelper:
 
         if term := self.query.get('relationship_type'):
             binds['rel_relationship_type'] = term.lower()
-            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type) OR CONTAINS(LOWER(d._arango_cti_processor_note), @rel_relationship_type)")
+            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
+
+        if term := self.query.get('_arango_cti_processor_note'):
+            binds['rel_acp_note'] = term.lower()
+            other_filters.append("FILTER CONTAINS(LOWER(d._arango_cti_processor_note), @rel_acp_note)")
 
         if term := self.query_as_array('source_ref'):
             binds['rel_source_ref'] = term
