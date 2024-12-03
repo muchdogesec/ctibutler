@@ -548,5 +548,4 @@ class ArangoDBHelper:
             .replace('@direction_query', direction_query) \
             .replace('@include_embedded_refs', embedded_refs_query)
 
-        print(new_query, __import__('json').dumps(binds))
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
