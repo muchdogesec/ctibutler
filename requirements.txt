@@ -33,9 +33,10 @@ pytz==2024.2
 PyYAML==6.0.2
 redis==5.0.8
 referencing==0.35.1
-requests==2.31.0
+requests==2.32.2
 requests-toolbelt==1.0.0
 rpds-py==0.20.0
+schemathesis==3.38.7; python_version >= '3.8'
 setuptools==75.1.0
 simplejson==3.19.3
 six==1.16.0
@@ -49,6 +50,6 @@ urllib3==2.2.3
 vine==5.1.0
 wcwidth==0.2.13
 zipp==3.20.2
-dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2024-11-01/dogesec_commons-0.0.1b0-py3-none-any.whl
-arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/archive/main.zip
-stix2arango @ https://github.com/muchdogesec/stix2arango/archive/main.zip
+dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/update-arango-view-2024-12-03-16-56-32/dogesec_commons-0.0.1b2-py3-none-any.whl
+arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/main-2024-11-29-15-44-36/arango_cti_processor-0.0.1-py3-none-any.whl
+stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/fqrious-patch-1-2024-12-02-13-56-27/stix2arango-0.0.2-py3-none-any.whl

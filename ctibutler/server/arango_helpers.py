@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 import re
 import typing
@@ -6,7 +7,7 @@ from django.conf import settings
 from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-
+from rest_framework.validators import ValidationError
 from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
@@ -136,6 +137,21 @@ CVE_SORT_FIELDS = [
     "cvss_base_score_descending",
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
+
+
+def positive_int(integer_string, cutoff=None, default=1):
+    """
+    Cast a string to a strictly positive integer.
+    """
+    with contextlib.suppress(ValueError, TypeError):
+        ret = int(integer_string)
+        if ret <= 0:
+            return default
+        if cutoff:
+            return min(ret, cutoff)
+        return ret
+    return default
+
 class ArangoDBHelper:
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
@@ -162,11 +178,12 @@ class ArangoDBHelper:
         if not query_str:
             return default
         return query_str.lower() == 'true'
+    
     @classmethod
     def get_page_params(cls, request):
         kwargs = request.GET.copy()
-        page_number = int(kwargs.get('page', 1))
-        page_limit  = min(int(kwargs.get('page_size', ArangoDBHelper.page_size)), ArangoDBHelper.max_page_size)
+        page_number = positive_int(kwargs.get('page'))
+        page_limit = positive_int(kwargs.get('page_size'), cutoff=ArangoDBHelper.max_page_size, default=ArangoDBHelper.page_size)
         return page_number, page_limit
 
     @classmethod
@@ -217,7 +234,7 @@ class ArangoDBHelper:
                         "type": "integer",
                         "example": cls.page_size * cls.max_page_size,
                     },
-                    container: container_schema
+                    container: {'type': 'array', 'items': container_schema}
                 }
         }
 
@@ -242,6 +259,14 @@ class ArangoDBHelper:
                     """
                 ),
             ),
+            OpenApiParameter(
+                "relationship_type",
+                description="filter by the `relationship_type` of the STIX SROs returned."
+            ),
+            OpenApiParameter(
+                "_arango_cti_processor_note",
+                description="Filter results by `_arango_cti_processor_note`"
+            )
         ]
     @classmethod
     def get_schema_operation_parameters(self):
@@ -282,8 +307,11 @@ class ArangoDBHelper:
         if paginate:
             return self.get_paginated_response(container or self.container, cursor, self.page, self.page_size, cursor.statistics()["fullCount"])
         return list(cursor)
+   
     def get_offset_and_count(self, count, page) -> tuple[int, int]:
         page = page or 1
+        if page >= 2**32:
+            raise ValidationError(f"invalid page `{page}`")
         offset = (page-1)*count
         return offset, count
 
@@ -479,6 +507,14 @@ class ArangoDBHelper:
         binds['@view'] = settings.VIEW_NAME
         other_filters = []
 
+        if term := self.query.get('relationship_type'):
+            binds['rel_relationship_type'] = term.lower()
+            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
+
+        if term := self.query.get('_arango_cti_processor_note'):
+            binds['rel_acp_note'] = term.lower()
+            other_filters.append("FILTER CONTAINS(LOWER(d._arango_cti_processor_note), @rel_acp_note)")
+
         if term := self.query_as_array('source_ref'):
             binds['rel_source_ref'] = term
             other_filters.append('FILTER d.source_ref IN @rel_source_ref')
@@ -495,25 +531,29 @@ class ArangoDBHelper:
             binds['rel_target_ref_type'] = terms
             other_filters.append('FILTER SPLIT(d.target_ref, "--")[0] IN @rel_target_ref_type')
 
-        if term := self.query.get('relationship_type'):
-            binds['rel_relationship_type'] = term.lower()
-            other_filters.append("FILTER CONTAINS(LOWER(d.relationship_type), @rel_relationship_type)")
+        match self.query.get('relationship_direction'):
+            case 'source_ref':
+                direction_query = 'd._from IN matched_ids'
+            case 'target_ref':
+                direction_query = 'd._to IN matched_ids'
+            case _:
+                direction_query = 'd._from IN matched_ids OR d._to IN matched_ids'
 
-        directions = dict(source_ref="_from", target_ref="_to")
-        if term := directions.get(self.query.get('relationship_direction')):
-            directions = [term]
+        if self.query_as_bool('include_embedded_refs', True):
+            embedded_refs_query = ''
         else:
-            directions = list(directions.values())
-
-        binds['directions'] = directions
-        binds['include_embedded_refs'] = self.query_as_bool('include_embedded_refs', True)
+            embedded_refs_query = 'AND d._is_ref != TRUE'
 
         new_query = """
         LET matched_ids = (@docs_query)[*]._id
         FOR d IN @@view
-        FILTER d.type == 'relationship' AND VALUES(KEEP(d, @directions)) ANY IN matched_ids AND (NOT d._is_ref OR @include_embedded_refs)
+        SEARCH d.type == 'relationship' AND (@direction_query) @include_embedded_refs
         @other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
-        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))).replace('@other_filters', "\n".join(other_filters))
+        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))) \
+            .replace('@other_filters', "\n".join(other_filters)) \
+            .replace('@direction_query', direction_query) \
+            .replace('@include_embedded_refs', embedded_refs_query)
+
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
