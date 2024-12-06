@@ -1,0 +1,37 @@
+FROM python:3.11
+ENV PYTHONUNBUFFERED=1
+
+ARG DJANGO_SECRET
+ARG DJANGO_DEBUG
+ARG POSTGRES_PASSWORD
+ARG ARANGODB_PASSWORD
+
+ENV DJANGO_SECRET=${DJANGO_SECRET}
+ENV DJANGO_DEBUG=${DJANGO_DEBUG}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+ENV ARANGODB_PASSWORD=${ARANGODB_PASSWORD}
+
+ENV POSTGRES_HOST=host.docker.internal
+ENV POSTGRES_PORT=5432
+ENV POSTGRES_DB=ctibutler_database
+ENV POSTGRES_USER=ctibutler
+ENV ARANGODB_HOST_URL=http://host.docker.internal:8529
+ENV ARANGODB_USERNAME=ctibutler
+ENV MAX_PAGE_SIZE=50
+ENV DEFAULT_PAGE_SIZE=50
+ENV ATLAS_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-atlas-repo-data/
+ENV CTI_BUTLER_ROOT=https://downloads.ctibutler.com/
+ENV LOCATION_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/location2stix-manual-output/
+ENV TLP_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/tlp/
+ENV CWE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/cwe2stix-manual-output/
+ENV CAPEC_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-capec-repo-data/
+ENV ATTACK_ENTERPRISE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-attack-enterprise-repo-data/
+ENV ATTACK_MOBILE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-attack-mobile-repo-data/
+ENV ATTACK_ICS_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-attack-ics-repo-data/
+ENV DISARM_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/disarm2stix-manual-output/
+
+WORKDIR /usr/src/app
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY . /usr/src/app
