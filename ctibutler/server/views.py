@@ -494,7 +494,7 @@ class CweView(viewsets.ViewSet):
 )
 class CapecView(viewsets.ViewSet):
     openapi_tags = ["CAPEC"]
-    lookup_url_kwarg = 'stix_id'
+    lookup_url_kwarg = 'capec_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`)'),
         OpenApiParameter('capec_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CAPEC ID, e.g `CAPEC-112`, `CAPEC-699`'),
