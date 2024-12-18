@@ -29,6 +29,9 @@ ENV ATTACK_ENTERPRISE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-att
 ENV ATTACK_MOBILE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-attack-mobile-repo-data/
 ENV ATTACK_ICS_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-attack-ics-repo-data/
 ENV DISARM_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/disarm2stix-manual-output/
+ENV DJANGO_SETTINGS_MODULE=ctibutler.settings
+ENV CELERY_BROKER_URL=redis://host.docker.internal:6379/0
+ENV result_backend=redis://host.docker.internal:6379/0
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
