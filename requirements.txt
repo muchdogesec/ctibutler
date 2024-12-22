@@ -50,6 +50,6 @@ urllib3==2.2.3
 vine==5.1.0
 wcwidth==0.2.13
 zipp==3.20.2
-dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/update-arango-view-2024-12-03-16-56-32/dogesec_commons-0.0.1b2-py3-none-any.whl
-arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/main-2024-11-29-15-44-36/arango_cti_processor-0.0.1-py3-none-any.whl
-stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/fqrious-patch-1-2024-12-02-13-56-27/stix2arango-0.0.2-py3-none-any.whl
+dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2024-12-19-10-22-48/dogesec_commons-0.0.1b2-py3-none-any.whl
+arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/main-2024-12-22-16-11-55/arango_cti_processor-0.0.1-py3-none-any.whl
+stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/main-2024-12-18-15-09-13/stix2arango-0.0.2-py3-none-any.whl
