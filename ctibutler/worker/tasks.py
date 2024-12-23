@@ -20,7 +20,9 @@ import typing
 from django.conf import settings
 from .celery import app
 from stix2arango.stix2arango import Stix2Arango
-from arango_cti_processor.cti_processor import ArangoProcessor
+
+from arango_cti_processor.managers import RELATION_MANAGERS as CVE_RELATION_MANAGERS
+from arango_cti_processor.__main__ import run_all as run_task_with_acp
 import logging
 
 if typing.TYPE_CHECKING:
@@ -60,8 +62,7 @@ def new_task(data, type, job=None) -> Job:
 def run_acp_task(data: dict, job: Job):
     options = data.copy()
     options['database'] = settings.ARANGODB_DATABASE
-    options['relationship'] = [data['mode']]
-    processor = ArangoProcessor(**options)
+    options['modes'] = [data['mode']]
 
     task =  acp_task.s(options, job_id=job.id)
     return (task | remove_temp_and_set_completed.si(None, job_id=job.id))
@@ -174,15 +175,11 @@ def upload_file(filename, collection_name, stix2arango_note=None, job_id=None, p
     )
     s2a.run()
 
+
 @app.task(base=CustomTask)
 def acp_task(options, job_id=None):
     job = Job.objects.get(pk=job_id)
-    try:
-        processor = ArangoProcessor(**options)
-        processor.run()
-    except BaseException as e:
-        job.errors.append(str(e))
-    job.save()
+    run_task_with_acp(**options)
 
 @app.task(base=CustomTask)
 def remove_temp_and_set_completed(path: str, job_id: str=None):
