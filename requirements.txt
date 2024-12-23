@@ -26,7 +26,7 @@ packaging==24.1
 prompt_toolkit==3.0.47
 psycopg2==2.9.9
 PyJWT==2.9.0
-python-arango==7.9.1
+python-arango>=7.9.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.2
