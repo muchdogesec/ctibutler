@@ -40,7 +40,7 @@ default_tlp_versions = [
     "1", "2" 
 ]
 default_atlas_versions = [
-    "4_5_2"
+    "4_5_2", "4_7_0"
 ]
 default_location_versions = [
     "ac1bbfc"
