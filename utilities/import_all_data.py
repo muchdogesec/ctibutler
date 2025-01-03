@@ -189,7 +189,7 @@ def monitor_jobs(args):
     # Step 9: DISARM updates
     disarm_versions = get_versions_from_arg(args.disarm_versions, default_disarm_versions)
     for version in disarm_versions:
-        job_id = initiate_update("atlas", version, ignore_embedded_relationships)
+        job_id = initiate_update("disarm", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"DISARM (version {version})")
 
