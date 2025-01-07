@@ -9,7 +9,7 @@ if typing.TYPE_CHECKING:
 from stix2arango.stix2arango import Stix2Arango
 
 
-collections_to_create = ['disarm', 'mitre_atlas', 'tlp', 'location', 'mitre_capec', 'mitre_attack_mobile', 'mitre_cwe', 'mitre_attack_ics', 'mitre_attack_enterprise']
+collections_to_create = ['disarm', 'mitre_atlas', 'location', 'mitre_capec', 'mitre_attack_mobile', 'mitre_cwe', 'mitre_attack_ics', 'mitre_attack_enterprise']
 
 def find_missing(collections_to_create):
     client = ArangoClient(settings.ARANGODB_HOST_URL)

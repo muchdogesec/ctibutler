@@ -22,7 +22,6 @@ ENV DEFAULT_PAGE_SIZE=50
 ENV ATLAS_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-atlas-repo-data/
 ENV CTI_BUTLER_ROOT=https://downloads.ctibutler.com/
 ENV LOCATION_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/location2stix-manual-output/
-ENV TLP_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/tlp/
 ENV CWE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/cwe2stix-manual-output/
 ENV CAPEC_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-capec-repo-data/
 ENV ATTACK_ENTERPRISE_BUCKET_ROOT_PATH=https://downloads.ctibutler.com/mitre-attack-enterprise-repo-data/

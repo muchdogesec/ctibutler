@@ -17,7 +17,6 @@ class JobType(models.TextChoices):
     CTI_PROCESSOR   = "arango-cti-processor"
     ATLAS_UPDATE    = "atlas-update"
     LOCATION_UPDATE = "location-update"
-    TLP_UPDATE      = "tlp-update"
     DISARM_UPDATE   = "disarm-update"
 
 class Job(models.Model):

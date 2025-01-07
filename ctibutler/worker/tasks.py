@@ -37,8 +37,6 @@ def create_celery_task_from_job(job: Job):
             task = run_mitre_task(data, job, 'location')
         case models.JobType.ATLAS_UPDATE:
             task = run_mitre_task(data, job, 'atlas')
-        case models.JobType.TLP_UPDATE:
-            task = run_mitre_task(data, job, 'tlp')
         case models.JobType.ATTACK_UPDATE:
             task = run_mitre_task(data, job, f'attack-{data["matrix"]}')
         case models.JobType.CWE_UPDATE:
@@ -91,9 +89,6 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
         case "atlas":
             url = urljoin(settings.ATLAS_BUCKET_ROOT_PATH, f"mitre-atlas-v{version}.json")
             collection_name = 'mitre_atlas'
-        case "tlp":
-            url = urljoin(settings.TLP_BUCKET_ROOT_PATH, f"tlpv{version}-bundle.json")
-            collection_name = 'tlp'
         case "location":
             url = urljoin(settings.LOCATION_BUCKET_ROOT_PATH, f"locations-bundle-{version}.json")
             collection_name = "location"
