@@ -310,8 +310,6 @@ class AttackView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what CWE versions it appears in.
 
             The data returned is useful to see when and object has changed.
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=4_16` for `4.16`.
             """
         ),
     ),
@@ -390,6 +388,8 @@ class CweView(viewsets.ViewSet):
             It is possible to import multiple versions of CWE using the POST MITRE CWE endpoint. By default, all endpoints will only return the latest version of CWE objects (which generally suits most use-cases).
 
             This endpoint allows you to see all imported versions of MITRE CWE available to use, and which version is the latest (the default version for the objects returned).
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=4_16` for `4.16`.
             """
             ),
         )
@@ -478,8 +478,6 @@ class CweView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what CAPEC versions it appears in.
 
             The data returned is useful to see when and object has changed.
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=3_9` for `3.9`.
             """
         ),
     ),
@@ -558,6 +556,8 @@ class CapecView(viewsets.ViewSet):
             It is possible to import multiple versions of CAPEC using the POST MITRE CAPEC endpoint. By default, all endpoints will only return the latest version of CAPEC objects (which generally suits most use-cases).
 
             This endpoint allows you to see all imported versions of MITRE CAPEC available to use, and which version is the latest (the default version for the objects returned).
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=3_9` for `3.9`.
             """
             ),
         )
@@ -768,8 +768,6 @@ class JobView(viewsets.ModelViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what ATLAS versions it appears in.
 
             The data returned is useful to see when and object has changed.
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N_N" e.g. `version=4_7_0` for `4.7.0`.
             """
         ),
     ),
@@ -832,6 +830,8 @@ class AtlasView(viewsets.ViewSet):
             It is possible to import multiple versions of ATLAS using the POST MITRE ATLAS endpoint. By default, all endpoints will only return the latest version of ATLAS objects (which generally suits most use-cases).
 
             This endpoint allows you to see all imported versions of MITRE ATLAS available to use, and which version is the latest (the default version for the objects returned).
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N_N" e.g. `version=4_7_0` for `4.7.0`.
             """
             ),
         )
@@ -919,8 +919,6 @@ class AtlasView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what Location versions it appears in.
 
             The data returned is useful to see when and object has changed.
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX" e.g. `version=59da722`.
             """
         ),
         responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
@@ -1010,6 +1008,8 @@ class LocationView(viewsets.ViewSet):
             It is possible to import multiple versions of Location using the POST Location endpoint. By default, all endpoints will only return the latest version of Location objects (which generally suits most use-cases).
 
             This endpoint allows you to see all imported versions of Location available to use, and which version is the latest (the default version for the objects returned).
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX" e.g. `version=59da722`.
             """
             ),
         )
@@ -1099,8 +1099,6 @@ class LocationView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what DISARM versions it appears in.
 
             The data returned is useful to see when and object has changed.
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=1_5` for `1.5`.
             """
         ),
     ),
@@ -1179,6 +1177,8 @@ class DisarmView(viewsets.ViewSet):
             It is possible to import multiple versions of DISARM using the POST MITRE DISARM endpoint. By default, all endpoints will only return the latest version of DISARM objects (which generally suits most use-cases).
 
             This endpoint allows you to see all imported versions of MITRE DISARM available to use, and which version is the latest (the default version for the objects returned).
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=1_5` for `1.5`.
             """
             ),
         )
