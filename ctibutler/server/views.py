@@ -146,7 +146,7 @@ class AttackView(viewsets.ViewSet):
 
                     The following key/values are accepted in the body of the request:
 
-                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `15_1` for `15.1`. You can see all [Enterprise versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7), [Mobile versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_mobile.py#L7), or [ICS versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_ics.py#L7).
+                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `16_0` for `16.0`. You can see all [Enterprise versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7), [Mobile versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_mobile.py#L7), or [ICS versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_ics.py#L7).
                     * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
                     The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -159,7 +159,7 @@ class AttackView(viewsets.ViewSet):
                 summary=f"Search and filter MITRE ATT&CK {matrix_name_human} objects",
                 description=textwrap.dedent(
                     """
-                    Search and filter MITRE ATT&CK {matrix_name_human} objects.
+                    Search and filter MITRE ATT&CK objects.
 
                     MITRE ATT&CK objects map to STIX objects as follows
 
@@ -186,9 +186,9 @@ class AttackView(viewsets.ViewSet):
                 summary=f"Get a specific MITRE ATT&CK {matrix_name_human} object by its ID",
                 description=textwrap.dedent(
                     """
-                    Get a MITRE ATT&CK {matrix_name_human} object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
+                    Get a MITRE ATT&CK object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
 
-                    If you do not know the ID of the object you can use the GET MITRE ATT&CK {matrix_name_human} Objects endpoint to find it.
+                    If you do not know the ID of the object you can use the GET MITRE ATT&CK Objects endpoint to find it.
                     """
                 ),
                 filters=False,
@@ -197,14 +197,16 @@ class AttackView(viewsets.ViewSet):
                 summary=f"Get a list of MITRE ATT&CK {matrix_name_human} versions stored in the database",
                 description=textwrap.dedent(
                     """
-                    It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK {matrix_name_human} endpoint. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
+                    It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK endpoint. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
 
-                    This endpoint allows you to see all imported versions of MITRE ATT&CK {matrix_name_human} available to use, and which version is the latest (the default version for the objects returned).
+                    This endpoint allows you to see all imported versions of MITRE ATT&CK available to use, and which version is the latest (the default version for the objects returned).
+
+                    Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=16_0` for `16.0`.
                     """
                 ),
             ),
             object_versions=extend_schema(
-                summary=f"See all version of the MITRE ATT&CK {matrix_name_human} object",
+                summary=f"See all versions of the MITRE ATT&CK {matrix_name_human} object",
                 description=textwrap.dedent(
                     """
                     This endpoint will show the STIX versions of the object (`modified` property) and what MITRE ATT&CK versions it appears in.
@@ -221,7 +223,7 @@ class AttackView(viewsets.ViewSet):
 
                     If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
 
-                    MITRE ATT&CK Enterprise objects can also be `target_ref` from CAPECs objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
+                    MITRE ATT&CK objects can also be `target_ref` from CAPECs objects. Requires POST arango-cti-processor request using `capec-attack` mode for this data to show.
                     """
                 ),
             ),
@@ -263,7 +265,7 @@ class AttackView(viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_14` for `4.14`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_cwe.py#L7).
+            * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_16` for `4.16`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_cwe.py#L7).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -308,6 +310,8 @@ class AttackView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what CWE versions it appears in.
 
             The data returned is useful to see when and object has changed.
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=4_16` for `4.16`.
             """
         ),
     ),
@@ -474,6 +478,8 @@ class CweView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what CAPEC versions it appears in.
 
             The data returned is useful to see when and object has changed.
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=3_9` for `3.9`.
             """
         ),
     ),
@@ -714,7 +720,7 @@ class JobView(viewsets.ModelViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of ATLAS you want to download in the format `N_N`, e.g. `4_5_2` for `4.5.2`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).
+            * `version` (required): the version of ATLAS you want to download in the format `N_N_N`, e.g. `4_7_0` for `4.7.0`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -762,6 +768,8 @@ class JobView(viewsets.ModelViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what ATLAS versions it appears in.
 
             The data returned is useful to see when and object has changed.
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N_N" e.g. `version=4_7_0` for `4.7.0`.
             """
         ),
     ),
@@ -868,7 +876,7 @@ class AtlasView(viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the versions of Locations you want to download. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
+            * `version` (required): the versions of Locations bundle you want to download in the format `XXXXXXX`, e.g. `59da722`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -911,6 +919,8 @@ class AtlasView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what Location versions it appears in.
 
             The data returned is useful to see when and object has changed.
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX" e.g. `version=59da722`.
             """
         ),
         responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
@@ -1089,6 +1099,8 @@ class LocationView(viewsets.ViewSet):
             This endpoint will show the STIX versions of the object (`modified` property) and what DISARM versions it appears in.
 
             The data returned is useful to see when and object has changed.
+
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=1_5` for `1.5`.
             """
         ),
     ),
