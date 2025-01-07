@@ -17,7 +17,6 @@ A web API for the following STIX 2.1 datasets:
 * MITRE CWE
 * MITRE ATLAS
 * Locations
-* TLP
 * DISARM
 
 ## tl;dr
