@@ -20,6 +20,17 @@ REVOKED_AND_DEPRECATED_PARAMS = [
     OpenApiParameter('include_revoked', type=OpenApiTypes.BOOL, description="By default all objects with `revoked` are ignored. Set this to `true` to include them."),
     OpenApiParameter('include_deprecated', type=OpenApiTypes.BOOL, description="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them."),
 ]
+BUNDLE_PARAMS = [
+            OpenApiParameter(
+                "include_embedded_refs",
+                description=textwrap.dedent(
+                    """
+                    If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`.
+                    """
+                ),
+                type=OpenApiTypes.BOOL
+            )
+]
 
 @extend_schema_view(
     create=extend_schema(
@@ -35,6 +46,11 @@ REVOKED_AND_DEPRECATED_PARAMS = [
     retrieve_object_relationships=extend_schema(
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters() + REVOKED_AND_DEPRECATED_PARAMS,
+    ),
+
+    bundle=extend_schema(
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        parameters=BUNDLE_PARAMS,
     ),
 )  
 class AttackView(viewsets.ViewSet):
@@ -95,6 +111,15 @@ class AttackView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, relationship_mode=True, revokable=True)
+
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('attack_version', description="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/bundle", detail=False)
+    def bundle(self, request, *args, attack_id=None, **kwargs):
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, revokable=True, bundle=True)
 
     @extend_schema()
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
@@ -227,6 +252,16 @@ class AttackView(viewsets.ViewSet):
                     """
                 ),
             ),
+            bundle=extend_schema(
+                summary=f"Generate a bundle linked to the MITRE ATT&CK {matrix_name_human} Object",
+                description=textwrap.dedent(
+                    """
+                    This endpoint will return all the STIX `relationship` objects where the ATT&CK object is found as a `source_ref`.
+
+                    If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
+                    """
+                ),
+            )
         )
         class TempAttackView(cls):
             matrix = matrix_name
@@ -327,6 +362,20 @@ class AttackView(viewsets.ViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
+    bundle=extend_schema(
+        summary='Generate a Bundle linked to MITRE CWE Object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the CWE object is found as a `source_ref`.
+
+            If you want to see an overview of how MITRE CWE objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
+
+            MITRE CWE objects can also be `source_ref` to CAPEC objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
+            """
+        ),
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        parameters=BUNDLE_PARAMS,
+    ),
 )  
 class CweView(viewsets.ViewSet):
     openapi_tags = ["CWE"]
@@ -379,7 +428,16 @@ class CweView(viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, cwe_id=None, **kwargs):
-        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, relationship_mode=True)
+        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, relationship_mode=True)        
+    
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('cwe_version', description="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>/bundle", detail=False)
+    def bundle(self, request, *args, cwe_id=None, **kwargs):
+        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, bundle=True)
         
     @extend_schema(
         summary="See available CWE versions",
@@ -495,6 +553,16 @@ class CweView(viewsets.ViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
+    bundle=extend_schema(
+        summary='Generate a Bundle linked to MITRE CAPEC Object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the CAPEC object is found as a `source_ref`.
+            """
+        ),
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        parameters=BUNDLE_PARAMS,
+    ),
 )
 class CapecView(viewsets.ViewSet):
     openapi_tags = ["CAPEC"]
@@ -548,6 +616,15 @@ class CapecView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, capec_id=None, **kwargs):
         return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, relationship_mode=True)
+        
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('capec_version', description="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>/bundle", detail=False)
+    def bundle(self, request, *args, capec_id=None, **kwargs):
+        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, bundle=True)
     
     @extend_schema(
         summary="Get a list of CAPEC versions stored in the database",
@@ -761,6 +838,16 @@ class JobView(viewsets.ModelViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
+    bundle=extend_schema(
+        summary='Generate a Bundle linked to the MITRE ATLAS Object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the ATLAS object is found as a `source_ref`.
+            """
+        ),
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        parameters=BUNDLE_PARAMS,
+    ),
     object_versions=extend_schema(
         summary="See all versions of the ATLAS object",
         description=textwrap.dedent(
@@ -822,6 +909,15 @@ class AtlasView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, atlas_id=None, **kwargs):
         return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, relationship_mode=True)
+        
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('atlas_version', description="Filter the results by the version of ATLAS")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/bundle", detail=False)
+    def bundle(self, request, *args, atlas_id=None, **kwargs):
+        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, bundle=True)
         
     @extend_schema(
         summary="See available ATLAS versions",
@@ -1116,6 +1212,18 @@ class LocationView(viewsets.ViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
+    bundle=extend_schema(
+        summary='Generate a bundle linked to MITRE DISARM Object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the DISARM object is found as a `source_ref`.
+
+            If you want to see an overview of how MITRE DISARM objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
+            """
+        ),
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        parameters=BUNDLE_PARAMS,
+    ),
 )  
 class DisarmView(viewsets.ViewSet):
     openapi_tags = ["DISARM"]
@@ -1168,7 +1276,16 @@ class DisarmView(viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, disarm_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, relationship_mode=True)
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, relationship_mode=True)    
+    
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('disarm_version', description="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/bundle", detail=False)
+    def bundle(self, request, *args, disarm_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, bundle=True)
         
     @extend_schema(
         summary="See available DISARM versions",
