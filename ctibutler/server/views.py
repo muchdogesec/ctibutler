@@ -253,10 +253,12 @@ class AttackView(viewsets.ViewSet):
                 ),
             ),
             bundle=extend_schema(
-                summary=f"Generate a bundle linked to the MITRE ATT&CK {matrix_name_human} Object",
+                summary=f"Get all objects linked to the MITRE ATT&CK {matrix_name_human} Object",
                 description=textwrap.dedent(
                     """
-                    This endpoint will return all the STIX `relationship` objects where the ATT&CK object is found as a `source_ref`.
+                    This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+                    It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
 
                     If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
                     """
@@ -363,10 +365,12 @@ class AttackView(viewsets.ViewSet):
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     bundle=extend_schema(
-        summary='Generate a Bundle linked to MITRE CWE Object',
+        summary='Get all objects linked to the MITRE CWE Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the CWE object is found as a `source_ref`.
+            This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+            It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
 
             If you want to see an overview of how MITRE CWE objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
 
@@ -554,10 +558,12 @@ class CweView(viewsets.ViewSet):
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     bundle=extend_schema(
-        summary='Generate a Bundle linked to MITRE CAPEC Object',
+        summary='Get all objects linked to the MITRE CAPEC Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the CAPEC object is found as a `source_ref`.
+            This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+            It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
@@ -839,10 +845,12 @@ class JobView(viewsets.ModelViewSet):
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     bundle=extend_schema(
-        summary='Generate a Bundle linked to the MITRE ATLAS Object',
+        summary='Get all objects linked to the MITRE ATLAS Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the ATLAS object is found as a `source_ref`.
+            This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+            It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
             """
         ),
         responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
@@ -1213,10 +1221,12 @@ class LocationView(viewsets.ViewSet):
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     bundle=extend_schema(
-        summary='Generate a bundle linked to MITRE DISARM Object',
+        summary='Get all objects linked to the MITRE DISARM Object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the DISARM object is found as a `source_ref`.
+            This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+            It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
 
             If you want to see an overview of how MITRE DISARM objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
             """
