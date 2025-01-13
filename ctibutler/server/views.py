@@ -1010,7 +1010,7 @@ class AtlasView(viewsets.ViewSet):
             """
             Get a Location object by its STIX ID (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)
             
-            If you do not know the ID of the object you can use the GET MITRE ATLAS Objects endpoint to find it.
+            If you do not know the ID of the object you can use the GET Locations Objects endpoint to find it.
             """
         ),
         filters=False,
@@ -1041,10 +1041,12 @@ class AtlasView(viewsets.ViewSet):
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     bundle=extend_schema(
-        summary='Generate a Bundle of all objects linked to the Location object',
+        summary='Get all objects linked to the  Location object',
         description=textwrap.dedent(
             """
-            This endpoint will return all the STIX relationship objects where the Location object is found as a `source_ref` or a `target_ref`.
+            This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+            It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
 
             If you want to see an overview of how Location objects are linked, [see this diagram](https://miro.com/app/board/uXjVKAj06DQ=/).
             """
