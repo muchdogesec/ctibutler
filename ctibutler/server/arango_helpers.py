@@ -489,20 +489,25 @@ class ArangoDBHelper:
         """.replace('@filters', '\n'.join(filters+more_filters))
         return self.execute_query(query, bind_vars=bind_vars)
 
-    def get_object(self, stix_id, relationship_mode=False, version_param=None):
+    def get_object(self, stix_id, relationship_mode=False, version_param=None, bundle=False):
         bind_vars={'@collection': self.collection, 'stix_id': stix_id}
         filters = ['FILTER doc._is_latest']
         if version_param and self.query.get(version_param):
             bind_vars['mitre_version'] = "version="+self.query.get(version_param).replace('.', '_').strip('v')
             filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
 
-        return self.execute_query('''
+        query = '''
             FOR doc in @@collection
             FILTER doc.id == @stix_id
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
+            '''.replace('@filters', '\n'.join(filters))
+        
+        if bundle:
+            return self.get_bundle(query, bind_vars)
+
+        return self.execute_query(query, bind_vars=bind_vars, relationship_mode=relationship_mode)
 
 
     def get_relationships(self, docs_query, binds):

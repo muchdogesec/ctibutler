@@ -1039,6 +1039,19 @@ class AtlasView(viewsets.ViewSet):
         filters=False,
         responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
+    ),
+    bundle=extend_schema(
+        summary='Generate a Bundle of all objects linked to the Location object',
+        description=textwrap.dedent(
+            """
+            This endpoint will return all the STIX relationship objects where the Location object is found as a `source_ref` or a `target_ref`.
+
+            If you want to see an overview of how Location objects are linked, [see this diagram](https://miro.com/app/board/uXjVKAj06DQ=/).
+            """
+        ),
+        filters=False,
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        parameters=BUNDLE_PARAMS,
     )
 )  
 class LocationView(viewsets.ViewSet):
@@ -1104,6 +1117,15 @@ class LocationView(viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, stix_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True, version_param='location_version')
+    
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('location_version', description="Filter the results by the version of Location")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/bundle", detail=False)
+    def bundle(self, request, *args, stix_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, bundle=True, version_param='location_version')
         
     @extend_schema(
         summary="See available Location versions",
