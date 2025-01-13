@@ -367,7 +367,7 @@ class ArangoDBHelper:
         return self.execute_query(query, bind_vars=bind_vars)
 
 
-    def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False):
+    def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False, bundle=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower()}
         filters = ['FILTER doc._is_latest']
         for version_param in ['attack_version', 'cwe_version', 'capec_version']:
@@ -381,13 +381,16 @@ class ArangoDBHelper:
             bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
             filters.append('FILTER (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)')
         
-        return self.execute_query('''
+        query = '''
             FOR doc in @@collection
             FILTER LOWER(doc.external_references[0].external_id) == @ext_id
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
+            '''.replace('@filters', '\n'.join(filters))
+        if bundle:
+            return self.get_bundle(query, bind_vars)
+        return self.execute_query(query, bind_vars=bind_vars, relationship_mode=relationship_mode)
 
     def get_mitre_versions(self, stix_id=None):
         query = """
@@ -486,20 +489,25 @@ class ArangoDBHelper:
         """.replace('@filters', '\n'.join(filters+more_filters))
         return self.execute_query(query, bind_vars=bind_vars)
 
-    def get_object(self, stix_id, relationship_mode=False, version_param=None):
+    def get_object(self, stix_id, relationship_mode=False, version_param=None, bundle=False):
         bind_vars={'@collection': self.collection, 'stix_id': stix_id}
         filters = ['FILTER doc._is_latest']
         if version_param and self.query.get(version_param):
             bind_vars['mitre_version'] = "version="+self.query.get(version_param).replace('.', '_').strip('v')
             filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
 
-        return self.execute_query('''
+        query = '''
             FOR doc in @@collection
             FILTER doc.id == @stix_id
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters)), bind_vars=bind_vars, relationship_mode=relationship_mode)
+            '''.replace('@filters', '\n'.join(filters))
+        
+        if bundle:
+            return self.get_bundle(query, bind_vars)
+
+        return self.execute_query(query, bind_vars=bind_vars, relationship_mode=relationship_mode)
 
 
     def get_relationships(self, docs_query, binds):
@@ -557,3 +565,31 @@ class ArangoDBHelper:
             .replace('@include_embedded_refs', embedded_refs_query)
 
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
+
+
+    def get_bundle(self, docs_query, binds):
+        regex = r"KEEP\((\w+),\s*\w+\(.*?\)\)"
+        binds['@view'] = settings.VIEW_NAME
+        more_search_filters = []
+
+        if not self.query_as_bool('include_embedded_refs', False):
+            more_search_filters.append('doc._is_ref != TRUE')
+        
+        query = '''
+LET matched_ids = (@docs_query)[*]._id
+
+ LET bundle_ids = FLATTEN(
+     FOR doc IN @@view SEARCH doc.type == 'relationship' AND (doc._from IN matched_ids OR doc._to IN matched_ids) @@more_search_filters
+     RETURN [doc._id, doc._from, doc._to]
+ ) 
+ 
+ FOR d IN @@view SEARCH d._id IN APPEND(bundle_ids, matched_ids)
+ LIMIT @offset, @count
+ RETURN KEEP(d, KEYS(d, TRUE))
+'''
+        query = query \
+                    .replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))) \
+                    .replace('@@more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}")
+        # return Response([query, binds])
+        return self.execute_query(query, bind_vars=binds)
+  
