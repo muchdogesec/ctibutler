@@ -574,7 +574,7 @@ class ArangoDBHelper:
 LET matched_ids = (@docs_query)[*]._id
 
  LET bundle_ids = FLATTEN(
-     FOR doc IN @@view SEARCH doc.type == 'relationship' AND doc._from IN matched_ids @@more_search_filters
+     FOR doc IN @@view SEARCH doc.type == 'relationship' AND (doc._from IN matched_ids OR doc._to IN matched_ids) @@more_search_filters
      RETURN [doc._id, doc._from, doc._to]
  ) 
  

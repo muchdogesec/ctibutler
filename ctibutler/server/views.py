@@ -20,7 +20,7 @@ REVOKED_AND_DEPRECATED_PARAMS = [
     OpenApiParameter('include_revoked', type=OpenApiTypes.BOOL, description="By default all objects with `revoked` are ignored. Set this to `true` to include them."),
     OpenApiParameter('include_deprecated', type=OpenApiTypes.BOOL, description="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them."),
 ]
-BUNDLE_PARAMS = [
+BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
             OpenApiParameter(
                 "include_embedded_refs",
                 description=textwrap.dedent(
