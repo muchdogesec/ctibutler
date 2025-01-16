@@ -2,7 +2,7 @@ import re
 from django.shortcuts import render
 from rest_framework import viewsets, filters, status, decorators
 
-from ctibutler.server.arango_helpers import ATLAS_TYPES, CVE_SORT_FIELDS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, CWE_TYPES, SOFTWARE_TYPES, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CVE_SORT_FIELDS, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CWE_TYPES, SOFTWARE_TYPES, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering, split_mitre_version
 from ctibutler.worker.tasks import new_task
@@ -80,6 +80,7 @@ class AttackView(viewsets.ViewSet):
         include_revoked = BooleanFilter(help_text="By default all objects with `revoked` are ignored. Set this to `true` to include them.")
         include_deprecated = BooleanFilter(help_text="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them.")
         alias = CharFilter(help_text='Filter the results by the `x_mitre_aliases` property of the object. Search is a wildcard, so `sun` will return all objects with x_mitre_aliases that contains the string `sun`, e.g `SUNBURST`.')
+        attack_type = ChoiceFilter(choices=[(f,f) for f in ATTACK_FORMS], help_text='Filter the results by Attack Object type.')
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -887,6 +888,7 @@ class AtlasView(viewsets.ViewSet):
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
         atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.5.2`. You can get a full list of versions on the GET ATLAS versions endpoint.")
+        atlas_type = ChoiceFilter(choices=[(f,f) for f in ATLAS_FORMS], help_text='Filter the results by ATLAS Object type.')
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -899,7 +901,7 @@ class AtlasView(viewsets.ViewSet):
     
     @decorators.action(methods=['GET'], url_path="objects", detail=False)
     def list_objects(self, request, *args, **kwargs):
-        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_weakness_or_capec_objects(types=ATLAS_TYPES, lookup_kwarg=self.lookup_url_kwarg)
+        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_weakness_or_capec_objects(types=ATLAS_TYPES, lookup_kwarg=self.lookup_url_kwarg, forms=ATLAS_FORMS)
     
     @extend_schema(
             parameters=[
@@ -1279,6 +1281,7 @@ class DisarmView(viewsets.ViewSet):
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in DISARM_TYPES], help_text='Filter the results by STIX Object type.')
         disarm_version = CharFilter(help_text="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
+        disarm_type = ChoiceFilter(choices=[(f,f) for f in DISARM_FORMS], help_text='Filter the results by ATLAS Object type.')
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -1291,7 +1294,7 @@ class DisarmView(viewsets.ViewSet):
     
     @decorators.action(methods=['GET'], url_path="objects", detail=False)
     def list_objects(self, request, *args, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_weakness_or_capec_objects(types=DISARM_TYPES, lookup_kwarg=self.lookup_url_kwarg)
+        return ArangoDBHelper(self.arango_collection, request).get_weakness_or_capec_objects(types=DISARM_TYPES, lookup_kwarg=self.lookup_url_kwarg, forms=DISARM_FORMS)
     
     @extend_schema(
             parameters=[

@@ -71,6 +71,35 @@ ATTACK_TYPES = set([
     "x-mitre-tactic"
 ]
 )
+
+ATTACK_FORMS = {
+    "Tactic": [dict(type='x-mitre-tactic')],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Mitigation": [dict(type='course-of-action')],
+    "Group": [dict(type='intrusion-set')],
+    "Software": [dict(type='malware'), dict(type='tool')],
+    "Campaign": [dict(type='campaign')],
+    "Data Source": [dict(type='x-mitre-data-source')],
+    "Data Component": [dict(type='x-mitre-data-component')],
+    "Asset": [dict(type='x-mitre-asset')],
+}
+
+
+ATLAS_FORMS = {
+    "Tactic": [dict(type='x-mitre-tactic')],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Mitigation": [dict(type='course-of-action')],
+}
+
+
+DISARM_FORMS = {
+    "Tactic": [dict(type='x-mitre-tactic')],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+}
+
 LOCATION_TYPES = set([
     'location'
 ])
@@ -325,6 +354,16 @@ class ArangoDBHelper:
                 "types": list(types),
         }
 
+        if attack_forms := self.query_as_array('attack_type'):
+            form_list = []
+            for form in attack_forms:
+                form_list.extend(ATTACK_FORMS.get(form, []))
+
+            if form_list:
+                filters.append('FILTER @attack_form_list[? ANY FILTER MATCHES(doc, CURRENT)]')
+                bind_vars['attack_form_list'] = form_list
+
+
         if q := self.query.get(f'attack_version'):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
@@ -444,7 +483,7 @@ class ArangoDBHelper:
         ], key=utils.split_mitre_version, reverse=True)
         return [f"{v}" for v in versions]
 
-    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id', more_binds={}, more_filters=[]):
+    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id', more_binds={}, more_filters=[], forms={}):
         version_param = lookup_kwarg.replace('_id', '_version')
         filters = []
         if new_types := self.query_as_array('type'):
@@ -467,6 +506,16 @@ class ArangoDBHelper:
                 "FILTER doc.id in @ids"
             )
 
+        
+        if generic_forms := self.query_as_array(lookup_kwarg.replace('_id', '_type')):
+            form_list = []
+            for form in generic_forms:
+                form_list.extend(forms.get(form, []))
+
+            if form_list:
+                filters.append('FILTER @generic_form_list[? ANY FILTER MATCHES(doc, CURRENT)]')
+                bind_vars['generic_form_list'] = form_list
+
         if value := self.query_as_array(lookup_kwarg):
             bind_vars['ext_ids'] = [v.lower() for v in value]
             filters.append(
@@ -481,8 +530,7 @@ class ArangoDBHelper:
             filters.append('FILTER CONTAINS(LOWER(doc.description), @description)')
 
         query = """
-            FOR doc in @@collection
-            FILTER CONTAINS(@types, doc.type)
+            FOR doc in @@collection FILTER doc.type IN @types
             @filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
