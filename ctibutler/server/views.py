@@ -317,13 +317,6 @@ class AttackView(viewsets.ViewSet):
         description=textwrap.dedent(
             """
             Search and filter MITRE CWE objects.
-
-            The following STIX object types can be returned in this response:
-
-            * `weakness`: represent the CWE object
-            * `grouping`: groups the CWE object by external groupings, [as shown here](https://cwe.mitre.org/data/index.html).
-            * `identity`: the cwe2stix identity
-            * `marking-definitions`: for cwe2stix and TLPs (v2)
             """
         ),
         filters=True,
@@ -509,14 +502,7 @@ class CweView(viewsets.ViewSet):
         summary='Search and filter MITRE CAPEC objects',
         description=textwrap.dedent(
             """
-            Search and filter MITRE CAPEC objects.
-
-            The following STIX object types can be returned in this response:
-
-            * `attack-pattern`: represent CAPECs
-            * `course-of-action`: represents ways to respond to CAPECs
-            * `identity`: for MITRE and DOGESEC
-            * `marking-definitions`: for TLPs (v1) and copyright statements            
+            Search and filter MITRE CAPEC objects.      
             """
         ),
         filters=True,
@@ -1198,13 +1184,6 @@ class LocationView(viewsets.ViewSet):
         description=textwrap.dedent(
             """
             Search and filter MITRE DISARM objects.
-
-            The following STIX object types can be returned in this response:
-
-            * `weakness`: represent the DISARM object
-            * `grouping`: groups the DISARM object by external groupings, [as shown here](https://disarm.mitre.org/data/index.html).
-            * `identity`: the disarm2stix identity
-            * `marking-definitions`: for disarm2stix and TLPs (v2)
             """
         ),
         filters=True,
