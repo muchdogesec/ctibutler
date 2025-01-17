@@ -186,24 +186,6 @@ class AttackView(viewsets.ViewSet):
                 description=textwrap.dedent(
                     """
                     Search and filter MITRE ATT&CK objects.
-
-                    MITRE ATT&CK objects map to STIX objects as follows
-
-                    * Collection: `x-mitre-collection`
-                    * Matrix: `x-mitre-matrix`
-                    * Tactic: `x-mitre-tactic`
-                    * Techniques: `attack-pattern`
-                    * Sub-techniques: `attack-pattern` where `x_mitre_is_subtechnique = true` (Enterprise, Mobile only)
-                    * Mitigation: `course-of-action`
-                    * Groups: `intrusion-set`
-                    * Software (malicious): `malware`
-                    * Software (benign): `tool` (Enterprise, Mobile only)
-                    * Campaign: `campaign`
-                    * Data Source: `x-mitre-data-source`
-                    * Data Component: `x-mitre-data-component`
-                    * Asset: `x-mitre-asset` (ICS only)
-                    * Identity: `identity` (for MITRE and DOGESEC)
-                    * Marking definitions: `marking-definitions` for TLPs (v1) and copyright statements
                     """
                 ),
                 filters=True,
