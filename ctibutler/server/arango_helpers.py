@@ -74,8 +74,8 @@ ATTACK_TYPES = set([
 
 ATTACK_FORMS = {
     "Tactic": [dict(type='x-mitre-tactic')],
-    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
-    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
     "Mitigation": [dict(type='course-of-action')],
     "Group": [dict(type='intrusion-set')],
     "Software": [dict(type='malware'), dict(type='tool')],
@@ -88,16 +88,16 @@ ATTACK_FORMS = {
 
 ATLAS_FORMS = {
     "Tactic": [dict(type='x-mitre-tactic')],
-    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
-    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
     "Mitigation": [dict(type='course-of-action')],
 }
 
 
 DISARM_FORMS = {
     "Tactic": [dict(type='x-mitre-tactic')],
-    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
-    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False)],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
 }
 
 LOCATION_TYPES = set([
