@@ -1,17 +1,16 @@
+import logging
 import re
-from django.shortcuts import render
-from rest_framework import viewsets, filters, status, decorators
+from rest_framework import viewsets, status, decorators, exceptions
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CVE_SORT_FIELDS, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CWE_TYPES, SOFTWARE_TYPES, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
-from ctibutler.server.utils import Pagination, Response, Ordering, split_mitre_version
+from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
 from . import models
 from ctibutler.server import serializers
-from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, MultipleChoiceFilter, NumberFilter, NumericRangeFilter, DateTimeFilter, BaseInFilter
+from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, BaseInFilter
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
-from textwrap import dedent
 # Create your views here.
 
 import textwrap
@@ -31,6 +30,30 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
                 type=OpenApiTypes.BOOL
             )
 ]
+
+
+class TruncateView:
+    truncate_collections = []
+    @extend_schema(
+            summary="Truncate all collection associated with this endpoint",
+            description="Truncates all collection associated with this endpoint",
+            responses={204: {}},
+    )
+    @decorators.action(detail=False, methods=['DELETE'])
+    def truncate(self, request):
+        db = ArangoDBHelper('', request).db
+        try:
+            for collection in self.truncate_collections:
+                for suffix in ['vertex', 'edge']:
+                    collection_name = f'{collection}_{suffix}_collection'
+                    logging.info('%s: truncating %s', self.__class__.__name__, collection_name)
+                    collection_ = db.collection(collection_name)
+                    collection_.truncate()
+                    logging.info('%s: collection `%s` truncated', self.__class__.__name__, collection_name)
+        except Exception as e:
+            logging.exception("%s: truncation failed", self.__class__.__name__)
+            raise exceptions.APIException("the server cannot execute this request")
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @extend_schema_view(
     create=extend_schema(
@@ -53,7 +76,7 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
         parameters=BUNDLE_PARAMS,
     ),
 )  
-class AttackView(viewsets.ViewSet):
+class AttackView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["ATT&CK"]
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
@@ -246,11 +269,20 @@ class AttackView(viewsets.ViewSet):
                     If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
                     """
                 ),
-            )
+            ),
+            truncate=extend_schema(
+                summary=f"Wipe the collections holding MITRE ATT&CK {matrix_name_human} objects",
+                description=textwrap.dedent(
+                    f"""
+                    Wipe the collections holding MITRE ATT&CK {matrix_name_human} objects
+                    """
+                ),
+            ),
         )
         class TempAttackView(cls):
             matrix = matrix_name
             openapi_tags = [f"ATT&CK {matrix_name_human}"]
+            truncate_collections = [f"mitre_attack_{matrix}"]
         TempAttackView.__name__ = f'{matrix_name.title()}AttackView'
         return TempAttackView
 
@@ -356,9 +388,18 @@ class AttackView(viewsets.ViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
+    truncate=extend_schema(
+        summary=f"Wipe the collections holding MITRE CWE objects",
+        description=textwrap.dedent(
+            f"""
+            Wipe the collections holding MITRE Weakness objects
+            """
+        ),
+    ),
 )  
-class CweView(viewsets.ViewSet):
+class CweView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["CWE"]
+    truncate_collections = ['mitre_cwe']
     lookup_url_kwarg = 'cwe_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`)'),
@@ -538,9 +579,18 @@ class CweView(viewsets.ViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
+    truncate=extend_schema(
+        summary=f"Wipe the collections holding MITRE CAPEC objects",
+        description=textwrap.dedent(
+            f"""
+            Wipe the collections holding MITRE CAPEC objects
+            """
+        ),
+    ),
 )
-class CapecView(viewsets.ViewSet):
+class CapecView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["CAPEC"]
+    truncate_collections = ['mitre_capec']
     lookup_url_kwarg = 'capec_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`)'),
@@ -835,10 +885,19 @@ class JobView(viewsets.ModelViewSet):
             """
         ),
     ),
+    truncate=extend_schema(
+        summary=f"Wipe the collections holding ATLAS objects",
+        description=textwrap.dedent(
+            f"""
+            Wipe the collections holding ATLAS objects
+            """
+        ),
+    ),
 )  
-class AtlasView(viewsets.ViewSet):
+class AtlasView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["ATLAS"]
     lookup_url_kwarg = 'atlas_id'
+    truncate_collections = ['mitre_atlas']
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`)'),
         OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.TA0002`, `AML.T0000`'),
@@ -1024,11 +1083,20 @@ class AtlasView(viewsets.ViewSet):
         filters=False,
         responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
         parameters=BUNDLE_PARAMS,
-    )
+    ),
+    truncate=extend_schema(
+        summary=f"Wipe the collections holding Location objects",
+        description=textwrap.dedent(
+            f"""
+            Wipe the collections holding Location objects
+            """
+        ),
+    ),
 )  
-class LocationView(viewsets.ViewSet):
+class LocationView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["Location"]
     lookup_url_kwarg = 'stix_id'
+    truncate_collections = ['location']
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID of the object (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)'),
     ]
@@ -1221,10 +1289,19 @@ class LocationView(viewsets.ViewSet):
         responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
+    truncate=extend_schema(
+        summary=f"Wipe the collections holding DISARM objects",
+        description=textwrap.dedent(
+            f"""
+            Wipe the collections holding DISARM objects
+            """
+        ),
+    ),
 )  
-class DisarmView(viewsets.ViewSet):
+class DisarmView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["DISARM"]
     lookup_url_kwarg = 'disarm_id'
+    truncate_collections = ['disarm']
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`)'),
         OpenApiParameter('disarm_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The DISARM ID, e.g `TA05`, `TA01`'),
