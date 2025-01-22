@@ -274,7 +274,9 @@ class AttackView(TruncateView, viewsets.ViewSet):
                 summary=f"Wipe the collections holding MITRE ATT&CK {matrix_name_human} objects",
                 description=textwrap.dedent(
                     f"""
-                    Wipe the collections holding MITRE ATT&CK {matrix_name_human} objects
+                    Wipe the ArangoDB Collections `mitre_attack_{matrix_name_human}_vertex_collection` and `mitre_attack_{matrix_name_human}_edge_collection` holding MITRE ATT&CK {matrix_name_human} objects.
+
+                    **WARNING**: This will delete all objects in these collections, which will mean all MITRE ATT&CK {matrix_name_human} versions stored will be removed.
                     """
                 ),
             ),
@@ -392,7 +394,9 @@ class AttackView(TruncateView, viewsets.ViewSet):
         summary=f"Wipe the collections holding MITRE CWE objects",
         description=textwrap.dedent(
             f"""
-            Wipe the collections holding MITRE Weakness objects
+            Wipe the ArangoDB Collections `mitre_cwe_vertex_collection` and `mitre_cwe_edge_collection` holding MITRE CWE objects.
+
+            **WARNING**: This will delete all objects in these collections, which will mean all MITRE CWE versions stored will be removed.
             """
         ),
     ),
@@ -583,7 +587,9 @@ class CweView(TruncateView, viewsets.ViewSet):
         summary=f"Wipe the collections holding MITRE CAPEC objects",
         description=textwrap.dedent(
             f"""
-            Wipe the collections holding MITRE CAPEC objects
+            Wipe the ArangoDB Collections `mitre_capec_vertex_collection` and `mitre_capec_edge_collection` holding MITRE CAPEC objects.
+
+            **WARNING**: This will delete all objects in these collections, which will mean all MITRE CAPEC versions stored will be removed.
             """
         ),
     ),
@@ -889,7 +895,9 @@ class JobView(viewsets.ModelViewSet):
         summary=f"Wipe the collections holding ATLAS objects",
         description=textwrap.dedent(
             f"""
-            Wipe the collections holding ATLAS objects
+            Wipe the ArangoDB Collections `mitre_atlas_vertex_collection` and `mitre_atlas_edge_collection` holding MITRE ATLAS objects.
+
+            **WARNING**: This will delete all objects in these collections, which will mean all MITRE ATLAS versions stored will be removed.
             """
         ),
     ),
@@ -1088,7 +1096,9 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         summary=f"Wipe the collections holding Location objects",
         description=textwrap.dedent(
             f"""
-            Wipe the collections holding Location objects
+            Wipe the ArangoDB Collections `location_vertex_collection` and `location_edge_collection` holding Location objects.
+
+            **WARNING**: This will delete all objects in these collections, which will mean all Location versions stored will be removed.
             """
         ),
     ),
@@ -1293,7 +1303,9 @@ class LocationView(TruncateView, viewsets.ViewSet):
         summary=f"Wipe the collections holding DISARM objects",
         description=textwrap.dedent(
             f"""
-            Wipe the collections holding DISARM objects
+            Wipe the ArangoDB Collections `disarm_vertex_collection` and `disarm_edge_collection` holding DISARM objects.
+
+            **WARNING**: This will delete all objects in these collections, which will mean all DISARM versions stored will be removed.
             """
         ),
     ),
