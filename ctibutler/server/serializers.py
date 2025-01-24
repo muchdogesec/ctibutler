@@ -27,19 +27,19 @@ class NVDTaskSerializer(serializers.Serializer):
         return super().validate(attrs)
 
 class MitreTaskSerializer(serializers.Serializer):
-    version = serializers.CharField(help_text="version passed to the script")
+    version = serializers.CharField(help_text="version passed to the script", allow_null=True)
     ignore_embedded_relationships = serializers.BooleanField(default=False)
 
 class MitreVersionsSerializer(serializers.Serializer):
-    latest = serializers.CharField()
+    latest = serializers.CharField(allow_null=True)
     versions = serializers.ListField(child=serializers.CharField())
 
 class StixVersionsSerializer(serializers.Serializer):
-    latest = serializers.DateTimeField()
+    latest = serializers.DateTimeField(allow_null=True)
     versions = serializers.ListField(child=serializers.DateTimeField())
 
 class MitreObjectVersions(serializers.Serializer):
-    modified = serializers.DateTimeField()
+    modified = serializers.DateTimeField(allow_null=True)
     versions = serializers.ListField(child=serializers.CharField())
 
 

@@ -409,7 +409,7 @@ class ArangoDBHelper:
     def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False, bundle=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower()}
         filters = ['FILTER doc._is_latest']
-        for version_param in ['attack_version', 'cwe_version', 'capec_version']:
+        for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version']:
             if q := self.query.get(version_param):
                 bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
                 filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
@@ -457,6 +457,7 @@ class ArangoDBHelper:
             'include_revoked': self.query_as_bool('include_revoked', False),
             'include_deprecated': self.query_as_bool('include_deprecated', False),
             }
+        
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
             mod['versions'] = self.clean_and_sort_versions(mod['versions'])
