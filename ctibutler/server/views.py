@@ -986,6 +986,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper(f'mitre_atlas_vertex_collection', request).get_mitre_modified_versions(atlas_id, source_name='atlas')
 
 
+
 @extend_schema_view(
     create=extend_schema(
         responses={
@@ -1017,7 +1018,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the versions of Locations bundle you want to download in the format `XXXXXXX`, e.g. `59da722`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
+            * `version` (required): the versions of Locations bundle you want to download in the format `XXXXXXX`, e.g. `e19e035`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
@@ -1045,7 +1046,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         summary='Get a Location object',
         description=textwrap.dedent(
             """
-            Get a Location object by its STIX ID (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)
+            Get a Location object by its location2stix ID (e.g. `ZA`, `western-africa`)
             
             If you do not know the ID of the object you can use the GET Locations Objects endpoint to find it.
             """
@@ -1062,7 +1063,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
             The data returned is useful to see when and object has changed.
             """
         ),
-        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        responses={200: serializers.MitreObjectVersions(many=True), 400: DEFAULT_400_ERROR},
     ),
     retrieve_object_relationships=extend_schema(
         summary='Get the Relationships linked to the Location object',
@@ -1074,7 +1075,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
             """
         ),
         filters=False,
-        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
         parameters=ArangoDBHelper.get_relationship_schema_operation_parameters(),
     ),
     bundle=extend_schema(
@@ -1105,10 +1106,11 @@ class AtlasView(TruncateView, viewsets.ViewSet):
 )  
 class LocationView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["Location"]
-    lookup_url_kwarg = 'stix_id'
+    lookup_url_kwarg = 'location_id'
     truncate_collections = ['location']
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID of the object (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)'),
+        # OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID of the object (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)'),
+        OpenApiParameter('location_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ID of the Location object (e.g. `ZA`, `western-africa`)'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -1154,9 +1156,9 @@ class LocationView(TruncateView, viewsets.ViewSet):
                 OpenApiParameter('location_version', description="Filter the results by the version of Location")
             ],
     )
-    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>", detail=False)
-    def retrieve_objects(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, version_param='location_version')
+    @decorators.action(methods=['GET'], url_path="objects/<str:location_id>", detail=False)
+    def retrieve_objects(self, request, *args, location_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id)
     
       
     @extend_schema(
@@ -1164,18 +1166,18 @@ class LocationView(TruncateView, viewsets.ViewSet):
                 OpenApiParameter('location_version', description="Filter the results by the version of Location")
             ],
     )
-    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/relationships", detail=False)
-    def retrieve_object_relationships(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, relationship_mode=True, version_param='location_version')
+    @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/relationships", detail=False)
+    def retrieve_object_relationships(self, request, *args, location_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, relationship_mode=True)
     
     @extend_schema(
             parameters=[
                 OpenApiParameter('location_version', description="Filter the results by the version of Location")
             ],
     )
-    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/bundle", detail=False)
-    def bundle(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object(stix_id, bundle=True, version_param='location_version')
+    @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/bundle", detail=False)
+    def bundle(self, request, *args, location_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, bundle=True)
         
     @extend_schema(
         summary="See available Location versions",
@@ -1185,7 +1187,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
 
             This endpoint allows you to see all imported versions of Location available to use, and which version is the latest (the default version for the objects returned).
 
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX" e.g. `version=59da722`.
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX` e.g. `version=e19e035`.
             """
             ),
         )
@@ -1194,9 +1196,11 @@ class LocationView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_versions()
         
     @extend_schema(filters=False)
-    @decorators.action(methods=['GET'], url_path="objects/<str:stix_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
-    def object_versions(self, request, *args, stix_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_modified_versions(stix_id)
+    @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
+    def object_versions(self, request, *args, location_id=None, **kwargs):
+        return ArangoDBHelper(self.arango_collection, request).get_mitre_modified_versions(location_id, source_name='location2stix')
+
+        # return ArangoDBHelper(self.arango_collection, request).get_modified_versions(location_id)
 
 
 @extend_schema_view(
