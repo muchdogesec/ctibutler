@@ -1046,7 +1046,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         summary='Get a Location object',
         description=textwrap.dedent(
             """
-            Get a Location object by its STIX ID (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)
+            Get a Location object by its location2stix ID (e.g. `ZA`, `western-africa`)
             
             If you do not know the ID of the object you can use the GET Locations Objects endpoint to find it.
             """
@@ -1187,7 +1187,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
 
             This endpoint allows you to see all imported versions of Location available to use, and which version is the latest (the default version for the objects returned).
 
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX" e.g. `version=59da722`.
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX` e.g. `version=e19e035`.
             """
             ),
         )
