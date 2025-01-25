@@ -1018,7 +1018,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the versions of Locations bundle you want to download in the format `XXXXXXX`, e.g. `59da722`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
+            * `version` (required): the versions of Locations bundle you want to download in the format `XXXXXXX`, e.g. `e19e035`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them.
 
             The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
