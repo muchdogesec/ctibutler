@@ -105,7 +105,7 @@ LOCATION_TYPES = set([
 ])
 CWE_TYPES = set([
     "weakness",
-    # "grouping",
+    "grouping",
     # "identity",
     # "marking-definition",
     # "extension-definition"

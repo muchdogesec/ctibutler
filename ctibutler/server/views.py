@@ -2,7 +2,7 @@ import logging
 import re
 from rest_framework import viewsets, status, decorators, exceptions
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
@@ -420,7 +420,7 @@ class CweView(TruncateView, viewsets.ViewSet):
         cwe_id = BaseCSVFilter(help_text='Filter the results by the CWE ID of the object. e.g. `CWE-242` `CWE-250`.')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        # type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], help_text='Filter the results by STIX Object type.')
+        type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], help_text='Filter the results by STIX Object type.')
         cwe_version = CharFilter(help_text="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
 
     def create(self, request, *args, **kwargs):
