@@ -430,11 +430,9 @@ class ArangoDBHelper:
         bind_vars.update(offset=0, count=None)
         matches = self.execute_query(query, bind_vars=bind_vars, paginate=False)
 
-        versions = self.clean_and_sort_versions([m.get('_stix2arango_note', '') for m in matches], replace_underscore=False)
-        if versions:
-            matches = [match for match in matches if match.get('_stix2arango_note','').endswith(versions[0])]
-        for match in matches:
-            del match['_stix2arango_note']
+        matches = sorted(matches, key=lambda m: utils.split_mitre_version(m.pop('_stix2arango_note', '').split("=")[1]), reverse=True)
+
+        matches = matches[:1]
 
         if bundle:
             return self.get_bundle(matches)
