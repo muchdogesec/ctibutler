@@ -327,9 +327,7 @@ class ArangoDBHelper:
         self.page, self.count = self.get_page_params(request)
         self.request = request
         self.query = request.query_params.dict()
-    def execute_query(self, query, bind_vars={}, paginate=True, relationship_mode=False, container=None):
-        if relationship_mode:
-            return self.get_relationships(query, bind_vars)
+    def execute_query(self, query, bind_vars={}, paginate=True, container=None):
         if paginate:
             bind_vars['offset'], bind_vars['count'] = self.get_offset_and_count(self.count, self.page)
         cursor = self.db.aql.execute(query, bind_vars=bind_vars, count=True, full_count=True)
@@ -407,8 +405,8 @@ class ArangoDBHelper:
 
 
     def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False, bundle=False):
-        bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower()}
-        filters = ['FILTER doc._is_latest']
+        bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower(), 'keep_values': None}
+        filters = ['FILTER doc._is_latest == TRUE']
         for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version']:
             if q := self.query.get(version_param):
                 bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
@@ -425,11 +423,24 @@ class ArangoDBHelper:
             FILTER LOWER(doc.external_references[0].external_id) == @ext_id
             @filters
             LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
+            RETURN KEEP(doc, @keep_values || APPEND(KEYS(doc, TRUE), '_stix2arango_note'))
             '''.replace('@filters', '\n'.join(filters))
+        if bundle or relationship_mode:
+            bind_vars.update(keep_values=['_id', '_stix2arango_note'])
+        bind_vars.update(offset=0, count=None)
+        matches = self.execute_query(query, bind_vars=bind_vars, paginate=False)
+
+        versions = self.clean_and_sort_versions([m.get('_stix2arango_note', '') for m in matches], replace_underscore=False)
+        if versions:
+            matches = [match for match in matches if match.get('_stix2arango_note','').endswith(versions[0])]
+        for match in matches:
+            del match['_stix2arango_note']
+
         if bundle:
-            return self.get_bundle(query, bind_vars)
-        return self.execute_query(query, bind_vars=bind_vars, relationship_mode=relationship_mode)
+            return self.get_bundle(matches)
+        if relationship_mode:
+            return self.get_relationships(matches)
+        return self.get_paginated_response(self.container, matches, self.page, self.page_size, len(matches))
 
     def get_mitre_versions(self, stix_id=None):
         query = """
@@ -477,9 +488,10 @@ class ArangoDBHelper:
             mod['versions'] = self.clean_and_sort_versions(mod['versions'])
         return Response(versions)
     
-    def clean_and_sort_versions(self, versions):
+    def clean_and_sort_versions(self, versions, replace_underscore=True):
+        replace_character = '.' if replace_underscore else '_'
         versions = sorted([
-            v.split("=")[1].replace('_', ".")
+            v.split("=")[1].replace('_', replace_character)
             for v in versions
         ], key=utils.split_mitre_version, reverse=True)
         return [f"{v}" for v in versions]
@@ -537,31 +549,12 @@ class ArangoDBHelper:
             RETURN KEEP(doc, KEYS(doc, true))
         """.replace('@filters', '\n'.join(filters+more_filters))
         return self.execute_query(query, bind_vars=bind_vars)
-
-    def get_object(self, stix_id, relationship_mode=False, version_param=None, bundle=False):
-        bind_vars={'@collection': self.collection, 'stix_id': stix_id}
-        filters = ['FILTER doc._is_latest']
-        if version_param and self.query.get(version_param):
-            bind_vars['mitre_version'] = "version="+self.query.get(version_param).replace('.', '_').strip('v')
-            filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
-
-        query = '''
-            FOR doc in @@collection
-            FILTER doc.id == @stix_id
-            @filters
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-            '''.replace('@filters', '\n'.join(filters))
-        
-        if bundle:
-            return self.get_bundle(query, bind_vars)
-
-        return self.execute_query(query, bind_vars=bind_vars, relationship_mode=relationship_mode)
-
-
-    def get_relationships(self, docs_query, binds):
-        regex = r"KEEP\((\w+),\s*\w+\(.*?\)\)"
-        binds['@view'] = settings.VIEW_NAME
+    
+    def get_relationships(self, matches):
+        binds = {
+            '@view': settings.VIEW_NAME,
+            'matches': matches
+        }
         other_filters = []
 
         if term := self.query.get('relationship_type'):
@@ -602,13 +595,13 @@ class ArangoDBHelper:
             embedded_refs_query = 'AND d._is_ref != TRUE'
 
         new_query = """
-        LET matched_ids = (@docs_query)[*]._id
+        LET matched_ids = @matches[*]._id
         FOR d IN @@view
         SEARCH d.type == 'relationship' AND (@direction_query) @include_embedded_refs
         @other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
-        """.replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))) \
+        """ \
             .replace('@other_filters', "\n".join(other_filters)) \
             .replace('@direction_query', direction_query) \
             .replace('@include_embedded_refs', embedded_refs_query)
@@ -616,16 +609,18 @@ class ArangoDBHelper:
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
 
 
-    def get_bundle(self, docs_query, binds):
-        regex = r"KEEP\((\w+),\s*\w+\(.*?\)\)"
-        binds['@view'] = settings.VIEW_NAME
+    def get_bundle(self, matches):
+        binds = {
+            '@view': settings.VIEW_NAME,
+            'matches': matches
+        }
         more_search_filters = []
 
         if not self.query_as_bool('include_embedded_refs', False):
             more_search_filters.append('doc._is_ref != TRUE')
         
         query = '''
-LET matched_ids = (@docs_query)[*]._id
+LET matched_ids = @matches[*]._id
 
  LET bundle_ids = FLATTEN(
      FOR doc IN @@view SEARCH doc.type == 'relationship' AND (doc._from IN matched_ids OR doc._to IN matched_ids) @@more_search_filters
@@ -637,7 +632,6 @@ LET matched_ids = (@docs_query)[*]._id
  RETURN KEEP(d, KEYS(d, TRUE))
 '''
         query = query \
-                    .replace('@docs_query', re.sub(regex, lambda x: x.group(1), docs_query.replace('LIMIT @offset, @count', ''))) \
                     .replace('@@more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}")
         # return Response([query, binds])
         return self.execute_query(query, bind_vars=binds)
