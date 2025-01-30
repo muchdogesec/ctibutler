@@ -16,7 +16,7 @@ python3 utilities/import_all_data.py \
 	--ignore_embedded_relationships True
 ```
 
-Note, `ignore_embedded_relationships` is set to `true` above, as it is known to cause problems ingesting all versions of ATT&CK and generating the embedded relationships. Though if you have a capable machine, setting this to `False` should work fine
+Note, `ignore_embedded_relationships` is set to `True` above, as it is known to cause problems ingesting all versions of ATT&CK and generating the embedded relationships. Though if you have a capable machine, setting this to `False` should work fine
 
 ## OPTIONAL: Download latest versions (at time of writing)
 

@@ -8,7 +8,8 @@ import argparse
 base_url = 'http://127.0.0.1:8006/api/v1'
 headers = {
     'accept': 'application/json',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    #'Authorization': 'Token XXX'
 }
 
 # Default versions for attack and CWE updates
@@ -43,10 +44,10 @@ default_atlas_versions = [
     "4_5_2", "4_7_0"
 ]
 default_location_versions = [
-    "ac1bbfc"
+    "e19e035"
 ]
 default_disarm_versions = [
-    "1_2", "1_3", "1_4", "1_5"
+    "1_4", "1_5", "1_6"
 ]
 
 # Parse CLI arguments
@@ -62,6 +63,7 @@ def parse_arguments():
     parser.add_argument('--atlas_versions', type=str, help="Comma-separated versions for ATLAS updates.")
     parser.add_argument('--location_versions', type=str, help="Comma-separated versions for Location updates.")
     parser.add_argument('--disarm_versions', type=str, help="Comma-separated versions for DISARM updates.")
+
 
 
     # New argument for ignore_embedded_relationships
@@ -116,7 +118,39 @@ def check_job_status(job_id):
             print(f"Failed to check job status: {response.status_code} - {response.text}")
             break
 
-# Function to monitor a single job status and ensure completion before proceeding
+# Function to initiate and monitor the CAPEC follow-up query
+def initiate_capec_followup():
+    data = {
+        "ignore_embedded_relationships": True
+    }
+    print(f"Initiating CAPEC follow-up query...")
+    response = requests.post(f'{base_url}/arango-cti-processor/capec-attack/', headers=headers, json=data)
+    
+    if response.status_code == 201:
+        print("CAPEC follow-up query initiated successfully.")
+        job_id = response.json()['id']
+        return job_id
+    else:
+        print(f"Failed to initiate CAPEC follow-up query: {response.status_code} - {response.text}")
+        return None
+
+# Function to initiate and monitor the CWE follow-up query
+def initiate_cwe_followup():
+    data = {
+        "ignore_embedded_relationships": True
+    }
+    print(f"Initiating CWE follow-up query...")
+    response = requests.post(f'{base_url}/arango-cti-processor/cwe-capec/', headers=headers, json=data)
+    
+    if response.status_code == 201:
+        print("CWE follow-up query initiated successfully.")
+        job_id = response.json()['id']
+        return job_id
+    else:
+        print(f"Failed to initiate CWE follow-up query: {response.status_code} - {response.text}")
+        return None
+
+# Function to monitor the job status and ensure completion
 def monitor_job_status(job_id, job_name):
     print(f"{job_name} job initiated with ID: {job_id}")
     job_status = check_job_status(job_id)
@@ -157,6 +191,11 @@ def monitor_jobs(args):
         job_id = initiate_update("capec", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"CAPEC (version {version})")
+            
+            # Run the follow-up CAPEC query
+            followup_job_id = initiate_capec_followup()
+            if followup_job_id:
+                monitor_job_status(followup_job_id, f"CAPEC follow-up query (version {version})")
 
     # Step 5: CWE updates
     cwe_versions = get_versions_from_arg(args.cwe_versions, default_cwe_versions)
@@ -164,6 +203,11 @@ def monitor_jobs(args):
         job_id = initiate_update("cwe", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"CWE (version {version})")
+            
+            # Run the follow-up CWE query
+            followup_job_id = initiate_cwe_followup()
+            if followup_job_id:
+                monitor_job_status(followup_job_id, f"CWE follow-up query (version {version})")
 
     # Step 6: TLP updates
     tlp_versions = get_versions_from_arg(args.tlp_versions, default_tlp_versions)
