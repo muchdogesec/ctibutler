@@ -417,20 +417,27 @@ class ArangoDBHelper:
             bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
             bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
             filters.append('FILTER (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)')
+
+        main_filter = "FILTER LOWER(doc.external_references[0].external_id) == @ext_id"
+        with contextlib.suppress(Exception):
+            _, _ = ext_id.split('--')
+            main_filter = "FILTER doc.id == @ext_id"
+
         
         query = '''
             FOR doc in @@collection
-            FILTER LOWER(doc.external_references[0].external_id) == @ext_id
-            @filters
+            #main_filter
+            #filters
             LIMIT @offset, @count
             RETURN KEEP(doc, @keep_values || APPEND(KEYS(doc, TRUE), '_stix2arango_note'))
-            '''.replace('@filters', '\n'.join(filters))
+            '''
+        query = query.replace('#main_filter', main_filter).replace('#filters', '\n'.join(filters))
         if bundle or relationship_mode:
             bind_vars.update(keep_values=['_id', '_stix2arango_note'])
         bind_vars.update(offset=0, count=None)
         matches = self.execute_query(query, bind_vars=bind_vars, paginate=False)
 
-        matches = sorted(matches, key=lambda m: utils.split_mitre_version(m.pop('_stix2arango_note', '').split("=")[1]), reverse=True)
+        matches = sorted(matches, key=lambda m: utils.split_mitre_version(m.pop('_stix2arango_note', '=').split("=", 1)[-1]), reverse=True)
 
         matches = matches[:1]
 
