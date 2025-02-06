@@ -16,19 +16,11 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = '__all__'
 
-class NVDTaskSerializer(serializers.Serializer):
-    last_modified_earliest = serializers.DateField(help_text="(`YYYY-MM-DD`): earliest date")
-    last_modified_latest = serializers.DateField(help_text="(`YYYY-MM-DD`): latest date \n* default is `1980-01-01`")
-    ignore_embedded_relationships = serializers.BooleanField(default=False)
-
-    def validate(self, attrs):
-        if attrs.get('last_modified_earliest') and attrs.get('last_modified_latest') and attrs['last_modified_earliest'] > attrs['last_modified_latest']:
-            raise serializers.ValidationError(f'last_modified_earliest cannot be greater than last_modified_latest')
-        return super().validate(attrs)
-
 class MitreTaskSerializer(serializers.Serializer):
     version = serializers.CharField(help_text="version passed to the script", allow_null=True)
     ignore_embedded_relationships = serializers.BooleanField(default=False)
+    ignore_embedded_relationships_sro = serializers.BooleanField(default=False)
+    ignore_embedded_relationships_smo = serializers.BooleanField(default=False)
 
 class MitreVersionsSerializer(serializers.Serializer):
     latest = serializers.CharField(allow_null=True)

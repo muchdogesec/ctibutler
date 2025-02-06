@@ -274,7 +274,7 @@ class ArangoDBHelper:
                 "include_embedded_refs",
                 description=textwrap.dedent(
                     """
-                    If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`.
+                    If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`.  This is a arango_cti_processor setting.
                     """
                 ),
                 type=OpenApiTypes.BOOL
