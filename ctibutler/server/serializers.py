@@ -19,8 +19,8 @@ class JobSerializer(serializers.ModelSerializer):
 class MitreTaskSerializer(serializers.Serializer):
     version = serializers.CharField(help_text="version passed to the script", allow_null=True)
     ignore_embedded_relationships = serializers.BooleanField(default=False)
-    ignore_embedded_relationships_sro = serializers.BooleanField(default=True)
-    ignore_embedded_relationships_smo = serializers.BooleanField(default=True)
+    ignore_embedded_relationships_sro = serializers.BooleanField(default=False)
+    ignore_embedded_relationships_smo = serializers.BooleanField(default=False)
 
 class MitreVersionsSerializer(serializers.Serializer):
     latest = serializers.CharField(allow_null=True)
