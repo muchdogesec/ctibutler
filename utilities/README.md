@@ -12,11 +12,10 @@ The scripts below will use the API to import data...
 ## RECOMMENDED: Download all data
 
 ```shell
-python3 utilities/import_all_data.py \
-	--ignore_embedded_relationships True
+python3 utilities/import_all_data.py
 ```
 
-Note, `ignore_embedded_relationships` is set to `True` above, as it is known to cause problems ingesting all versions of ATT&CK and generating the embedded relationships. Though if you have a capable machine, setting this to `False` should work fine
+The script is hardcoded to ignore the generation of embedded refs from SRO and SMO objects (`--ignore_embedded_relationships_smo True` `--ignore_embedded_relationships_sro True`) which are not useful -- generally SDO / SCO embedded refs are useful (`--ignore_embedded_relationships_smo False` is set in script)
 
 ## OPTIONAL: Download latest versions (at time of writing)
 

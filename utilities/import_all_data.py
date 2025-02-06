@@ -82,9 +82,11 @@ def get_versions_from_arg(arg_value, default_versions):
 def initiate_update(endpoint, version, ignore_embedded_relationships):
     data = {
         "version": version,
-        "ignore_embedded_relationships": ignore_embedded_relationships
+        "ignore_embedded_relationships": False,
+        "ignore_embedded_relationships_sro": True,
+        "ignore_embedded_relationships_smo": True
     }
-    print(f"Initiating {endpoint} update with version: {version}, ignore_embedded_relationships: {ignore_embedded_relationships}")
+    print(f"Initiating {endpoint} update with version: {version}")
     response = requests.post(f'{base_url}/{endpoint}/', headers=headers, json=data)
     
     if response.status_code == 201:
