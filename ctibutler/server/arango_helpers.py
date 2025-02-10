@@ -397,10 +397,10 @@ class ArangoDBHelper:
         query = """
             FOR doc in @@collection
             FILTER CONTAINS(@types, doc.type) AND (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)
-            @filters
+            #filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('@filters', '\n'.join(filters))
+        """.replace('#filters', '\n'.join(filters))
         return self.execute_query(query, bind_vars=bind_vars)
 
 
@@ -459,14 +459,18 @@ class ArangoDBHelper:
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
     def get_mitre_modified_versions(self, external_id: str=None, source_name='mitre-attack'):
+        main_filter = "doc.external_references[? ANY FILTER LOWER(CURRENT.external_id) == @matcher.external_id AND @matcher.source_name == CURRENT.source_name]"
+        with contextlib.suppress(Exception):
+            _, _ = external_id.split('--')
+            main_filter = "doc.id == @matcher.external_id"
         query = """
         FOR doc IN @@collection
-        FILTER doc.external_references[? ANY FILTER LOWER(CURRENT.external_id) == @matcher.external_id AND @matcher.source_name == CURRENT.source_name] AND STARTS_WITH(doc._stix2arango_note, "version=")
+        FILTER #main_filter AND STARTS_WITH(doc._stix2arango_note, "version=")
         FILTER (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated) // for MITRE ATT&CK, check if revoked
         COLLECT modified = doc.modified INTO group
         SORT modified DESC
         RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
-        """
+        """.replace('#main_filter', main_filter)
         bind_vars = {
             '@collection': self.collection, 'matcher': dict(external_id=external_id.lower(), source_name=source_name),
             # include_deprecated / include_revoked
@@ -549,10 +553,10 @@ class ArangoDBHelper:
 
         query = """
             FOR doc in @@collection FILTER doc.type IN @types
-            @filters
+            #filters
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('@filters', '\n'.join(filters+more_filters))
+        """.replace('#filters', '\n'.join(filters+more_filters))
         return self.execute_query(query, bind_vars=bind_vars)
     
     def get_relationships(self, matches):
@@ -602,14 +606,14 @@ class ArangoDBHelper:
         new_query = """
         LET matched_ids = @matches[*]._id
         FOR d IN @@view
-        SEARCH d.type == 'relationship' AND (@direction_query) @include_embedded_refs
-        @other_filters
+        SEARCH d.type == 'relationship' AND (#direction_query) #include_embedded_refs
+        #other_filters
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
         """ \
-            .replace('@other_filters', "\n".join(other_filters)) \
-            .replace('@direction_query', direction_query) \
-            .replace('@include_embedded_refs', embedded_refs_query)
+            .replace('#other_filters', "\n".join(other_filters)) \
+            .replace('#direction_query', direction_query) \
+            .replace('#include_embedded_refs', embedded_refs_query)
 
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
 
@@ -628,7 +632,7 @@ class ArangoDBHelper:
 LET matched_ids = @matches[*]._id
 
  LET bundle_ids = FLATTEN(
-     FOR doc IN @@view SEARCH doc.type == 'relationship' AND (doc._from IN matched_ids OR doc._to IN matched_ids) @@more_search_filters
+     FOR doc IN @@view SEARCH doc.type == 'relationship' AND (doc._from IN matched_ids OR doc._to IN matched_ids) #more_search_filters
      RETURN [doc._id, doc._from, doc._to]
  ) 
  
@@ -637,7 +641,7 @@ LET matched_ids = @matches[*]._id
  RETURN KEEP(d, KEYS(d, TRUE))
 '''
         query = query \
-                    .replace('@@more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}")
+                    .replace('#more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}")
         # return Response([query, binds])
         return self.execute_query(query, bind_vars=binds)
   
