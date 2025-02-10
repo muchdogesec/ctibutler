@@ -1,6 +1,8 @@
 import contextlib
 from pathlib import Path
 import re
+import time
+from types import SimpleNamespace
 import typing
 from arango import ArangoClient
 from django.conf import settings
@@ -181,6 +183,17 @@ def positive_int(integer_string, cutoff=None, default=1):
         return ret
     return default
 
+from functools import lru_cache
+@lru_cache
+def _get_latest_version(collection, t):
+    print("checking version: ", t)
+    latest_version: dict = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict))).get_mitre_versions().data
+    return latest_version.get('latest')
+
+def get_latest_version(collection):
+    #cache for 1 minute
+    return _get_latest_version(collection, time.time()//(1*60))
+
 class ArangoDBHelper:
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
@@ -327,6 +340,7 @@ class ArangoDBHelper:
         self.page, self.count = self.get_page_params(request)
         self.request = request
         self.query = request.query_params.dict()
+        
     def execute_query(self, query, bind_vars={}, paginate=True, container=None):
         if paginate:
             bind_vars['offset'], bind_vars['count'] = self.get_offset_and_count(self.count, self.page)
@@ -362,7 +376,7 @@ class ArangoDBHelper:
                 bind_vars['attack_form_list'] = form_list
 
 
-        if q := self.query.get(f'attack_version'):
+        if q := self.query.get(f'attack_version', get_latest_version(bind_vars['@collection'])):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
         else:
@@ -516,7 +530,7 @@ class ArangoDBHelper:
                 "types": list(types),
                 **more_binds
         }
-        if q := self.query.get(version_param):
+        if q := self.query.get(version_param, get_latest_version(bind_vars['@collection'])):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
         else:
