@@ -81,7 +81,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
     lookup_url_kwarg = 'stix_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`, `malware--04227b24-7817-4de1-9050-b7b1b57f5866`)'),
-        OpenApiParameter('attack_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATT&CK ID, e.g `T1659`, `TA0043`, `S0066`'),
+        OpenApiParameter('attack_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATT&CK ID, e.g `T1659`, `TA0043`, `S0066` OR the STIX ID e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -95,7 +95,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
 
     class filterset_class(FilterSet):
         id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`, `malware--04227b24-7817-4de1-9050-b7b1b57f5866`.')
-        attack_id = BaseCSVFilter(help_text='The ATT&CK IDs of the object wanted. e.g. `T1659`, `TA0043`, `S0066`.')
+        attack_id = BaseCSVFilter(help_text='The ATT&CK IDs of the object wanted. e.g. `T1659`, `TA0043`, `S0066` OR the STIX ID e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in ATTACK_TYPES], help_text='Filter the results by STIX Object type.')
@@ -219,7 +219,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
                 summary=f"Get a specific MITRE ATT&CK {matrix_name_human} object by its ID",
                 description=textwrap.dedent(
                     """
-                    Get a MITRE ATT&CK object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`).
+                    Get a MITRE ATT&CK object by its MITRE ATT&CK ID (e.g. `T1659`, `TA0043`, `S0066`) OR the STIX ID e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`.
 
                     If you do not know the ID of the object you can use the GET MITRE ATT&CK Objects endpoint to find it.
                     """
@@ -346,7 +346,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
         summary='Get a CWE object',
         description=textwrap.dedent(
             """
-            Get an CWE object by its ID (e.g. `CWE-242` `CWE-250`).
+            Get an CWE object by its ID (e.g. `CWE-242` `CWE-250`) OR the STIX ID `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`.
 
             If you do not know the ID of the object you can use the GET MITRE CWE Objects endpoint to find it.
             """
@@ -411,7 +411,7 @@ class CweView(TruncateView, viewsets.ViewSet):
     lookup_url_kwarg = 'cwe_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`)'),
-        OpenApiParameter('cwe_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CWE ID, e.g `CWE-242`, `CWE-250`'),
+        OpenApiParameter('cwe_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CWE ID, e.g `CWE-242`, `CWE-250` OR the STIX ID `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`.'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -545,7 +545,7 @@ class CweView(TruncateView, viewsets.ViewSet):
         summary='Get a CAPEC object',
         description=textwrap.dedent(
             """
-            Get a CAPEC object by its ID (e.g. `CAPEC-112`, `CAPEC-699`).
+            Get a CAPEC object by its ID (e.g. `CAPEC-112`, `CAPEC-699`) OR the STIX ID e.g. `attack-pattern--92cdcd3d-d734-4442-afc3-4599f261498b`).
 
             If you do not know the ID of the object you can use the GET MITRE CAPEC Objects endpoint to find it.
             """
@@ -606,7 +606,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
     lookup_url_kwarg = 'capec_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`)'),
-        OpenApiParameter('capec_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CAPEC ID, e.g `CAPEC-112`, `CAPEC-699`'),
+        OpenApiParameter('capec_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CAPEC ID, e.g `CAPEC-112`, `CAPEC-699` OR the STIX ID e.g. `attack-pattern--92cdcd3d-d734-4442-afc3-4599f261498b`)'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -859,7 +859,7 @@ class JobView(viewsets.ModelViewSet):
         summary='Get an ATLAS object',
         description=textwrap.dedent(
             """
-            Get an ATLAS object by its ID (e.g. `AML.TA0002`, `AML.T0000`).
+            Get an ATLAS object by its ID (e.g. `AML.TA0002`, `AML.T0000`) OR its STIX ID (e.g. `attack-pattern--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`).
 
             If you do not know the ID of the object you can use the GET MITRE ATLAS Objects endpoint to find it.
             """
@@ -916,7 +916,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
     truncate_collections = ['mitre_atlas']
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`)'),
-        OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.TA0002`, `AML.T0000`'),
+        OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.TA0002`, `AML.T0000` OR its STIX ID e.g. `attack-pattern--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -1056,7 +1056,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         summary='Get a Location object',
         description=textwrap.dedent(
             """
-            Get a Location object by its location2stix ID (e.g. `ZA`, `western-africa`)
+            Get a Location object by its location2stix ID (e.g. `ZA`, `western-africa`) OR the STIX ID of the object e.g. `location--e68e76c5-60f1-506e-b495-86adb8ec0a5b`.
             
             If you do not know the ID of the object you can use the GET Locations Objects endpoint to find it.
             """
@@ -1120,7 +1120,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
     truncate_collections = ['location']
     openapi_path_params = [
         # OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID of the object (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)'),
-        OpenApiParameter('location_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ID of the Location object (e.g. `ZA`, `western-africa`)'),
+        OpenApiParameter('location_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ID of the Location object (e.g. `ZA`, `western-africa`) OR the STIX ID of the object e.g. `location--e68e76c5-60f1-506e-b495-86adb8ec0a5b`'),
     ]
 
     filter_backends = [DjangoFilterBackend]
@@ -1269,7 +1269,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
         summary='Get a DISARM object',
         description=textwrap.dedent(
             """
-            Get an DISARM object by its ID (e.g. `TA05` `TA01`).
+            Get an DISARM object by its ID (e.g. `TA05` `TA01`) OR the STIX ID e.g. `attack-pattern--8ab240c2-6f7a-5c48-a4c8-3ab15b7150f3`.
 
             If you do not know the ID of the object you can use the GET MITRE DISARM Objects endpoint to find it.
             """
@@ -1332,7 +1332,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     truncate_collections = ['disarm']
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`)'),
-        OpenApiParameter('disarm_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The DISARM ID, e.g `TA05`, `TA01`'),
+        OpenApiParameter('disarm_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The DISARM ID, e.g `TA05`, `TA01` OR the STIX ID e.g. `attack-pattern--8ab240c2-6f7a-5c48-a4c8-3ab15b7150f3`.'),
     ]
     arango_collection = 'disarm_vertex_collection'
     filter_backends = [DjangoFilterBackend]
