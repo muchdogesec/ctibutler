@@ -991,7 +991,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
     @extend_schema(filters=False)
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, atlas_id=None, **kwargs):
-        return ArangoDBHelper(f'mitre_atlas_vertex_collection', request).get_mitre_modified_versions(atlas_id, source_name='atlas')
+        return ArangoDBHelper(f'mitre_atlas_vertex_collection', request).get_mitre_modified_versions(atlas_id, source_name='mitre-atlas')
 
 
 
