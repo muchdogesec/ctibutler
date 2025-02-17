@@ -643,7 +643,7 @@ class ArangoDBHelper:
         }
         more_search_filters = []
 
-        if not self.query_as_bool('include_embedded_refs', False):
+        if not self.query_as_bool('include_embedded_refs', True):
             more_search_filters.append('doc._is_ref != TRUE')
         
         query = '''
