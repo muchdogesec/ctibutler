@@ -420,12 +420,16 @@ class ArangoDBHelper:
 
     def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False, bundle=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower(), 'keep_values': None}
-        filters = ['FILTER doc._is_latest == TRUE']
+        filters = ['FILTER doc._stix2arango_note == @mitre_version']
+        mitre_version: str = None
         for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version']:
             if q := self.query.get(version_param):
-                bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
-                filters[0] = 'FILTER doc._stix2arango_note == @mitre_version'
+                mitre_version = "version="+q.replace('.', '_').strip('v')
                 break
+        else:
+            mitre_version = get_latest_version(self.collection)
+        mitre_version = mitre_version or get_latest_version(self.collection)
+        bind_vars.update(mitre_version="version="+mitre_version.replace('.', '_').strip('v'))
         
         if revokable:
             bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
@@ -639,7 +643,7 @@ class ArangoDBHelper:
         }
         more_search_filters = []
 
-        if not self.query_as_bool('include_embedded_refs', False):
+        if not self.query_as_bool('include_embedded_refs', True):
             more_search_filters.append('doc._is_ref != TRUE')
         
         query = '''
@@ -656,6 +660,5 @@ LET matched_ids = @matches[*]._id
 '''
         query = query \
                     .replace('#more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}")
-        # return Response([query, binds])
         return self.execute_query(query, bind_vars=binds)
   
