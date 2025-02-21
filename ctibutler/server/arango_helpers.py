@@ -424,7 +424,7 @@ class ArangoDBHelper:
         mitre_version: str = None
         for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version']:
             if q := self.query.get(version_param):
-                mitre_version = "version="+q.replace('.', '_').strip('v')
+                mitre_version = q
                 break
         else:
             mitre_version = get_latest_version(self.collection)
@@ -456,7 +456,6 @@ class ArangoDBHelper:
         matches = self.execute_query(query, bind_vars=bind_vars, paginate=False)
 
         matches = sorted(matches, key=lambda m: utils.split_mitre_version(m.pop('_stix2arango_note', '=').split("=", 1)[-1]), reverse=True)
-
         matches = matches[:1]
 
         if bundle:
