@@ -12,7 +12,6 @@ services:
             - CELERY_BROKER_URL=redis://redis:6379/0
             - result_backend=redis://redis:6379/1
             - POSTGRES_HOST=pgdb
-            - DEBUG=1
         env_file:
             - ./.env
     django:
@@ -29,6 +28,12 @@ services:
             - 8006:8006
         depends_on:
             - celery
+        healthcheck:
+            test: ["CMD-SHELL", "curl http://localhost:8006/api/schema/"]
+            interval: 10s
+            retries: 5
+            start_period: 10s
+            timeout: 10s
 
     celery:
         extends: env_django

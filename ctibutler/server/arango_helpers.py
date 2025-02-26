@@ -187,12 +187,18 @@ from functools import lru_cache
 @lru_cache
 def _get_latest_version(collection, t):
     print("checking version: ", t)
-    latest_version: dict = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict))).get_mitre_versions().data
-    return latest_version.get('latest')
+    versions: dict = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict))).get_mitre_versions().data
+    latest_version = versions['latest']
+    if not latest_version:
+        raise Exception("can't get latest version")
+    return latest_version
 
 def get_latest_version(collection):
     #cache for 1 minute
-    return _get_latest_version(collection, time.time()//(1*60))
+    try:
+        return _get_latest_version(collection, time.time()//(1*60))
+    except:
+        return ''
 
 class ArangoDBHelper:
     max_page_size = settings.MAXIMUM_PAGE_SIZE
