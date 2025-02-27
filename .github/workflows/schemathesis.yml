@@ -72,7 +72,7 @@ jobs:
           pip install -r tests/requirements.txt
           export CTIBUTLER_URL=http://${{ steps.get_ip.outputs.IP_ADDRESS }}:8006/
 
-          python -m unittest discover -s tests -p 'test_*.py'
+          pytest tests/
 
       - name: run schemathesis
         uses: schemathesis/action@v1

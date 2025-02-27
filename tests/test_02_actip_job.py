@@ -15,7 +15,7 @@ ACTIP_MODES = [
 
 class TestObjectsRelate(TestObjectsDownload):
     def setUp(self):
-        self.base_url = os.environ['CTIBUTLER_URL']
+        self.pre_setup()
         for mode in ACTIP_MODES:
             payload = dict()
             resp = requests.post(urljoin(self.base_url, f"api/v1/arango-cti-processor/{mode}/"), json=payload)
@@ -24,3 +24,7 @@ class TestObjectsRelate(TestObjectsDownload):
             job_data = resp.json()
             self.jobs.add(job_data['id'])
         return
+    
+
+    def test_2_job_success(self):
+        return self.wait_for_jobs(self)
