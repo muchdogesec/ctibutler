@@ -428,7 +428,7 @@ class ArangoDBHelper:
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower(), 'keep_values': None}
         filters = ['FILTER doc._stix2arango_note == @mitre_version']
         mitre_version: str = None
-        for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version']:
+        for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version', 'disarm_version']:
             if q := self.query.get(version_param):
                 mitre_version = q
                 break
