@@ -78,7 +78,7 @@ class TruncateView:
 )  
 class AttackView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["ATT&CK"]
-    lookup_url_kwarg = 'stix_id'
+    lookup_url_kwarg = 'attack_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`, `malware--04227b24-7817-4de1-9050-b7b1b57f5866`)'),
         OpenApiParameter('attack_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATT&CK ID, e.g `T1659`, `TA0043`, `S0066` OR the STIX ID e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`'),
@@ -125,7 +125,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>", detail=False)
     def retrieve_objects(self, request, *args, attack_id=None, **kwargs):
-        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, revokable=True)
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, self.lookup_url_kwarg.replace('_id', '_version'), revokable=True)
 
     @extend_schema(
             parameters=[
@@ -134,7 +134,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, attack_id=None, **kwargs):
-        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, relationship_mode=True, revokable=True)
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, self.lookup_url_kwarg.replace('_id', '_version'), relationship_mode=True, revokable=True)
 
     @extend_schema(
             parameters=[
@@ -143,7 +143,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/bundle", detail=False)
     def bundle(self, request, *args, attack_id=None, **kwargs):
-        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, revokable=True, bundle=True)
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, self.lookup_url_kwarg.replace('_id', '_version'), revokable=True, bundle=True)
 
     @extend_schema()
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
@@ -438,7 +438,7 @@ class CweView(TruncateView, viewsets.ViewSet):
     
     @decorators.action(methods=['GET'], url_path="objects", detail=False)
     def list_objects(self, request, *args, **kwargs):
-        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_weakness_or_capec_objects()
+        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_weakness_or_capec_objects(lookup_kwarg=self.lookup_url_kwarg)
     
     @extend_schema(
             parameters=[
@@ -447,7 +447,7 @@ class CweView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>", detail=False)
     def retrieve_objects(self, request, *args, cwe_id=None, **kwargs):
-        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id)
+        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, self.lookup_url_kwarg.replace('_id', '_version'))
         
     
     @extend_schema(
@@ -457,7 +457,7 @@ class CweView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, cwe_id=None, **kwargs):
-        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, relationship_mode=True)        
+        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, self.lookup_url_kwarg.replace('_id', '_version'), relationship_mode=True)        
     
     @extend_schema(
             parameters=[
@@ -466,7 +466,7 @@ class CweView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:cwe_id>/bundle", detail=False)
     def bundle(self, request, *args, cwe_id=None, **kwargs):
-        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, bundle=True)
+        return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
         summary="See available CWE versions",
@@ -643,7 +643,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>", detail=False)
     def retrieve_objects(self, request, *args, capec_id=None, **kwargs):
-        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id)
+        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, self.lookup_url_kwarg.replace('_id', '_version'))
     
     @extend_schema(
             parameters=[
@@ -652,7 +652,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, capec_id=None, **kwargs):
-        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, relationship_mode=True)
+        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, self.lookup_url_kwarg.replace('_id', '_version'), relationship_mode=True)
         
     @extend_schema(
             parameters=[
@@ -661,7 +661,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:capec_id>/bundle", detail=False)
     def bundle(self, request, *args, capec_id=None, **kwargs):
-        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, bundle=True)
+        return ArangoDBHelper('mitre_capec_vertex_collection', request).get_object_by_external_id(capec_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
     
     @extend_schema(
         summary="Get a list of CAPEC versions stored in the database",
@@ -953,7 +953,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>", detail=False)
     def retrieve_objects(self, request, *args, atlas_id=None, **kwargs):
-        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id)    
+        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, self.lookup_url_kwarg.replace('_id', '_version'))    
     @extend_schema(
             parameters=[
                 OpenApiParameter('atlas_version', description="Filter the results by the version of ATLAS")
@@ -961,7 +961,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, atlas_id=None, **kwargs):
-        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, relationship_mode=True)
+        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, self.lookup_url_kwarg.replace('_id', '_version'), relationship_mode=True)
         
     @extend_schema(
             parameters=[
@@ -970,7 +970,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/bundle", detail=False)
     def bundle(self, request, *args, atlas_id=None, **kwargs):
-        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, bundle=True)
+        return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
         summary="See available ATLAS versions",
@@ -1152,14 +1152,14 @@ class LocationView(TruncateView, viewsets.ViewSet):
         more_binds = dict()
         if helper.query_as_array('alpha3_code'):
             more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @alpha3_matchers]")
-            more_binds['alpha3_matchers'] = [dict(source_name='alpha-3', external_id=code) for code in helper.query_as_array('alpha3_code')]
-        if helper.query_as_array('alpha2_code'):
+            more_binds['alpha3_matchers'] = [dict(source_name='alpha-3', external_id=code.upper()) for code in helper.query_as_array('alpha3_code')]
+        if q := helper.query_as_array('alpha2_code'):
             more_filters.append("FILTER doc.country IN @alpha2_matchers")
-            more_binds['alpha2_matchers'] = helper.query_as_array('alpha2_code')
+            more_binds['alpha2_matchers'] = [code.upper() for code in helper.query_as_array('alpha2_code')]
         if helper.query_as_array('location_type'):
             more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @location_type_matchers]")
             more_binds['location_type_matchers'] = [dict(source_name='type', external_id=code) for code in helper.query_as_array('location_type')]
-        return helper.get_weakness_or_capec_objects(types=LOCATION_TYPES, more_binds=more_binds, more_filters=more_filters)
+        return helper.get_weakness_or_capec_objects(types=LOCATION_TYPES, lookup_kwarg=self.lookup_url_kwarg, more_binds=more_binds, more_filters=more_filters)
     
     @extend_schema(
             parameters=[
@@ -1168,7 +1168,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:location_id>", detail=False)
     def retrieve_objects(self, request, *args, location_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id)
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, self.lookup_url_kwarg.replace('_id', '_version'))
     
       
     @extend_schema(
@@ -1178,7 +1178,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, location_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, relationship_mode=True)
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, self.lookup_url_kwarg.replace('_id', '_version'), relationship_mode=True)
     
     @extend_schema(
             parameters=[
@@ -1187,7 +1187,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/bundle", detail=False)
     def bundle(self, request, *args, location_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, bundle=True)
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
         summary="See available Location versions",
@@ -1369,7 +1369,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>", detail=False)
     def retrieve_objects(self, request, *args, disarm_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id)
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, self.lookup_url_kwarg.replace('_id', '_version'))
         
     
     @extend_schema(
@@ -1379,7 +1379,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/relationships", detail=False)
     def retrieve_object_relationships(self, request, *args, disarm_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, relationship_mode=True)    
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, self.lookup_url_kwarg.replace('_id', '_version'), relationship_mode=True)    
     
     @extend_schema(
             parameters=[
@@ -1388,7 +1388,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/bundle", detail=False)
     def bundle(self, request, *args, disarm_id=None, **kwargs):
-        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, bundle=True)
+        return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
         summary="See available DISARM versions",

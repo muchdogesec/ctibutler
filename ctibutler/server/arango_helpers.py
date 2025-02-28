@@ -187,12 +187,18 @@ from functools import lru_cache
 @lru_cache
 def _get_latest_version(collection, t):
     print("checking version: ", t)
-    latest_version: dict = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict))).get_mitre_versions().data
-    return latest_version.get('latest')
+    versions: dict = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict))).get_mitre_versions().data
+    latest_version = versions['latest']
+    if not latest_version:
+        raise Exception("can't get latest version")
+    return latest_version
 
 def get_latest_version(collection):
     #cache for 1 minute
-    return _get_latest_version(collection, time.time()//(1*60))
+    try:
+        return _get_latest_version(collection, time.time()//(1*60))
+    except:
+        return ''
 
 class ArangoDBHelper:
     max_page_size = settings.MAXIMUM_PAGE_SIZE
@@ -418,18 +424,15 @@ class ArangoDBHelper:
         return self.execute_query(query, bind_vars=bind_vars)
 
 
-    def get_object_by_external_id(self, ext_id: str, relationship_mode=False, revokable=False, bundle=False):
+    def get_object_by_external_id(self, ext_id: str, version_param, relationship_mode=False, revokable=False, bundle=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower(), 'keep_values': None}
         filters = ['FILTER doc._stix2arango_note == @mitre_version']
         mitre_version: str = None
-        for version_param in ['attack_version', 'cwe_version', 'capec_version', 'location_version']:
-            if q := self.query.get(version_param):
-                mitre_version = q
-                break
+        if q := self.query.get(version_param, get_latest_version(self.collection)):
+            mitre_version = q
+            bind_vars.update(mitre_version="version="+mitre_version.replace('.', '_').strip('v'))
         else:
-            mitre_version = get_latest_version(self.collection)
-        mitre_version = mitre_version or get_latest_version(self.collection)
-        bind_vars.update(mitre_version="version="+mitre_version.replace('.', '_').strip('v'))
+            filters[0] = 'FILTER doc._is_latest'
         
         if revokable:
             bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
@@ -522,7 +525,7 @@ class ArangoDBHelper:
         ], key=utils.split_mitre_version, reverse=True)
         return [f"{v}" for v in versions]
 
-    def get_weakness_or_capec_objects(self, cwe=True, types=CWE_TYPES, lookup_kwarg='cwe_id', more_binds={}, more_filters=[], forms={}):
+    def get_weakness_or_capec_objects(self, lookup_kwarg, cwe=True, types=CWE_TYPES, more_binds={}, more_filters=[], forms={}):
         version_param = lookup_kwarg.replace('_id', '_version')
         filters = []
         if new_types := self.query_as_array('type'):
