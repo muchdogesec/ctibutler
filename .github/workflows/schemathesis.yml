@@ -39,7 +39,7 @@ jobs:
             echo 'EARLIEST_SEARCH_DATE=${{ steps.date.outputs.date }}' >> .env
             echo "DJANGO_ALLOWED_HOSTS=*" >> .env
 
-            cat .env.schemathesis >> .env
+            cat tests/st/.env.schemathesis >> .env
             cp tests/st/docker-compose.yml arango-compose.yml
          
       - name: Start docker-compose H4F
