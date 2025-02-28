@@ -1152,10 +1152,10 @@ class LocationView(TruncateView, viewsets.ViewSet):
         more_binds = dict()
         if helper.query_as_array('alpha3_code'):
             more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @alpha3_matchers]")
-            more_binds['alpha3_matchers'] = [dict(source_name='alpha-3', external_id=code) for code in helper.query_as_array('alpha3_code')]
-        if helper.query_as_array('alpha2_code'):
+            more_binds['alpha3_matchers'] = [dict(source_name='alpha-3', external_id=code.upper()) for code in helper.query_as_array('alpha3_code')]
+        if q := helper.query_as_array('alpha2_code'):
             more_filters.append("FILTER doc.country IN @alpha2_matchers")
-            more_binds['alpha2_matchers'] = helper.query_as_array('alpha2_code')
+            more_binds['alpha2_matchers'] = [code.upper() for code in helper.query_as_array('alpha2_code')]
         if helper.query_as_array('location_type'):
             more_filters.append("FILTER doc.external_references[? ANY FILTER CURRENT IN @location_type_matchers]")
             more_binds['location_type_matchers'] = [dict(source_name='type', external_id=code) for code in helper.query_as_array('location_type')]
