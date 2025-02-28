@@ -1,6 +1,6 @@
 import os
 import time
-import unittest
+import unittest, pytest
 from urllib.parse import urljoin
 
 import requests
@@ -23,6 +23,19 @@ path_versions_2 = [
     ("api/v1/disarm/", "1_5"),
 ]
 
+@pytest.mark.parametrize(
+        "path",
+        [
+            "location", "atlas", "cwe", "attack-enterprise", "disarm", "capec"
+        ]
+)
+def test_truncate_path(path):
+    if os.getenv('SKIP_UPLOAD'):
+        return
+    base_url = os.environ['CTIBUTLER_URL']
+    resp = requests.delete(urljoin(base_url, f"api/v1/{path}/truncate/"))
+    assert resp.ok, f"truncate {resp.url} failed with {resp.reason}"
+
 
 @parameterized_class(
     ("path_versions",),
@@ -38,12 +51,12 @@ class TestObjectsDownload(unittest.TestCase):
         self.completed_jobs = set()
         self.jobs = set()
         self.base_url = os.environ['CTIBUTLER_URL']
-        if os.getenv('SKIP_UPLOAD'):
-            raise Exception("skipping")
         return super().setUp()
 
     def setUp(self):
         self.pre_setup()
+        if os.getenv('SKIP_UPLOAD'):
+            return
         for path, version in self.path_versions:
             payload = dict(version=version)
             resp = requests.post(urljoin(self.base_url, path), json=payload)
