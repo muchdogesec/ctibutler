@@ -625,6 +625,7 @@ class ArangoDBHelper:
         FOR d IN @@view
         SEARCH d.type == 'relationship' AND (#direction_query) #include_embedded_refs
         #other_filters
+        COLLECT id = d.id INTO docs LET d = FIRST(FOR dd IN docs[*].d SORT dd.modified DESC, dd._record_modified DESC LIMIT 1 RETURN dd) // dedeuplicate across multiple actip runs
         LIMIT @offset, @count
         RETURN KEEP(d, KEYS(d, TRUE))
         """ \
@@ -643,14 +644,15 @@ class ArangoDBHelper:
         more_search_filters = []
 
         if not self.query_as_bool('include_embedded_refs', True):
-            more_search_filters.append('doc._is_ref != TRUE')
+            more_search_filters.append('d._is_ref != TRUE')
         
         query = '''
 LET matched_ids = @matches[*]._id
 
  LET bundle_ids = FLATTEN(
-     FOR doc IN @@view SEARCH doc.type == 'relationship' AND (doc._from IN matched_ids OR doc._to IN matched_ids) #more_search_filters
-     RETURN [doc._id, doc._from, doc._to]
+    FOR d IN @@view SEARCH d.type == 'relationship' AND (d._from IN matched_ids OR d._to IN matched_ids) #more_search_filters
+    COLLECT id = d.id INTO docs LET d = FIRST(FOR dd IN docs[*].d SORT dd.modified DESC, dd._record_modified DESC LIMIT 1 RETURN dd) // dedeuplicate across multiple actip runs
+    RETURN [d._id, d._from, d._to]
  ) 
  
  FOR d IN @@view SEARCH d._id IN APPEND(bundle_ids, matched_ids)
