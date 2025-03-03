@@ -36,7 +36,6 @@ referencing==0.35.1
 requests==2.32.2
 requests-toolbelt==1.0.0
 rpds-py==0.20.0
-schemathesis==3.38.7; python_version >= '3.8'
 setuptools==75.1.0
 simplejson==3.19.3
 six==1.16.0
@@ -52,4 +51,4 @@ wcwidth==0.2.13
 zipp==3.20.2
 dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2025-02-20-16-03-59/dogesec_commons-0.0.6-py3-none-any.whl
 arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/main-2025-02-03-10-55-52/arango_cti_processor-0.0.3-py3-none-any.whl
-stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/main-2025-02-13-08-10-36/stix2arango-0.0.4rc0-py3-none-any.whl
+stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/main-2025-03-03-16-02-58/stix2arango-0.0.4rc0-py3-none-any.whl
