@@ -2,7 +2,7 @@ import logging
 import re
 from rest_framework import viewsets, status, decorators, exceptions
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
@@ -104,6 +104,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
         include_deprecated = BooleanFilter(help_text="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them.")
         alias = CharFilter(help_text='Filter the results by the `x_mitre_aliases` property of the object. Search is a wildcard, so `sun` will return all objects with x_mitre_aliases that contains the string `sun`, e.g `SUNBURST`.')
         attack_type = ChoiceFilter(choices=[(f,f) for f in ATTACK_FORMS], help_text='Filter the results by Attack Object type.')
+        sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -426,6 +427,7 @@ class CweView(TruncateView, viewsets.ViewSet):
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], help_text='Filter the results by STIX Object type.')
         cwe_version = CharFilter(help_text="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
+        sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -621,6 +623,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in CAPEC_TYPES], help_text='Filter the results by STIX Object type.')
         capec_version = CharFilter(help_text="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
+        sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
     
     def create(self, request, *args, **kwargs):
@@ -932,6 +935,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
         atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.5.2`. You can get a full list of versions on the GET ATLAS versions endpoint.")
         atlas_type = ChoiceFilter(choices=[(f,f) for f in ATLAS_FORMS], help_text='Filter the results by ATLAS Object type.')
+        sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -1135,6 +1139,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
         alpha3_code = CharFilter(help_text="Filter by alpha-3 code of the country (e.g `MEX`, `USA`). Only works with country type locations.")
         alpha2_code = CharFilter(help_text="Filter by alpha-2 code of the country (e.g `MX`, `DE`). Only works with country type locations.")
         location_type = BaseInFilter(choices=[(t, t) for t in LOCATION_SUBTYPES], help_text="Filter by location type")
+        sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)
@@ -1348,6 +1353,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
         type = ChoiceFilter(choices=[(f,f) for f in DISARM_TYPES], help_text='Filter the results by STIX Object type.')
         disarm_version = CharFilter(help_text="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
         disarm_type = ChoiceFilter(choices=[(f,f) for f in DISARM_FORMS], help_text='Filter the results by DISARM Object type.')
+        sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.MitreTaskSerializer(data=request.data)

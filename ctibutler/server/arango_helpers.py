@@ -155,17 +155,13 @@ LOCATION_SUBTYPES = set(
 ]
 )
 
-CVE_SORT_FIELDS = [
+CTI_SORT_FIELDS = [
     "modified_descending",
     "modified_ascending",
     "created_ascending",
     "created_descending",
     "name_ascending",
     "name_descending",
-    "epss_score_ascending",
-    "epss_score_descending",
-    "cvss_base_score_ascending",
-    "cvss_base_score_descending",
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
 
@@ -418,9 +414,11 @@ class ArangoDBHelper:
             FOR doc in @@collection
             FILTER CONTAINS(@types, doc.type) AND (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)
             #filters
+            #sort_stmt
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('#filters', '\n'.join(filters))
+        """.replace('#filters', '\n'.join(filters)) \
+            .replace('#sort_stmt', self.get_sort_stmt(CTI_SORT_FIELDS))
         return self.execute_query(query, bind_vars=bind_vars)
 
 
@@ -574,9 +572,11 @@ class ArangoDBHelper:
         query = """
             FOR doc in @@collection FILTER doc.type IN @types
             #filters
+            #sort_stmt
             LIMIT @offset, @count
             RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('#filters', '\n'.join(filters+more_filters))
+        """.replace('#filters', '\n'.join(filters+more_filters)) \
+            .replace('#sort_stmt', self.get_sort_stmt(CTI_SORT_FIELDS))
         return self.execute_query(query, bind_vars=bind_vars)
     
     def get_relationships(self, matches):
