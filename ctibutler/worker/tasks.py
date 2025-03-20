@@ -98,9 +98,12 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
         case _:
             raise NotImplementedError("Unknown type for mitre task")
     
-    temp_dir = str(Path(tempfile.gettempdir())/f"ctibutler/mitre-{mitre_type}--{str(job.id)}")
+    temp_dir = get_job_temp_dir(job)
     task = download_file.si(url, temp_dir, job_id=job.id) | upload_file.s(collection_name, stix2arango_note=f'version={version}', job_id=job.id, params=job.parameters)
     return (task | remove_temp_and_set_completed.si(temp_dir, job_id=job.id))
+
+def get_job_temp_dir(job):
+    return str(Path(tempfile.gettempdir())/f"ctibutler/{job.type}--{str(job.id)}")
 
 def date_range(start_date: date, end_date: date):
     start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
@@ -121,6 +124,13 @@ class CustomTask(Task):
         job.state = models.JobState.FAILED
         job.errors.append(f"celery task {self.name} failed with: {exc}")
         job.save()
+        try:
+            logging.info('removing directory')
+            path = get_job_temp_dir(job)
+            shutil.rmtree(path)
+            logging.info(f'directory `{path}` removed')
+        except Exception as e:
+            logging.error(f'delete dir failed: {e}')
         return super().on_failure(exc, task_id, args, kwargs, einfo)
     
     def before_start(self, task_id, args, kwargs):
