@@ -42,10 +42,6 @@ jobs:
           compose-flags:
             --env-file .env
             -p ctibutler-action
-            
-
-      - name: sleep
-        run: echo "waiting 30 seconds for ctibutler to start" && sleep 30
 
       - name: Get IP addresses
         id: get_ip
@@ -55,6 +51,16 @@ jobs:
               echo "IP_ADDRESS=$IP_ADDRESS" >> "$GITHUB_OUTPUT"
               cat "$GITHUB_OUTPUT"
 
+      - name: Wait for server to start
+        run: |
+          RETRY_DELAY=3
+          RETRY_COUNT=10
+          echo "Waiting for server to start"
+          curl --retry-delay $RETRY_DELAY --retry $RETRY_COUNT --retry-connrefused http://${{ steps.get_ip.outputs.IP_ADDRESS }}:8006/ > /dev/null
+          if [ $? -ne 0 ]; then
+            echo "exiting after waiting $(( $RETRY_DELAY * $RETRY_COUNT )) seconds for server to start"
+            exit 1
+          fi
     
 
       - name: upload data to endpoints and test all endpoints
