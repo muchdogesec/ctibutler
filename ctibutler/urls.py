@@ -24,8 +24,6 @@ from ctibutler.server import views
 import dogesec_commons.objects.views as arango_views
 
 
-
-
 from django.http import JsonResponse
 def handler404(*args, **kwargs):
     return JsonResponse(dict(code=404, message='non-existent page'), status=404)
@@ -62,6 +60,7 @@ obj_router.register('sros', arango_views.SROView, "object-view-sro")
 obj_router.register('sdos', arango_views.SDOView, "object-view-sdo")
 
 urlpatterns = [
+    path(f'api/healthcheck/', views.health_check),
     path(f'api/{API_VERSION}/', include(router.urls)),
     path(f'api/{API_VERSION}/objects/', include(obj_router.urls)),
     path('admin/', admin.site.urls),
