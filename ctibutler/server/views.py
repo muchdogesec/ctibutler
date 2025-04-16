@@ -6,12 +6,15 @@ from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_F
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
-from . import models
+from ctibutler.server import models
 from ctibutler.server import serializers
 from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, BaseInFilter
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 # Create your views here.
+
+from drf_spectacular.views import SpectacularAPIView
+from rest_framework.response import Response
 
 import textwrap
 
@@ -1421,3 +1424,18 @@ class DisarmView(TruncateView, viewsets.ViewSet):
 @decorators.api_view(["GET"])
 def health_check(request):
    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+class SchemaViewCached(SpectacularAPIView):
+    _schema = None
+    
+    def _get_schema_response(self, request):
+        version = self.api_version or request.version or self._get_version_parameter(request)
+        if not self.__class__._schema:
+            generator = self.generator_class(urlconf=self.urlconf, api_version=version, patterns=self.patterns)
+            self.__class__._schema = generator.get_schema(request=request, public=self.serve_public)
+        return Response(
+            data=self._schema,
+            headers={"Content-Disposition": f'inline; filename="{self._get_filename(request, version)}"'}
+        )
