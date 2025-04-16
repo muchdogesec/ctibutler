@@ -4,7 +4,6 @@ from dogesec_commons.utils.serializers import CommonErrorSerializer as ErrorSeri
 from drf_spectacular.utils import OpenApiResponse, OpenApiExample
 import uritemplate
 from dogesec_commons.utils.autoschema import CustomAutoSchema
-
 class CtibutlerAutoSchema(CustomAutoSchema):
     pass
 
