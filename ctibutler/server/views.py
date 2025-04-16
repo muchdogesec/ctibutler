@@ -1416,3 +1416,8 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, disarm_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_modified_versions(disarm_id, source_name='DISARM')
+
+@extend_schema(responses={204:{}})
+@decorators.api_view(["GET"])
+def health_check(request):
+   return Response(status=status.HTTP_204_NO_CONTENT)
