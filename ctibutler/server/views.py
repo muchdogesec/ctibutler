@@ -936,7 +936,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
         type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
-        atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.5.2`. You can get a full list of versions on the GET ATLAS versions endpoint.")
+        atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.9.0`. You can get a full list of versions on the GET ATLAS versions endpoint.")
         atlas_type = ChoiceFilter(choices=[(f,f) for f in ATLAS_FORMS], help_text='Filter the results by ATLAS Object type.')
         sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
@@ -987,7 +987,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
 
             This endpoint allows you to see all imported versions of MITRE ATLAS available to use, and which version is the latest (the default version for the objects returned).
 
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N_N" e.g. `version=4_7_0` for `4.7.0`.
+            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N_N` e.g. `version=4_9_0` for `4.9.0`.
             """
             ),
         )
