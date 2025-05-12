@@ -165,15 +165,13 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
     "TITLE": "CTI Butler API",
     "DESCRIPTION": dedent(
         """
-        CTI Butler is a database of CVEs in STIX 2.1 format with a REST API wrapper to access them.\n\n
-        [DOGESEC](https://www.dogesec.com/) offer a fully hosted web version of CTI Butler which includes many additional features over those in this codebase. [You can find out more about the web version here](https://www.ctibutler.com/).
+        CTI Butler is a database of common cyber threat intelligence knowledgbases in STIX 2.1 format.\n\n
+        We built CTI Butler to solve the issues of 1) not having a centralised place for these knowledgebases, and 2) not having a standard data structure for these knowledgebases.\n\n
+        You are using the open-source version of CTI Butler available at [github.com/muchdogesec/ctibutler](https://github.com/muchdogesec/ctibutler)\n\n
+        A fully hosted version of CTI Butler, with many more advanced features can be found at [ctibutler.com](https://www.ctibutler.com)
     """
     ),
     "VERSION": "1.0.0",
-    "CONTACT": {
-        "email": "noreply@dogesec.com",
-        "url": "https://github.com/muchdogesec/ctibutler",
-    },
     "TAGS": [
         {"name": "ATT&CK Enterprise", "description": "Manage and search MITRE ATT&CK Enterprise objects."},
         {"name": "ATT&CK ICS", "description": "Manage and search MITRE ATT&CK ICS objects."},
