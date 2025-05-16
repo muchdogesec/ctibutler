@@ -23,15 +23,43 @@ REVOKED_AND_DEPRECATED_PARAMS = [
     OpenApiParameter('include_deprecated', type=OpenApiTypes.BOOL, description="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them."),
 ]
 BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
-            OpenApiParameter(
-                "include_embedded_refs",
-                description=textwrap.dedent(
-                    """
-                    If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`. This is an arango_cti_processor setting.
-                    """
-                ),
-                type=OpenApiTypes.BOOL
-            )
+    OpenApiParameter(
+        "include_embedded_refs",
+        description=textwrap.dedent(
+            """
+            If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`. This is an arango_cti_processor setting.
+            """
+        ),
+        type=OpenApiTypes.BOOL
+    ),
+    OpenApiParameter(
+        "types",
+        description="Only show objects of selected types",
+        enum=[
+            "relationship",
+            "identity",
+            "location",
+            "marking-definition",
+            "attack-pattern",
+            "course-of-action",
+            "campaign",
+            "intrusion-set",
+            "malware",
+            "x-mitre-asset",
+            "x-mitre-collection",
+            "x-mitre-data-component",
+            "x-mitre-data-source",
+            "x-mitre-matrix",
+            "x-mitre-tactic",
+            "tool",
+            "extension-definition",
+            "grouping",
+            "weakness"
+        ],
+        explode=False,
+        style="form",
+        many=True,
+    ),
 ]
 
 
