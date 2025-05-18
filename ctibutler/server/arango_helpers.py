@@ -645,9 +645,14 @@ class ArangoDBHelper:
             'matches': matches
         }
         more_search_filters = []
+        late_filters = []
 
         if not self.query_as_bool('include_embedded_refs', True):
             more_search_filters.append('d._is_ref != TRUE')
+
+        if types := self.query_as_array('types'):
+            late_filters.append('FILTER d.type IN @types')
+            binds['types'] = types
         
         query = '''
 LET matched_ids = @matches[*]._id
@@ -659,10 +664,12 @@ LET matched_ids = @matches[*]._id
  ) 
  
  FOR d IN @@view SEARCH d._id IN APPEND(bundle_ids, matched_ids)
+ #late_filters
  LIMIT @offset, @count
  RETURN KEEP(d, KEYS(d, TRUE))
 '''
         query = query \
-                    .replace('#more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}")
+                    .replace('#more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}") \
+                    .replace('#late_filters', '\n'.join(late_filters))
         return self.execute_query(query, bind_vars=binds)
   
