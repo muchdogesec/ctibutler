@@ -9,14 +9,13 @@ from parameterized import parameterized, parameterized_class
 path_versions_1 = [
     ("api/v1/location/", "e19e035"),
     ("api/v1/disarm/", "1_6"),
-    ("api/v1/atlas/", "4_7_0"),
+    ("api/v1/atlas/", "4_9_0"),
     ("api/v1/attack-enterprise/", "16_0"),
     ("api/v1/cwe/", "4_16"),
     ("api/v1/capec/", "3_9"),
 ]
 
 path_versions_2 = [
-    ("api/v1/atlas/", "4_5_2"),
     ("api/v1/attack-enterprise/", "15_1"),
     ("api/v1/cwe/", "4_15"),
     ("api/v1/capec/", "3_8"),

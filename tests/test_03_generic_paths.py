@@ -30,9 +30,8 @@ FAKE_VERSION = "1.9.1.9"
         pytest.param("disarm", 348, dict(disarm_version="1.5")),
         pytest.param("disarm", 0, dict(disarm_version=FAKE_VERSION)),
         ######## ATLAS #######
-        pytest.param("atlas", 133, None),
-        pytest.param("atlas", 133, dict(atlas_version="4.7.0")),
-        pytest.param("atlas", 118, dict(atlas_version="4.5.2")),
+        pytest.param("atlas", 158, None),
+        pytest.param("atlas", 158, dict(atlas_version="4.9.0")),
         pytest.param("atlas", 0, dict(atlas_version=FAKE_VERSION)),
         ######## Location #######
         pytest.param("location", 279, None),
@@ -55,7 +54,7 @@ def test_path_objects_count(path, expected_result_count, params):
     [
         pytest.param("capec", ["3.9", "3.8"]),
         pytest.param("attack-enterprise", ["16.0", "15.1"]),
-        pytest.param("atlas", ["4.7.0", "4.5.2"]),
+        pytest.param("atlas", ["4.9.0"]),
         pytest.param("cwe", ["4.16", "4.15"]),
         pytest.param("location", ["e19e035"]),
         pytest.param("disarm", ["1.6", "1.5"]),
@@ -102,8 +101,7 @@ def test_path_versions(path, expected_versions):
             "atlas",
             "AML.M0002",
             [
-                {"modified": "2024-06-24T20:23:47.459724Z", "versions": ["4.5.2"]},
-                {"modified": "2023-10-12T00:00:00.000Z", "versions": ["4.7.0"]},
+                {"modified": "2025-04-22T21:54:36.102749Z", "versions": ["4.9.0"]},
             ],
         ),
         pytest.param(
@@ -146,11 +144,9 @@ def test_object_versions(path, object_id, expected_versions):
         pytest.param("disarm", "DISARM", 0, dict(disarm_version=FAKE_VERSION)),
         ############# ATLAS #################
         pytest.param("atlas", "AML.M0000", 11, None),
-        pytest.param("atlas", "AML.M0000", 11, dict(atlas_version="4.7.0")),
-        pytest.param("atlas", "AML.M0000", 11, dict(atlas_version="4.5.2")),
+        pytest.param("atlas", "AML.M0000", 11, dict(atlas_version="4.9.0")),
         pytest.param("atlas", "AML.M0000", 0, dict(atlas_version=FAKE_VERSION)),
-        pytest.param("atlas", "mitre-atlas", 31, dict(atlas_version="4.7.0")),
-        pytest.param("atlas", "mitre-atlas", 31, dict(atlas_version="4.5.2")),
+        pytest.param("atlas", "mitre-atlas", 33, dict(atlas_version="4.9.0")),
         pytest.param("atlas", "mitre-atlas", 0, dict(atlas_version=FAKE_VERSION)),
         ############ Location ###############
         pytest.param("location", "US", 11, None),
@@ -191,9 +187,8 @@ def test_object_count_bundle(path, object_id, expected_count, params):
         pytest.param("disarm", "T0086.003", "2024-11-22T00:00:00.000Z", dict(disarm_version="1.6")),
         pytest.param("disarm", "T0086.003", "2024-08-02T00:00:00.000Z", dict(disarm_version="1.5")),
         ############# ATLAS #################
-        pytest.param("atlas", "AML.M0000", "2024-10-01T00:00:00.000Z", None),
-        pytest.param("atlas", "AML.M0000", "2024-10-01T00:00:00.000Z", dict(atlas_version="4.7.0")),
-        pytest.param("atlas", "AML.M0000", "2024-06-24T20:23:47.458379Z", dict(atlas_version="4.5.2")),
+        pytest.param("atlas", "AML.M0000", "2025-04-22T21:54:36.102205Z", None),
+        pytest.param("atlas", "AML.M0000", "2025-04-22T21:54:36.102205Z", dict(atlas_version="4.9.0")),
         ############# Location ##############
         pytest.param("location", "US", "2020-01-01T00:00:00.000Z", None),
         pytest.param("location", "US", "2020-01-01T00:00:00.000Z", dict(atlas_version="e19e035")),
@@ -227,7 +222,7 @@ def test_object_count_relationships(path, object_id, expected_count, params):
     resp = requests.get(url, params=params)
     assert resp.status_code == 200, f"expected status_code 200, got {resp.reason}"
     data = resp.json()
-    assert data["total_results_count"] == expected_count, "unexpected count"
+    assert data["total_results_count"] == expected_count
     ## check uniqueness of objects by id
     assert len({x['id'] for x in data['relationships']}) == data['page_results_count'], "response contains duplicates"
 
@@ -244,7 +239,7 @@ def get_all_params(params):
 @pytest.mark.parametrize(
     ["path1", "path2", "stix_id", "ext_id"],
     get_all_params([
-        ("atlas", "course-of-action--40076545-e797-4508-a294-943096a12111", "AML.M0000"),
+        ("atlas", "course-of-action--c2885145-a7d5-4100-983d-4d6de9f26425", "AML.M0000"),
         ("disarm", "attack-pattern--00dc0ed2-b16d-5f33-bad3-cc54fb7be6a9", "T0086.003"),
         ("cwe", "weakness--0ba4df3e-7815-52b7-b672-a48c56d2a286", "CWE-242"),
         ("capec", "attack-pattern--28cce7ad-5437-4fae-86b0-a21ab3a0e135", "CAPEC-699"),
