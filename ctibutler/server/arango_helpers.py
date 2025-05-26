@@ -361,7 +361,7 @@ class ArangoDBHelper:
     def get_attack_objects(self, matrix):
         filters = []
         types = ATTACK_TYPES
-        if new_types := self.query_as_array('type'):
+        if new_types := self.query_as_array('types'):
             types = types.intersection(new_types)
         bind_vars = {
                 "@collection": f'mitre_attack_{matrix}_vertex_collection',
@@ -526,7 +526,7 @@ class ArangoDBHelper:
     def get_weakness_or_capec_objects(self, lookup_kwarg, cwe=True, types=CWE_TYPES, more_binds={}, more_filters=[], forms={}):
         version_param = lookup_kwarg.replace('_id', '_version')
         filters = []
-        if new_types := self.query_as_array('type'):
+        if new_types := self.query_as_array('types'):
             types = types.intersection(new_types)
 
         bind_vars = {

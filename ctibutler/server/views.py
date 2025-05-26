@@ -9,6 +9,7 @@ from ctibutler.worker.tasks import new_task
 from ctibutler.server import models
 from ctibutler.server import serializers
 from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend, ChoiceFilter, BaseCSVFilter, CharFilter, BooleanFilter, BaseInFilter
+from django_filters.fields import ChoiceField
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 # Create your views here.
@@ -17,6 +18,9 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework.response import Response
 
 import textwrap
+
+class ChoiceCSVFilter(BaseCSVFilter):
+    field_class = ChoiceField
 
 REVOKED_AND_DEPRECATED_PARAMS = [
     OpenApiParameter('include_revoked', type=OpenApiTypes.BOOL, description="By default all objects with `revoked` are ignored. Set this to `true` to include them."),
@@ -129,7 +133,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
         attack_id = BaseCSVFilter(help_text='The ATT&CK IDs of the object wanted. e.g. `T1659`, `TA0043`, `S0066` OR the STIX ID e.g. `attack-pattern--0042a9f5-f053-4769-b3ef-9ad018dfa298`')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in ATTACK_TYPES], help_text='Filter the results by STIX Object type.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in ATTACK_TYPES], help_text='Filter the results by STIX Object type.')
         attack_version = CharFilter(help_text="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
         include_revoked = BooleanFilter(help_text="By default all objects with `revoked` are ignored. Set this to `true` to include them.")
         include_deprecated = BooleanFilter(help_text="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them.")
@@ -456,7 +460,7 @@ class CweView(TruncateView, viewsets.ViewSet):
         cwe_id = BaseCSVFilter(help_text='Filter the results by the CWE ID of the object. e.g. `CWE-242` `CWE-250`.')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in CWE_TYPES], help_text='Filter the results by STIX Object type.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in CWE_TYPES], help_text='Filter the results by STIX Object type.')
         cwe_version = CharFilter(help_text="By default only the latest CWE version objects will be returned. You can enter a specific CWE version here. e.g. `4.13`. You can get a full list of versions on the GET CWE versions endpoint.")
         sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
@@ -652,7 +656,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
         capec_id = BaseCSVFilter(help_text='Filter the results by the CAPEC ID of the object. e.g. `CAPEC-112`, `CAPEC-699`.')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in CAPEC_TYPES], help_text='Filter the results by STIX Object type.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in CAPEC_TYPES], help_text='Filter the results by STIX Object type.')
         capec_version = CharFilter(help_text="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
         sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
 
@@ -820,7 +824,7 @@ class JobView(viewsets.ModelViewSet):
             choices.sort(key=lambda x: x[0])
             return choices
         
-        type = ChoiceFilter(
+        types = ChoiceCSVFilter(
             help_text='Filter the results by the type of Job',
             choices=get_type_choices(), method='filter_type'
         )
@@ -963,7 +967,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         atlas_id = BaseCSVFilter(help_text='Filter the results by the ATLAS ID of the object. e.g. `AML.T0000.001`.')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
         atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.9.0`. You can get a full list of versions on the GET ATLAS versions endpoint.")
         atlas_type = ChoiceFilter(choices=[(f,f) for f in ATLAS_FORMS], help_text='Filter the results by ATLAS Object type.')
         sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
@@ -1381,7 +1385,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
         disarm_id = BaseCSVFilter(help_text='Filter the results by the DISARM ID of the object. e.g. `TA05` `TA01`.')
         description = CharFilter(help_text='Filter the results by the `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter the results by the `name` property of the object. Search is a wildcard, so `exploit` will return all names that contain the string `exploit`.')
-        type = ChoiceFilter(choices=[(f,f) for f in DISARM_TYPES], help_text='Filter the results by STIX Object type.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in DISARM_TYPES], help_text='Filter the results by STIX Object type.')
         disarm_version = CharFilter(help_text="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
         disarm_type = ChoiceFilter(choices=[(f,f) for f in DISARM_FORMS], help_text='Filter the results by DISARM Object type.')
         sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
