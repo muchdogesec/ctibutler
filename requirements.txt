@@ -49,6 +49,6 @@ urllib3==2.2.3
 vine==5.1.0
 wcwidth==0.2.13
 zipp==3.20.2
-dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2025-04-07-05-21-20/dogesec_commons-0.0.7rc1-py3-none-any.whl
+dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2025-05-26-13-08-23/dogesec_commons-0.0.7rc1-py3-none-any.whl
 arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/main-2025-02-03-10-55-52/arango_cti_processor-0.0.3-py3-none-any.whl
 stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/main-2025-04-24-07-29-41/stix2arango-0.0.4rc0-py3-none-any.whl
