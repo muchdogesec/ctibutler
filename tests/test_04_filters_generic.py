@@ -72,7 +72,7 @@ def test_normal_filters(path, filters, expected_count, items):
 )
 def test_filter_type(path, types, expected_count):
     url = urljoin(base_url, f"api/v1/{path}/objects/")
-    resp = requests.get(url, params=dict(type=",".join(types)))
+    resp = requests.get(url, params=dict(types=",".join(types)))
     assert resp.status_code == 200
     data = resp.json()
     assert data["total_results_count"] == expected_count
