@@ -1,5 +1,7 @@
 # CTI Butler
 
+[![codecov](https://codecov.io/gh/muchdogesec/ctibutler/graph/badge.svg?token=MGIB1SK13X)](https://codecov.io/gh/muchdogesec/ctibutler)
+
 ## Before you begin...
 
 We offer a fully hosted web version of CTI Butler which includes many additional features over those in this codebase. [You can find out more about the web version here](https://www.ctibutler.com/).
