@@ -1,10 +1,5 @@
-import os
-import time
-import unittest, pytest
-from urllib.parse import urljoin
+import pytest
 
-
-from parameterized import parameterized, parameterized_class
 
 path_versions_1 = [
     ("/api/v1/location/", "e19e035"),

@@ -1,9 +1,4 @@
-import os
-import random
-import time
-from types import SimpleNamespace
-import unittest, pytest
-from urllib.parse import urljoin
+import pytest
 
 
 @pytest.mark.parametrize(

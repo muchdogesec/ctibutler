@@ -1,7 +1,4 @@
 import pytest
-import os
-from urllib.parse import urljoin
-import pytest
 
 
 @pytest.mark.parametrize(
