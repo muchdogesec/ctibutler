@@ -1,0 +1,22 @@
+## ctibutler
+requests>=2.32.4
+drf-spectacular
+djangorestframework>=3.15.2
+drf-spectacular>=0.27.2
+celery>=5.4.0; python_version >= '3.8'
+psycopg2-binary>=2.9.10
+redis
+hyperlink
+django>=5.2.1
+django-filter>=24.2
+django-cors-headers
+django-storages[s3]
+django-cleanup
+
+## dogesec
+dogesec_commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2025-06-05-08-47-25/dogesec_commons-0.0.7rc1-py3-none-any.whl
+stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/use-transaction-for-uploads-2025-06-20-16-13-38/stix2arango-0.0.4rc0-py3-none-any.whl
+arango_cti_processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/update-dependencies-2025-06-24-15-20-16/arango_cti_processor-0.0.3-py3-none-any.whl
+
+## production
+gunicorn==23.0.0
