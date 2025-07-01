@@ -501,20 +501,6 @@ class ArangoDBHelper:
             mod['versions'] = self.clean_and_sort_versions(mod['versions'])
         return Response(versions)
     
-    def get_modified_versions(self, stix_id=None):
-        query = """
-        FOR doc IN @@collection
-        FILTER doc.id == @stix_id AND STARTS_WITH(doc._stix2arango_note, "version=")
-        COLLECT modified = doc.modified INTO group
-        SORT modified DESC
-        RETURN {modified, versions: UNIQUE(group[*].doc._stix2arango_note)}
-        """
-        bind_vars = {'@collection': self.collection, 'stix_id': stix_id}
-        versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
-        for mod in versions:
-            mod['versions'] = self.clean_and_sort_versions(mod['versions'])
-        return Response(versions)
-    
     def clean_and_sort_versions(self, versions, replace_underscore=True):
         replace_character = '.' if replace_underscore else '_'
         versions = sorted([
