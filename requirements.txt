@@ -8,7 +8,7 @@ amqp==5.3.1
     # via kombu
 antlr4-python3-runtime==4.9.3
     # via stix2-patterns
-arango-cti-processor @ https://github.com/muchdogesec/arango_cti_processor/releases/download/update-dependencies-2025-06-24-15-20-16/arango_cti_processor-0.0.3-py3-none-any.whl
+arango-cti-processor==0.0.3
     # via -r requirements.in
 asgiref==3.8.1
     # via
@@ -20,9 +20,9 @@ attrs==25.3.0
     #   referencing
 billiard==4.2.1
     # via celery
-boto3==1.38.42
+boto3==1.39.0
     # via django-storages
-botocore==1.38.42
+botocore==1.39.0
     # via
     #   boto3
     #   s3transfer
@@ -40,7 +40,7 @@ click==8.2.1
     #   click-repl
 click-didyoumean==0.3.1
     # via celery
-click-plugins==1.1.1
+click-plugins==1.1.1.2
     # via celery
 click-repl==0.3.0
     # via celery
@@ -67,7 +67,7 @@ djangorestframework==3.16.0
     #   -r requirements.in
     #   dogesec-commons
     #   drf-spectacular
-dogesec-commons @ https://github.com/muchdogesec/dogesec_commons/releases/download/main-2025-06-05-08-47-25/dogesec_commons-0.0.7rc1-py3-none-any.whl
+dogesec-commons==1.0.5
     # via -r requirements.in
 drf-spectacular==0.28.0
     # via
@@ -165,7 +165,7 @@ stix2==3.0.1
     #   stix2arango
 stix2-patterns==2.0.0
     # via stix2
-stix2arango @ https://github.com/muchdogesec/stix2arango/releases/download/use-transaction-for-uploads-2025-06-20-16-13-38/stix2arango-0.0.4rc0-py3-none-any.whl
+stix2arango==0.0.5
     # via
     #   -r requirements.in
     #   arango-cti-processor
