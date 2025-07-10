@@ -2,7 +2,7 @@ import logging
 import re
 from rest_framework import viewsets, status, decorators, exceptions
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
@@ -1451,6 +1451,20 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, disarm_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_modified_versions(disarm_id, source_name='DISARM')
+
+class SearchView(viewsets.ViewSet):
+    serializer_class = serializers.StixObjectsSerializer(many=True)
+    pagination_class = Pagination("objects")
+    openapi_tags = ["SEARCH"]
+    filter_backends = [DjangoFilterBackend]
+    class filterset_class(FilterSet):
+        text = CharFilter(help_text='search parameters.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
+        # search_old_objects = BooleanFilter(help_text="when set to true, older documents (`_is_latest == False`) are also searched")
+        
+    def list(self, request, *args, **kwargs):
+        return ArangoDBHelper("semantic_search_view", request).semantic_search()
+
 
 @extend_schema(responses={204:{}})
 @decorators.api_view(["GET"])

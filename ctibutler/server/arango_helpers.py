@@ -10,6 +10,7 @@ from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.validators import ValidationError
+from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
 from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
@@ -164,6 +165,7 @@ CTI_SORT_FIELDS = [
     "name_descending",
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
+SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
 
 
 def positive_int(integer_string, cutoff=None, default=1):
@@ -196,7 +198,7 @@ def get_latest_version(collection):
     except:
         return ''
 
-class ArangoDBHelper:
+class ArangoDBHelper():
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
 
@@ -348,7 +350,7 @@ class ArangoDBHelper:
             bind_vars['offset'], bind_vars['count'] = self.get_offset_and_count(self.count, self.page)
         cursor = self.db.aql.execute(query, bind_vars=bind_vars, count=True, full_count=True)
         if paginate:
-            return self.get_paginated_response(container or self.container, cursor, self.page, self.page_size, cursor.statistics()["fullCount"])
+            return self.get_paginated_response(container or self.container, list(cursor), self.page, self.page_size, cursor.statistics()["fullCount"])
         return list(cursor)
    
     def get_offset_and_count(self, count, page) -> tuple[int, int]:
@@ -659,3 +661,33 @@ LET matched_ids = @matches[*]._id
                     .replace('#late_filters', '\n'.join(late_filters))
         return self.execute_query(query, bind_vars=binds)
   
+
+    def semantic_search(self):
+        search_param = self.query.get('text')
+        if not search_param:
+            raise ValidationError('query param `text` is required')
+        
+        binds = {
+            'search_param': search_param,
+        }
+        version_filter = 'AND doc._is_latest == TRUE'
+        types_filter = ''
+        if types := self.query_as_array('types'):
+            binds['types'] = types
+            types_filter = 'AND doc.type IN @types'
+        
+        # if self.query_as_bool('search_old_objects', False):
+        #     version_filter = ''
+
+        
+        query = """
+            FOR doc IN semantic_search_view
+            SEARCH (
+                ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
+                OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
+            ) #types_filter #version_filter
+            LIMIT @offset, @count
+            RETURN KEEP(doc, KEYS(doc, TRUE))
+        """
+        query = query.replace('#types_filter', types_filter).replace('#version_filter', version_filter)
+        return self.execute_query(query, bind_vars=binds)
