@@ -173,6 +173,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
     ),
     "VERSION": "1.0.0",
     "TAGS": [
+        {"name": "Search", "description": "Search for data across all knowledgebases."},
         {"name": "ATT&CK Enterprise", "description": "Manage and search MITRE ATT&CK Enterprise objects."},
         {"name": "ATT&CK ICS", "description": "Manage and search MITRE ATT&CK ICS objects."},
         {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},
