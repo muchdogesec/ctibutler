@@ -166,6 +166,50 @@ CTI_SORT_FIELDS = [
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
 SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
+KNOWLEDGE_BASE_MAPPING = {
+    'disarm': [
+        "disarm_edge_collection",
+        "disarm_vertex_collection",
+    ],
+    'location':[
+        "location_edge_collection",
+        "location_vertex_collection",
+    ],
+    'atlas': [
+
+        "mitre_atlas_edge_collection",
+        "mitre_atlas_vertex_collection",
+    ],
+    'attack': [
+        "mitre_attack_enterprise_edge_collection",
+        "mitre_attack_enterprise_vertex_collection",
+        "mitre_attack_ics_edge_collection",
+        "mitre_attack_ics_vertex_collection",
+        "mitre_attack_mobile_edge_collection",
+        "mitre_attack_mobile_vertex_collection",
+    ],
+    'attack-ics': [
+        "mitre_attack_ics_edge_collection",
+        "mitre_attack_ics_vertex_collection",
+    ],
+    'attack-mobile': [
+        "mitre_attack_mobile_edge_collection",
+        "mitre_attack_mobile_vertex_collection",
+    ],
+    'attack-enterprise': [
+        "mitre_attack_enterprise_edge_collection",
+        "mitre_attack_enterprise_vertex_collection",
+    ],
+    'capec': [
+        "mitre_capec_edge_collection",
+        "mitre_capec_vertex_collection",
+    ],
+    'cwe': [
+        "mitre_cwe_edge_collection",
+        "mitre_cwe_vertex_collection",
+    ]
+
+}
 
 
 def positive_int(integer_string, cutoff=None, default=1):
@@ -672,9 +716,17 @@ LET matched_ids = @matches[*]._id
         }
         version_filter = 'AND doc._is_latest == TRUE'
         types_filter = ''
+        knowledge_base_filter = ''
         if types := self.query_as_array('types'):
             binds['types'] = types
             types_filter = 'AND doc.type IN @types'
+
+        if qq := self.query_as_array('knowledge_bases'):
+            collections = set()
+            for q in qq:
+                collections.update(KNOWLEDGE_BASE_MAPPING.get(q, []))
+            knowledge_base_filter = 'AND ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")'
+            binds['knowledge_base_collections'] = list(collections)
         
         # if self.query_as_bool('search_old_objects', False):
         #     version_filter = ''
@@ -685,9 +737,9 @@ LET matched_ids = @matches[*]._id
             SEARCH (
                 ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
                 OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
-            ) #types_filter #version_filter
+            ) #types_filter #version_filter #knowledge_base_filter
             LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, TRUE))
+            RETURN KEEP(doc, KEYS(doc, FALSE))
         """
-        query = query.replace('#types_filter', types_filter).replace('#version_filter', version_filter)
+        query = query.replace('#types_filter', types_filter).replace('#version_filter', version_filter).replace('#knowledge_base_filter', knowledge_base_filter)
         return self.execute_query(query, bind_vars=binds)

@@ -59,24 +59,27 @@ def create_collections():
         )
 
 
-def get_semantic_search_properties(db: StandardDatabase):
+def create_analyzer(db, *args, **kwargs):
     try:
-        db.create_analyzer(
-            "text_en_no_stem_3_10p",
-            analyzer_type="text",
-            properties={
-                "locale": "",
-                "case": "lower",
-                "accent": False,
-                "stemming": False,
-                "edgeNgram": {"preserveOriginal": True},
-            },
-            features=["frequency", "position", "offset", "norm"],
-        )
+        return db.create_analyzer(*args, **kwargs)
     except arango.exceptions.AnalyzerCreateError as e:
         print(e.message)
         if e.error_code != 10:
             raise
+
+def get_semantic_search_properties(db: StandardDatabase):
+    create_analyzer(db, 
+        "text_en_no_stem_3_10p",
+        analyzer_type="text",
+        properties={
+            "locale": "",
+            "case": "lower",
+            "accent": False,
+            "stemming": False,
+            "edgeNgram": {"preserveOriginal": True},
+        },
+        features=["frequency", "position", "offset", "norm"],
+    )
     links = {}
     for c in db.collections():
         if not c["name"].endswith("_collection"):
@@ -86,6 +89,7 @@ def get_semantic_search_properties(db: StandardDatabase):
                 "description": {"analyzers": ["text_en", "text_en_no_stem_3_10p"]},
                 "name": {"analyzers": ["text_en", "text_en_no_stem_3_10p"]},
                 "_is_latest": {"analyzers": ["identity"]},
+                "_id": {"analyzers": ["identity"]},
                 "type": {"analyzers": ["identity"]},
             }
         }

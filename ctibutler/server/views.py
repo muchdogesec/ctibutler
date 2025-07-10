@@ -2,7 +2,7 @@ import logging
 import re
 from rest_framework import viewsets, status, decorators, exceptions
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_MAPPING, LOCATION_TYPES, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
@@ -1461,6 +1461,7 @@ class SearchView(viewsets.ViewSet):
         text = CharFilter(help_text='search parameters.')
         types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
         # search_old_objects = BooleanFilter(help_text="when set to true, older documents (`_is_latest == False`) are also searched")
+        knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_MAPPING], help_text='Filter results by containing knowledge base')
         
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper("semantic_search_view", request).semantic_search()

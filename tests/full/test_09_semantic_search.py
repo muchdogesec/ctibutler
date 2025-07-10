@@ -22,3 +22,23 @@ def test_search_with_query(client):
 def test_search_with_types(client, types):
     resp = client.get("/api/v1/search/?text=deny+service&types=" + ",".join(types))
     assert {obj["type"] for obj in resp.data["objects"]} == set(types)
+
+
+@pytest.mark.parametrize(
+    "knowledge_bases,expected_count",
+    [
+        [[], 114],
+        [['attack-ics'], 0], #not ingested
+        [['attack-enterprise'], 68],
+        [['attack'], 68],
+        [['attack', 'attack-ics'], 68],
+        [['location', 'attack'], 68],
+        [['location', 'cwe'], 14],
+        [['capec'], 25],
+        [['disarm'], 7],
+        [['disarm', 'capec'], 7+25],
+    ],
+)
+def test_search_with_knowledge_bases(client, knowledge_bases, expected_count):
+    resp = client.get("/api/v1/search/?text=deny&knowledge_bases="+",".join(knowledge_bases))
+    assert resp.data["total_results_count"] == expected_count
