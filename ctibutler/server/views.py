@@ -1454,7 +1454,17 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     
 
 @extend_schema_view(
-    list=extend_schema(responses={204:{}}, summary="Search for objects by name/description", description="Do a search accross all knowledge bases")
+    list=extend_schema(
+        responses={204:{}},
+        summary="Search for objects",
+        description=textwrap.dedent(
+            """
+            Use the endpoint to search for objects across all endpoints.
+
+            This endpoint is particularly useful when you don't know the objects you want, or if the concept you're interested in is covered by a framework.
+            """
+        ),
+    )
 )
 class SearchView(viewsets.ViewSet):
     serializer_class = serializers.StixObjectsSerializer(many=True)
@@ -1471,7 +1481,16 @@ class SearchView(viewsets.ViewSet):
         return ArangoDBHelper("semantic_search_view", request).semantic_search()
 
 
-@extend_schema(responses={204:{}}, tags=["Server Status"], summary="Is the service online?", description="Check if service is online")
+@extend_schema(
+    responses={204:{}},
+    tags=["Server Status"],
+    summary="Check if service is running",
+    description=textwrap.dedent(
+        """
+        If this endpoint returns a 200, the service is running as expected.
+        """
+        ),
+    )
 @decorators.api_view(["GET"])
 def health_check(request):
    return Response(status=status.HTTP_204_NO_CONTENT)
