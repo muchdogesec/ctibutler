@@ -1455,7 +1455,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
 class SearchView(viewsets.ViewSet):
     serializer_class = serializers.StixObjectsSerializer(many=True)
     pagination_class = Pagination("objects")
-    openapi_tags = ["SEARCH"]
+    openapi_tags = ["Search"]
     filter_backends = [DjangoFilterBackend]
     class filterset_class(FilterSet):
         text = CharFilter(help_text='search parameters.')
@@ -1467,7 +1467,7 @@ class SearchView(viewsets.ViewSet):
         return ArangoDBHelper("semantic_search_view", request).semantic_search()
 
 
-@extend_schema(responses={204:{}})
+@extend_schema(responses={204:{}}, tags=["Server Status"])
 @decorators.api_view(["GET"])
 def health_check(request):
    return Response(status=status.HTTP_204_NO_CONTENT)
