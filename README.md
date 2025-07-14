@@ -72,7 +72,7 @@ Once you've got CTI Butler running, you can use the following script to import a
 
 ## Support
 
-[Minimal support provided via the DOGESEC community](https://community.dogesec.com/).
+[Minimal support provided via the dogesec community](https://community.dogesec.com/).
 
 ## License
 
