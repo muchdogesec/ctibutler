@@ -1486,7 +1486,7 @@ class SearchView(viewsets.ViewSet):
     summary="Check if service is running",
     description=textwrap.dedent(
         """
-        If this endpoint returns a 200, the service is running as expected.
+        If this endpoint returns a 204, the service is running as expected.
         """
         ),
     )
