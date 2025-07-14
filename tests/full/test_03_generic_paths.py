@@ -139,8 +139,8 @@ def test_object_versions(client, path, object_id, expected_versions):
         ############## DISARM
         pytest.param("disarm", "T0017.001", 11, None),
         pytest.param("disarm", "T0017.001", 11, dict(disarm_version="1.5")),
-        pytest.param("disarm", "DISARM", 1113, dict(disarm_version="1.6")),
-        pytest.param("disarm", "DISARM", 926, dict(disarm_version="1.5")),
+        pytest.param("disarm", "DISARM", 1401, dict(disarm_version="1.6")),
+        pytest.param("disarm", "DISARM", 1151, dict(disarm_version="1.5")),
         pytest.param("disarm", "DISARM", 0, dict(disarm_version=FAKE_VERSION)),
         ############# ATLAS #################
         pytest.param("atlas", "AML.M0000", 11, None),

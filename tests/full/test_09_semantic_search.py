@@ -27,12 +27,12 @@ def test_search_with_types(client, types):
 @pytest.mark.parametrize(
     "knowledge_bases,expected_count",
     [
-        [[], 114],
+        [[], 112],
         [['attack-ics'], 0], #not ingested
-        [['attack-enterprise'], 68],
-        [['attack'], 68],
-        [['attack', 'attack-ics'], 68],
-        [['location', 'attack'], 68],
+        [['attack-enterprise'], 66],
+        [['attack'], 66],
+        [['attack', 'attack-ics'], 66],
+        [['location', 'attack'], 66],
         [['location', 'cwe'], 14],
         [['capec'], 25],
         [['disarm'], 7],
