@@ -1474,7 +1474,6 @@ class SearchView(viewsets.ViewSet):
     class filterset_class(FilterSet):
         text = CharFilter(help_text='search parameters.')
         types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
-        # search_old_objects = BooleanFilter(help_text="when set to true, older documents (`_is_latest == False`) are also searched")
         knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_MAPPING], help_text='Filter results by containing knowledge base')
         
     def list(self, request, *args, **kwargs):

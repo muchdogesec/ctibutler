@@ -33,7 +33,7 @@ FAKE_VERSION = "1.9.1.9"
         pytest.param("atlas", 0, dict(atlas_version=FAKE_VERSION)),
         ######## Location #######
         pytest.param("location", 279, None),
-        pytest.param("location", 279, dict(location_version="e19e035")),
+        pytest.param("location", 279, dict(location_version="1.0")),
         pytest.param("location", 0, dict(location_version=FAKE_VERSION)),
     ],
 )
@@ -55,7 +55,7 @@ def test_path_objects_count(client, path, expected_result_count, params):
         pytest.param("attack-enterprise", ["16.0", "15.1"]),
         pytest.param("atlas", ["4.9.0"]),
         pytest.param("cwe", ["4.16", "4.15"]),
-        pytest.param("location", ["e19e035"]),
+        pytest.param("location", ["1.0"]),
         pytest.param("disarm", ["1.6", "1.5"]),
     ],
 )
@@ -105,7 +105,7 @@ def test_path_versions(client, path, expected_versions):
         pytest.param(
             "location",
             "US",
-            [{"modified": "2020-01-01T00:00:00.000Z", "versions": ["e19e035"]}],
+            [{"modified": "2020-01-01T00:00:00.000Z", "versions": ["1.0"]}],
         ),
     ],
 )
@@ -150,10 +150,10 @@ def test_object_versions(client, path, object_id, expected_versions):
         pytest.param("atlas", "mitre-atlas", 0, dict(atlas_version=FAKE_VERSION)),
         ############ Location ###############
         pytest.param("location", "US", 11, None),
-        pytest.param("location", "US", 11, dict(location_version="e19e035")),
+        pytest.param("location", "US", 11, dict(location_version="1.0")),
         pytest.param("location", "US", 0, dict(location_version=FAKE_VERSION)),
         pytest.param("location", "ZA", 13, None),
-        pytest.param("location", "ZA", 13, dict(location_version="e19e035")),
+        pytest.param("location", "ZA", 13, dict(location_version="1.0")),
         pytest.param("location", "ZA", 0, dict(location_version=FAKE_VERSION)),
     ],
 )
@@ -229,10 +229,10 @@ def test_object_count_bundle(client, path, object_id, expected_count, params):
         ############# Location ##############
         pytest.param("location", "US", "2020-01-01T00:00:00.000Z", None),
         pytest.param(
-            "location", "US", "2020-01-01T00:00:00.000Z", dict(atlas_version="e19e035")
+            "location", "US", "2020-01-01T00:00:00.000Z", dict(atlas_version="1.0")
         ),
         pytest.param(
-            "location", "FR", "2020-01-01T00:00:00.000Z", dict(atlas_version="e19e035")
+            "location", "FR", "2020-01-01T00:00:00.000Z", dict(atlas_version="1.0")
         ),
     ],
 )

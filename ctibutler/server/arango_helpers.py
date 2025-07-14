@@ -728,10 +728,6 @@ LET matched_ids = @matches[*]._id
             knowledge_base_filter = 'AND ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")'
             binds['knowledge_base_collections'] = list(collections)
         
-        # if self.query_as_bool('search_old_objects', False):
-        #     version_filter = ''
-
-        
         query = """
             FOR doc IN semantic_search_view
             SEARCH (
@@ -739,7 +735,7 @@ LET matched_ids = @matches[*]._id
                 OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
             ) #types_filter #version_filter #knowledge_base_filter
             LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, FALSE))
+            RETURN KEEP(doc, KEYS(doc, TRUE))
         """
         query = query.replace('#types_filter', types_filter).replace('#version_filter', version_filter).replace('#knowledge_base_filter', knowledge_base_filter)
         return self.execute_query(query, bind_vars=binds)
