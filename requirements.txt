@@ -28,7 +28,7 @@ botocore==1.39.4
     #   s3transfer
 celery==5.5.3 ; python_version >= "3.8"
     # via -r requirements.in
-certifi==2025.7.9
+certifi==2025.7.14
     # via requests
 charset-normalizer==3.4.2
     # via requests
@@ -165,7 +165,7 @@ stix2==3.0.1
     #   stix2arango
 stix2-patterns==2.0.0
     # via stix2
-stix2arango==1.0.1
+stix2arango==1.0.2
     # via
     #   -r requirements.in
     #   arango-cti-processor
