@@ -1472,9 +1472,9 @@ class SearchView(viewsets.ViewSet):
     openapi_tags = ["Search"]
     filter_backends = [DjangoFilterBackend]
     class filterset_class(FilterSet):
-        text = CharFilter(help_text='search parameters.')
+        text = CharFilter(help_text='The search query')
         types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
-        knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_MAPPING], help_text='Filter results by containing knowledge base')
+        knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_MAPPING], help_text='Filter results by containing knowledgebase you want to search. If not passed will search all knowledgebases in CTI Butler')
         
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper("semantic_search_view", request).semantic_search()
