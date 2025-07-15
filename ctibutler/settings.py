@@ -173,6 +173,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
     ),
     "VERSION": "1.0.0",
     "TAGS": [
+        {"name": "Search", "description": "Search for data across all knowledgebases."},
         {"name": "ATT&CK Enterprise", "description": "Manage and search MITRE ATT&CK Enterprise objects."},
         {"name": "ATT&CK ICS", "description": "Manage and search MITRE ATT&CK ICS objects."},
         {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},
@@ -184,6 +185,8 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "Objects", "description": "Explore all STIX Objects in the database."},
         {"name": "Arango CTI Processor", "description": "Trigger the generation of relationships between objects."},
         {"name": "Jobs", "description": "Search through Jobs triggered when downloading data and creating relationships."},
+        {"name": "Server Status", "description": "Checks health of the server."},
+
     ]
 }
 

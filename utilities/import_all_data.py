@@ -44,7 +44,7 @@ default_atlas_versions = [
     "4_9_0"
 ]
 default_location_versions = [
-    "e19e035"
+    "1_0"
 ]
 default_disarm_versions = [
     "1_4", "1_5", "1_6"

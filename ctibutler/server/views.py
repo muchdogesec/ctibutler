@@ -2,7 +2,7 @@ import logging
 import re
 from rest_framework import viewsets, status, decorators, exceptions
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, LOCATION_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_MAPPING, LOCATION_TYPES, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
@@ -231,12 +231,12 @@ class AttackView(TruncateView, viewsets.ViewSet):
 
                     The following key/values are accepted in the body of the request:
 
-                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `16_0` for `16.0`. You can see all [Enterprise versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_enterprise.py#L7), [Mobile versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_mobile.py#L7), or [ICS versions here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_attack_ics.py#L7).
+                    * `version` (required): the version of ATT&CK you want to download in the format `N_N`, e.g. `16_0` for `16.0`. You can see all versions installed and available to download on the version endpoints.
                     * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
                     * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
                     * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
 
-                    The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+                    The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [dogesec](https://www.dogesec.com/) team).
 
                     Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
                     """
@@ -357,12 +357,12 @@ class AttackView(TruncateView, viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_16` for `4.16`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_cwe.py#L7).
+            * `version` (required): the version of CWE you want to download in the format `N_N`, e.g. `4_16` for `4.16`. You can see all versions installed and available to download on the version endpoints.
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
             * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
             * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
             
-            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [dogesec](https://www.dogesec.com/) team).
 
             Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
@@ -557,12 +557,12 @@ class CweView(TruncateView, viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of CAPEC you want to download in the format `N_N`, e.g. `3_9` for `3.9`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_capec.py#L7).
+            * `version` (required): the version of CAPEC you want to download in the format `N_N`, e.g. `3_9` for `3.9`. You can see all versions installed and available to download on the version endpoints.
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
             * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
             * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
 
-            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [dogesec](https://www.dogesec.com/) team).
 
             Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
@@ -872,12 +872,12 @@ class JobView(viewsets.ModelViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of ATLAS you want to download in the format `N_N_N`, e.g. `4_7_0` for `4.7.0`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_atlas.py#L7).
+            * `version` (required): the version of ATLAS you want to download in the format `N_N_N`, e.g. `4_7_0` for `4.7.0`. You can see all versions installed and available to download on the version endpoints.
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
             * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
             * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
 
-            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [dogesec](https://www.dogesec.com/) team).
 
             Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
@@ -1065,12 +1065,12 @@ class AtlasView(TruncateView, viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the versions of Locations bundle you want to download in the format `XXXXXXX`, e.g. `e19e035`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_locations.py#L9C6-L9C13).
+            * `version` (required): the versions of Locations bundle you want to download in the format `N_N`, e.g. `1_0` for `1.0`. You can see all versions installed and available to download on the version endpoints.
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
             * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
             * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
 
-            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [dogesec](https://www.dogesec.com/) team).
 
             Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
@@ -1284,12 +1284,12 @@ class LocationView(TruncateView, viewsets.ViewSet):
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of DISARM you want to download in the format `N_N`, e.g. `1_5` for `1.5`. [Currently available versions can be viewed here](https://github.com/muchdogesec/stix2arango/blob/main/utilities/arango_cti_processor/insert_archive_disarm.py#L7).
+            * `version` (required): the version of DISARM you want to download in the format `N_N`, e.g. `1_5` for `1.5`. You can see all versions installed and available to download on the version endpoints.
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
             * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
             * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
 
-            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [DOGESEC](https://www.dogesec.com/) team).
+            The data for updates is requested from `https://downloads.ctibutler.com` (managed by the [dogesec](https://www.dogesec.com/) team).
 
             Successful request will return a job `id` that can be used with the GET Jobs endpoint to track the status of the import.
             """
@@ -1451,8 +1451,45 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, disarm_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_modified_versions(disarm_id, source_name='DISARM')
+    
 
-@extend_schema(responses={204:{}})
+@extend_schema_view(
+    list=extend_schema(
+        responses={204:{}},
+        summary="Search for objects",
+        description=textwrap.dedent(
+            """
+            Use the endpoint to search for objects across all endpoints.
+
+            This endpoint is particularly useful when you don't know the objects you want, or if the concept you're interested in is covered by a framework.
+            """
+        ),
+    )
+)
+class SearchView(viewsets.ViewSet):
+    serializer_class = serializers.StixObjectsSerializer(many=True)
+    pagination_class = Pagination("objects")
+    openapi_tags = ["Search"]
+    filter_backends = [DjangoFilterBackend]
+    class filterset_class(FilterSet):
+        text = CharFilter(help_text='search parameters.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
+        knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_MAPPING], help_text='Filter results by containing knowledge base')
+        
+    def list(self, request, *args, **kwargs):
+        return ArangoDBHelper("semantic_search_view", request).semantic_search()
+
+
+@extend_schema(
+    responses={204:{}},
+    tags=["Server Status"],
+    summary="Check if service is running",
+    description=textwrap.dedent(
+        """
+        If this endpoint returns a 204, the service is running as expected.
+        """
+        ),
+    )
 @decorators.api_view(["GET"])
 def health_check(request):
    return Response(status=status.HTTP_204_NO_CONTENT)

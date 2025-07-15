@@ -10,6 +10,7 @@ from .utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.validators import ValidationError
+from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
 from ..server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
@@ -164,6 +165,51 @@ CTI_SORT_FIELDS = [
     "name_descending",
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
+SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
+KNOWLEDGE_BASE_MAPPING = {
+    'disarm': [
+        "disarm_edge_collection",
+        "disarm_vertex_collection",
+    ],
+    'location':[
+        "location_edge_collection",
+        "location_vertex_collection",
+    ],
+    'atlas': [
+
+        "mitre_atlas_edge_collection",
+        "mitre_atlas_vertex_collection",
+    ],
+    'attack': [
+        "mitre_attack_enterprise_edge_collection",
+        "mitre_attack_enterprise_vertex_collection",
+        "mitre_attack_ics_edge_collection",
+        "mitre_attack_ics_vertex_collection",
+        "mitre_attack_mobile_edge_collection",
+        "mitre_attack_mobile_vertex_collection",
+    ],
+    'attack-ics': [
+        "mitre_attack_ics_edge_collection",
+        "mitre_attack_ics_vertex_collection",
+    ],
+    'attack-mobile': [
+        "mitre_attack_mobile_edge_collection",
+        "mitre_attack_mobile_vertex_collection",
+    ],
+    'attack-enterprise': [
+        "mitre_attack_enterprise_edge_collection",
+        "mitre_attack_enterprise_vertex_collection",
+    ],
+    'capec': [
+        "mitre_capec_edge_collection",
+        "mitre_capec_vertex_collection",
+    ],
+    'cwe': [
+        "mitre_cwe_edge_collection",
+        "mitre_cwe_vertex_collection",
+    ]
+
+}
 
 
 def positive_int(integer_string, cutoff=None, default=1):
@@ -196,7 +242,7 @@ def get_latest_version(collection):
     except:
         return ''
 
-class ArangoDBHelper:
+class ArangoDBHelper():
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
 
@@ -348,7 +394,7 @@ class ArangoDBHelper:
             bind_vars['offset'], bind_vars['count'] = self.get_offset_and_count(self.count, self.page)
         cursor = self.db.aql.execute(query, bind_vars=bind_vars, count=True, full_count=True)
         if paginate:
-            return self.get_paginated_response(container or self.container, cursor, self.page, self.page_size, cursor.statistics()["fullCount"])
+            return self.get_paginated_response(container or self.container, list(cursor), self.page, self.page_size, cursor.statistics()["fullCount"])
         return list(cursor)
    
     def get_offset_and_count(self, count, page) -> tuple[int, int]:
@@ -659,3 +705,37 @@ LET matched_ids = @matches[*]._id
                     .replace('#late_filters', '\n'.join(late_filters))
         return self.execute_query(query, bind_vars=binds)
   
+
+    def semantic_search(self):
+        search_param = self.query.get('text')
+        if not search_param:
+            raise ValidationError('query param `text` is required')
+        
+        binds = {
+            'search_param': search_param,
+        }
+        version_filter = 'AND doc._is_latest == TRUE'
+        types_filter = ''
+        knowledge_base_filter = ''
+        if types := self.query_as_array('types'):
+            binds['types'] = types
+            types_filter = 'AND doc.type IN @types'
+
+        if qq := self.query_as_array('knowledge_bases'):
+            collections = set()
+            for q in qq:
+                collections.update(KNOWLEDGE_BASE_MAPPING.get(q, []))
+            knowledge_base_filter = 'AND ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")'
+            binds['knowledge_base_collections'] = list(collections)
+        
+        query = """
+            FOR doc IN semantic_search_view
+            SEARCH (
+                ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
+                OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
+            ) #types_filter #version_filter #knowledge_base_filter
+            LIMIT @offset, @count
+            RETURN KEEP(doc, KEYS(doc, TRUE))
+        """
+        query = query.replace('#types_filter', types_filter).replace('#version_filter', version_filter).replace('#knowledge_base_filter', knowledge_base_filter)
+        return self.execute_query(query, bind_vars=binds)
