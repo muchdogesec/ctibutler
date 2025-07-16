@@ -97,8 +97,14 @@ class TruncateView:
         return getattr(settings, self.bucket_name.upper()+'_BUCKET_ROOT_PATH', "")
     
     @extend_schema(
-            summary="Get all available versions",
-            description="Get all available versions",
+            summary="List all versions available to install",
+            description=textwrap.dedent(
+                    """
+                    This endpoint will query the available versions of the knowledgebase available to download on `https://downloads.ctibutler.com`.
+
+                    Use the response of this endpoint to install the versions on the download endpoint.
+                    """
+            ),
             responses={204: {}},
     )
     @decorators.action(detail=False, methods=['GET'], url_path="versions/available")
@@ -290,11 +296,9 @@ class AttackView(TruncateView, viewsets.ViewSet):
                 summary=f"Get a list of MITRE ATT&CK {matrix_name_human} versions stored in the database",
                 description=textwrap.dedent(
                     """
-                    It is possible to import multiple versions of ATT&CK using the POST MITRE ATT&CK endpoint. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
+                    It is possible to install multiple versions of ATT&CK using the POST MITRE ATT&CK endpoint. By default, all endpoints will only return the latest version of ATT&CK objects (which generally suits most use-cases).
 
-                    This endpoint allows you to see all imported versions of MITRE ATT&CK available to use, and which version is the latest (the default version for the objects returned).
-
-                    Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=16_0` for `16.0`.
+                    This endpoint allows you to see all installed versions of MITRE ATT&CK available to use, and which version is the latest (the default version for the objects returned).
                     """
                 ),
             ),
@@ -534,11 +538,9 @@ class CweView(TruncateView, viewsets.ViewSet):
         summary="See installed CWE versions",
         description=textwrap.dedent(
             """
-            It is possible to import multiple versions of CWE using the POST MITRE CWE endpoint. By default, all endpoints will only return the latest version of CWE objects (which generally suits most use-cases).
+            It is possible to install multiple versions of CWE using the POST MITRE CWE endpoint. By default, all endpoints will only return the latest version of CWE objects (which generally suits most use-cases).
 
-            This endpoint allows you to see all imported versions of MITRE CWE available to use, and which version is the latest (the default version for the objects returned).
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=4_16` for `4.16`.
+            This endpoint allows you to see all installed versions of MITRE CWE available to use, and which version is the latest (the default version for the objects returned).
             """
             ),
         )
@@ -731,11 +733,9 @@ class CapecView(TruncateView, viewsets.ViewSet):
         summary="Get a list of CAPEC versions stored in the database",
         description=textwrap.dedent(
             """
-            It is possible to import multiple versions of CAPEC using the POST MITRE CAPEC endpoint. By default, all endpoints will only return the latest version of CAPEC objects (which generally suits most use-cases).
+            It is possible to install multiple versions of CAPEC using the POST MITRE CAPEC endpoint. By default, all endpoints will only return the latest version of CAPEC objects (which generally suits most use-cases).
 
-            This endpoint allows you to see all imported versions of MITRE CAPEC available to use, and which version is the latest (the default version for the objects returned).
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=3_9` for `3.9`.
+            This endpoint allows you to see all installed versions of MITRE CAPEC available to use, and which version is the latest (the default version for the objects returned).
             """
             ),
         )
@@ -1042,11 +1042,9 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         summary="See installed ATLAS versions",
         description=textwrap.dedent(
             """
-            It is possible to import multiple versions of ATLAS using the POST MITRE ATLAS endpoint. By default, all endpoints will only return the latest version of ATLAS objects (which generally suits most use-cases).
+            It is possible to install multiple versions of ATLAS using the POST MITRE ATLAS endpoint. By default, all endpoints will only return the latest version of ATLAS objects (which generally suits most use-cases).
 
-            This endpoint allows you to see all imported versions of MITRE ATLAS available to use, and which version is the latest (the default version for the objects returned).
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N_N` e.g. `version=4_9_0` for `4.9.0`.
+            This endpoint allows you to see all installed versions of MITRE ATLAS available to use, and which version is the latest (the default version for the objects returned).
             """
             ),
         )
@@ -1261,11 +1259,9 @@ class LocationView(TruncateView, viewsets.ViewSet):
         summary="See installed Location versions",
         description=textwrap.dedent(
             """
-            It is possible to import multiple versions of Location using the POST Location endpoint. By default, all endpoints will only return the latest version of Location objects (which generally suits most use-cases).
+            It is possible to install multiple versions of Location using the POST Location endpoint. By default, all endpoints will only return the latest version of Location objects (which generally suits most use-cases).
 
-            This endpoint allows you to see all imported versions of Location available to use, and which version is the latest (the default version for the objects returned).
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=XXXXXXX` e.g. `version=e19e035`.
+            This endpoint allows you to see all installed versions of Locations available to use, and which version is the latest (the default version for the objects returned).
             """
             ),
         )
@@ -1464,11 +1460,9 @@ class DisarmView(TruncateView, viewsets.ViewSet):
         summary="See installed DISARM versions",
         description=textwrap.dedent(
             """
-            It is possible to import multiple versions of DISARM using the POST MITRE DISARM endpoint. By default, all endpoints will only return the latest version of DISARM objects (which generally suits most use-cases).
+            It is possible to install multiple versions of DISARM using the POST MITRE DISARM endpoint. By default, all endpoints will only return the latest version of DISARM objects (which generally suits most use-cases).
 
-            This endpoint allows you to see all imported versions of MITRE DISARM available to use, and which version is the latest (the default version for the objects returned).
-
-            Note, to search in the database you can use the `_stix2arango_note` property and the value `version=N_N" e.g. `version=1_5` for `1.5`.
+            This endpoint allows you to see all installed versions of MITRE DISARM available to use, and which version is the latest (the default version for the objects returned).
             """
             ),
         )
@@ -1512,7 +1506,7 @@ class SearchView(viewsets.ViewSet):
 @extend_schema(
     responses={204:{}},
     tags=["Server Status"],
-    summary="Check if service is running",
+    summary="Check if the service is running",
     description=textwrap.dedent(
         """
         If this endpoint returns a 204, the service is running as expected.
