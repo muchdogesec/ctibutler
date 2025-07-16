@@ -90,7 +90,7 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
             url = urljoin(settings.ATLAS_BUCKET_ROOT_PATH, f"mitre-atlas-v{version}.json")
             collection_name = 'mitre_atlas'
         case "location":
-            url = urljoin(settings.LOCATION_BUCKET_ROOT_PATH, f"locations-bundle-{version}.json")
+            url = urljoin(settings.LOCATION_BUCKET_ROOT_PATH, f"location-bundle-v{version}.json")
             collection_name = "location"
         case "disarm":
             url = urljoin(settings.DISARM_BUCKET_ROOT_PATH, f"disarm-bundle-v{version}.json")
@@ -176,6 +176,7 @@ def upload_file(filename, collection_name, stix2arango_note=None, job_id=None, p
         host_url=settings.ARANGODB_HOST_URL,
         username=settings.ARANGODB_USERNAME,
         password=settings.ARANGODB_PASSWORD,
+        is_large_file=True,
         **params,
     )
     s2a.run()

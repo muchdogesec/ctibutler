@@ -47,6 +47,7 @@ router.register("cwe", views.CweView, "cwe-view")
 router.register("atlas", views.AtlasView, "atlas-view")
 router.register("disarm", views.DisarmView, "disarm-view")
 router.register("capec", views.CapecView, "capec-view")
+router.register("search", views.SearchView, "semantic-search-view")
 ## mitre att&ck
 router.register("attack-mobile", views.AttackView.attack_view('mobile'), "attack-mobile-view")
 router.register("attack-ics", views.AttackView.attack_view('ics'), "attack-ics-view")

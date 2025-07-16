@@ -22,13 +22,12 @@ The script is hardcoded to ignore the generation of embedded refs from SRO and S
 ```shell
 python3 utilities/import_all_data.py \
 	--ignore_embedded_relationships True \
-	--attack_enterprise_versions 16_0 \
-	--attack_ics_versions 16_0 \
-	--attack_mobile_versions 16_0 \
-	--cwe_versions 4_16 \
+	--attack_enterprise_versions 17_0 \
+	--attack_ics_versions 17_0 \
+	--attack_mobile_versions 17_0 \
+	--cwe_versions 4_17 \
 	--capec_versions 3_9 \
-	--tlp_versions 2 \
-	--atlas_versions 4_5_2 \
-	--location_versions ac1bbfc \
-	--disarm_versions 1_5
+	--atlas_versions 4_9_0 \
+	--location_versions e19e035 \
+	--disarm_versions 1_6
 ```
