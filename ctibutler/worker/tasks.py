@@ -69,7 +69,7 @@ def run_acp_task(data: dict, job: Job):
 
 
 def run_mitre_task(data, job: Job, mitre_type='cve'):
-    version = data['version']
+    version = data['version'].replace('.', '_')
     match mitre_type:
         case 'attack-enterprise':
             url = urljoin(settings.ATTACK_ENTERPRISE_BUCKET_ROOT_PATH, f"enterprise-attack-{version}.json")

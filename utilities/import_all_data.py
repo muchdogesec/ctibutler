@@ -1,3 +1,4 @@
+from urllib.parse import urljoin
 import requests
 import time
 import json
@@ -12,43 +13,22 @@ headers = {
     #'Authorization': 'Token XXX'
 }
 
+def retrieve_available_versions(path):
+    url = urljoin(base_url+'/', f'{path}/versions/available/')
+    resp = requests.get(url)
+    assert resp.status_code == 200
+    versions = resp.json()
+    return versions
+
 # Default versions for attack and CWE updates
-default_attack_enterprise_versions = [
-    "1_0", "2_0", "3_0", "4_0", "5_0", "5_1", "5_2", "6_0", "6_1", "6_2", "6_3",
-    "7_0", "7_1", "7_2", "8_0", "8_1", "8_2", "9_0", "10_0", "10_1", "11_0", 
-    "11_1", "11_2", "11_3", "12_0", "12_1", "13_0", "13_1", "14_0", "14_1", 
-    "15_0", "15_1", "16_0", "17_0"
-]
-default_attack_ics_versions = [
-    "8_0", "8_1", "8_2", "9_0", "10_0", "10_1", "11_0", 
-    "11_1", "11_2", "11_3", "12_0", "12_1", "13_0", "13_1", "14_0", "14_1", 
-    "15_0", "15_1", "16_0", "17_0"
-]
-default_attack_mobile_versions = [
-    "1_0", "2_0", "3_0", "4_0", "5_0", "5_1", "5_2", "6_0", "6_1", "6_2", "6_3",
-    "7_0", "7_1", "7_2", "8_0", "8_1", "8_2", "9_0", "10_0", "10_1", "11_0-beta", 
-    "11_1-beta", "11_2-beta", "11_3", "12_0", "12_1", "13_0", "13_1", "14_0", "14_1", 
-    "15_0", "15_1", "16_0", "17_0"
-]
-default_cwe_versions = [
-    "4_5", "4_6", "4_7", "4_8", "4_9", "4_10", "4_11", "4_12", "4_13",
-    "4_14", "4_15", "4_16", "4_17"
-]
-default_capec_versions = [
-    "3_5", "3_6", "3_7", "3_8", "3_9"
-]
-default_tlp_versions = [
-    "1", "2" 
-]
-default_atlas_versions = [
-    "4_9_0"
-]
-default_location_versions = [
-    "1_0"
-]
-default_disarm_versions = [
-    "1_4", "1_5", "1_6"
-]
+default_attack_enterprise_versions = retrieve_available_versions('attack-enterprise')
+default_attack_ics_versions = retrieve_available_versions('attack-ics')
+default_attack_mobile_versions = retrieve_available_versions('attack-mobile')
+default_cwe_versions = retrieve_available_versions('cwe')
+default_capec_versions = retrieve_available_versions('capec')
+default_atlas_versions = retrieve_available_versions('atlas')
+default_location_versions = retrieve_available_versions('location')
+default_disarm_versions = retrieve_available_versions('disarm')
 
 # Parse CLI arguments
 def parse_arguments():
@@ -59,7 +39,6 @@ def parse_arguments():
     parser.add_argument('--attack_mobile_versions', type=str, help="Comma-separated versions for attack-mobile updates.")
     parser.add_argument('--cwe_versions', type=str, help="Comma-separated versions for CWE updates.")
     parser.add_argument('--capec_versions', type=str, help="Comma-separated versions for CAPEC updates.")
-    parser.add_argument('--tlp_versions', type=str, help="Comma-separated versions for TLP updates.")
     parser.add_argument('--atlas_versions', type=str, help="Comma-separated versions for ATLAS updates.")
     parser.add_argument('--location_versions', type=str, help="Comma-separated versions for Location updates.")
     parser.add_argument('--disarm_versions', type=str, help="Comma-separated versions for DISARM updates.")
@@ -114,8 +93,8 @@ def check_job_status(job_id):
                 print(f"Job {job_id} failed with state: {state}. Exiting with critical error.")
                 sys.exit(1)  # Exit with an error status code
             else:
-                print(f"Job {job_id} still in state: {state}. Waiting for 30 sec before retrying...")
-                time.sleep(30)  # Wait for 30 seconds before checking again
+                print(f"Job {job_id} still in state: {state}. Waiting for 5 sec before retrying...")
+                time.sleep(5)  # Wait for 5 seconds before checking again
         else:
             print(f"Failed to check job status: {response.status_code} - {response.text}")
             break
@@ -210,13 +189,6 @@ def monitor_jobs(args):
             followup_job_id = initiate_cwe_followup()
             if followup_job_id:
                 monitor_job_status(followup_job_id, f"CWE follow-up query (version {version})")
-
-    # Step 6: TLP updates
-    tlp_versions = get_versions_from_arg(args.tlp_versions, default_tlp_versions)
-    for version in tlp_versions:
-        job_id = initiate_update("tlp", version, ignore_embedded_relationships)
-        if job_id:
-            monitor_job_status(job_id, f"TLP (version {version})")
 
     # Step 7: Location updates
     location_versions = get_versions_from_arg(args.location_versions, default_location_versions)

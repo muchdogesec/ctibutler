@@ -1,5 +1,7 @@
 import logging
 import re
+from django.conf import settings
+import requests
 from rest_framework import viewsets, status, decorators, exceptions
 
 from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_MAPPING, LOCATION_TYPES, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
@@ -68,7 +70,8 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
 
 
 class TruncateView:
-    truncate_collections = []
+    collection_to_truncate = None
+    bucket_name = ""
     @extend_schema(
             summary="Truncate all collection associated with this endpoint",
             description="Truncates all collection associated with this endpoint",
@@ -78,17 +81,33 @@ class TruncateView:
     def truncate(self, request):
         db = ArangoDBHelper('', request).db
         try:
-            for collection in self.truncate_collections:
-                for suffix in ['vertex', 'edge']:
-                    collection_name = f'{collection}_{suffix}_collection'
-                    logging.info('%s: truncating %s', self.__class__.__name__, collection_name)
-                    collection_ = db.collection(collection_name)
-                    collection_.truncate()
-                    logging.info('%s: collection `%s` truncated', self.__class__.__name__, collection_name)
+            for suffix in ['vertex', 'edge']:
+                collection_name = f'{self.collection_to_truncate}_{suffix}_collection'
+                logging.info('%s: truncating %s', self.__class__.__name__, collection_name)
+                collection_ = db.collection(collection_name)
+                collection_.truncate()
+                logging.info('%s: collection `%s` truncated', self.__class__.__name__, collection_name)
         except Exception as e:
             logging.exception("%s: truncation failed", self.__class__.__name__)
             raise exceptions.APIException("the server cannot execute this request")
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @property
+    def bucket_path(self):
+        return getattr(settings, self.bucket_name.upper()+'_BUCKET_ROOT_PATH', "")
+    
+    @extend_schema(
+            summary="Get all available versions",
+            description="Get all available versions",
+            responses={204: {}},
+    )
+    @decorators.action(detail=False, methods=['GET'], url_path="versions/available")
+    def versions_available(self, request):
+        url = self.bucket_path.strip('/') + "/version.txt"
+        resp = requests.get(url)
+        assert resp.status_code == 200, resp.url
+        versions = [s.strip() for s in resp.text.splitlines()]
+        return Response(versions)
 
 @extend_schema_view(
     create=extend_schema(
@@ -125,6 +144,11 @@ class AttackView(TruncateView, viewsets.ViewSet):
     def matrix(self):
         m: re.Match = re.search(r"/attack-(\w+)/", self.request.path)
         return m.group(1)
+    
+    @property
+    def bucket_name(self):
+        return f"ATTACK_{self.matrix}"
+    
     serializer_class = serializers.StixObjectsSerializer(many=True)
     pagination_class = Pagination("objects")
 
@@ -182,7 +206,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, self.lookup_url_kwarg.replace('_id', '_version'), revokable=True, bundle=True)
 
     @extend_schema()
-    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_mitre_versions()
 
@@ -322,7 +346,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
         class TempAttackView(cls):
             matrix = matrix_name
             openapi_tags = [f"ATT&CK {matrix_name_human}"]
-            truncate_collections = [f"mitre_attack_{matrix}"]
+            collection_to_truncate = f"mitre_attack_{matrix}"
         TempAttackView.__name__ = f'{matrix_name.title()}AttackView'
         return TempAttackView
 
@@ -443,8 +467,9 @@ class AttackView(TruncateView, viewsets.ViewSet):
 )  
 class CweView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["CWE"]
-    truncate_collections = ['mitre_cwe']
+    collection_to_truncate = 'mitre_cwe'
     lookup_url_kwarg = 'cwe_id'
+    bucket_name = 'cwe'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`, `grouping--000ee024-ad9c-5557-8d49-2573a8e788d2`)'),
         OpenApiParameter('cwe_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CWE ID, e.g `CWE-242`, `CWE-250` OR the STIX ID `weakness--f3496f30-5625-5b6d-8297-ddc074fb26c2`.'),
@@ -506,7 +531,7 @@ class CweView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_object_by_external_id(cwe_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
-        summary="See available CWE versions",
+        summary="See installed CWE versions",
         description=textwrap.dedent(
             """
             It is possible to import multiple versions of CWE using the POST MITRE CWE endpoint. By default, all endpoints will only return the latest version of CWE objects (which generally suits most use-cases).
@@ -517,7 +542,7 @@ class CweView(TruncateView, viewsets.ViewSet):
             """
             ),
         )
-    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper('mitre_cwe_vertex_collection', request).get_mitre_versions()
         
@@ -639,7 +664,7 @@ class CweView(TruncateView, viewsets.ViewSet):
 )
 class CapecView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["CAPEC"]
-    truncate_collections = ['mitre_capec']
+    collection_to_truncate = 'mitre_capec'
     lookup_url_kwarg = 'capec_id'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--00268a75-3243-477d-9166-8c78fddf6df6`, `course-of-action--0002fa37-9334-41e2-971a-cc8cab6c00c4`)'),
@@ -647,6 +672,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
     ]
 
     filter_backends = [DjangoFilterBackend]
+    bucket_name = 'capec'
 
     serializer_class = serializers.StixObjectsSerializer(many=True)
     pagination_class = Pagination("objects")
@@ -713,7 +739,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
             """
             ),
         )
-    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper('mitre_capec_vertex_collection', request).get_mitre_versions()
     
@@ -951,7 +977,8 @@ class JobView(viewsets.ModelViewSet):
 class AtlasView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["ATLAS"]
     lookup_url_kwarg = 'atlas_id'
-    truncate_collections = ['mitre_atlas']
+    collection_to_truncate = 'mitre_atlas'
+    bucket_name = 'atlas'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `x-mitre-tactic--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`)'),
         OpenApiParameter('atlas_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ATLAS ID, e.g `AML.TA0002`, `AML.T0000` OR its STIX ID e.g. `attack-pattern--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`'),
@@ -1012,7 +1039,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
-        summary="See available ATLAS versions",
+        summary="See installed ATLAS versions",
         description=textwrap.dedent(
             """
             It is possible to import multiple versions of ATLAS using the POST MITRE ATLAS endpoint. By default, all endpoints will only return the latest version of ATLAS objects (which generally suits most use-cases).
@@ -1023,7 +1050,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
             """
             ),
         )
-    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_mitre_versions()
         
@@ -1156,7 +1183,8 @@ class AtlasView(TruncateView, viewsets.ViewSet):
 class LocationView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["Location"]
     lookup_url_kwarg = 'location_id'
-    truncate_collections = ['location']
+    collection_to_truncate = 'location'
+    bucket_name = 'location'
     openapi_path_params = [
         # OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID of the object (e.g. `location--bc9ab5f5-cb71-5f3f-a4aa-5265053b8e68`, `location--10f646f3-2693-5a48-b544-b13b7afaa327`)'),
         OpenApiParameter('location_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The ID of the Location object (e.g. `ZA`, `western-africa`) OR the STIX ID of the object e.g. `location--e68e76c5-60f1-506e-b495-86adb8ec0a5b`'),
@@ -1230,7 +1258,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(location_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
-        summary="See available Location versions",
+        summary="See installed Location versions",
         description=textwrap.dedent(
             """
             It is possible to import multiple versions of Location using the POST Location endpoint. By default, all endpoints will only return the latest version of Location objects (which generally suits most use-cases).
@@ -1241,7 +1269,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
             """
             ),
         )
-    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_versions()
         
@@ -1369,7 +1397,8 @@ class LocationView(TruncateView, viewsets.ViewSet):
 class DisarmView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["DISARM"]
     lookup_url_kwarg = 'disarm_id'
-    truncate_collections = ['disarm']
+    collection_to_truncate = 'disarm'
+    bucket_name = 'disarm'
     openapi_path_params = [
         OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `x-mitre-tactic--2c0826a4-1598-5909-810a-792dda66651d`, `attack-pattern--60877675-df30-5140-98b0-1b61a80c8171`)'),
         OpenApiParameter('disarm_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The DISARM ID, e.g `TA05`, `TA01` OR the STIX ID e.g. `attack-pattern--8ab240c2-6f7a-5c48-a4c8-3ab15b7150f3`.'),
@@ -1432,7 +1461,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper(self.arango_collection, request).get_object_by_external_id(disarm_id, self.lookup_url_kwarg.replace('_id', '_version'), bundle=True)
         
     @extend_schema(
-        summary="See available DISARM versions",
+        summary="See installed DISARM versions",
         description=textwrap.dedent(
             """
             It is possible to import multiple versions of DISARM using the POST MITRE DISARM endpoint. By default, all endpoints will only return the latest version of DISARM objects (which generally suits most use-cases).
@@ -1443,7 +1472,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
             """
             ),
         )
-    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer)
+    @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
     def versions(self, request, *args, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_versions()
         

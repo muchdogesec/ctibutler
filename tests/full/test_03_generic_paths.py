@@ -60,10 +60,16 @@ def test_path_objects_count(client, path, expected_result_count, params):
     ],
 )
 def test_path_versions(client, path, expected_versions):
-    resp = client.get(f"/api/v1/{path}/versions/")
+    resp = client.get(f"/api/v1/{path}/versions/installed/")
     assert resp.status_code == 200
     versions = tuple(resp.json()["versions"])
     assert versions == tuple(expected_versions)
+
+
+    resp2 = client.get(f"/api/v1/{path}/versions/available/")
+    assert resp2.status_code == 200
+    versions = set(resp2.json())
+    assert versions.issuperset(expected_versions)
 
 
 @pytest.mark.parametrize(
