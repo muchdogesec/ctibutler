@@ -67,13 +67,6 @@ def parse_arguments():
     print("parsed args:", args)
     return args
 
-# Convert comma-separated CLI arguments into a list of versions
-def get_versions_from_arg(arg_value, default_versions):
-    if arg_value:
-        return arg_value.split(',')
-    else:
-        return default_versions
-
 # Function to initiate attack updates with version
 def initiate_update(endpoint, version, ignore_embedded_relationships):
     data = {
