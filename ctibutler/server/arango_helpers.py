@@ -1,18 +1,14 @@
 import contextlib
-import itertools
-from pathlib import Path
-import re
 import time
 from types import SimpleNamespace
 import typing
-from arango import ArangoClient
 from django.conf import settings
-from .utils import Pagination, Response
+from ctibutler.server.utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.validators import ValidationError
 from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
-from ..server import utils
+from ctibutler.server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
 
