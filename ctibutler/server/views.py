@@ -1498,7 +1498,7 @@ class SearchView(viewsets.ViewSet):
         text = CharFilter(help_text='The search query')
         types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
         knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING], help_text='Filter results by containing knowledgebase you want to search. If not passed will search all knowledgebases in CTI Butler')
-        show_knowledgebase = BooleanFilter(help_text="If `true`, will add `knowledgebase_name` property to each returend object. Default is `false`")
+        show_knowledgebase = BooleanFilter(help_text="If `true`, will add `knowledgebase_name` property to each returend object. Note, setting to `true` will break the objects in the response from being pure STIX 2.1. Default is `false`")
     def list(self, request, *args, **kwargs):
         return ArangoDBHelper("semantic_search_view", request).semantic_search()
 
