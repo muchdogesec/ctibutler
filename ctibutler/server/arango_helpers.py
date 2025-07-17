@@ -1,17 +1,14 @@
 import contextlib
-from pathlib import Path
-import re
 import time
 from types import SimpleNamespace
 import typing
-from arango import ArangoClient
 from django.conf import settings
-from .utils import Pagination, Response
+from ctibutler.server.utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.validators import ValidationError
 from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
-from ..server import utils
+from ctibutler.server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
 
@@ -166,7 +163,7 @@ CTI_SORT_FIELDS = [
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
 SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
-KNOWLEDGE_BASE_MAPPING = {
+KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
     'disarm': [
         "disarm_edge_collection",
         "disarm_vertex_collection",
@@ -210,6 +207,7 @@ KNOWLEDGE_BASE_MAPPING = {
     ]
 
 }
+COLLECTION_TO_KNOWLEDGE_BASE_MAPPING = {v: k for k, vv in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.items() for v in vv}
 
 
 def positive_int(integer_string, cutoff=None, default=1):
@@ -242,40 +240,10 @@ def get_latest_version(collection):
     except:
         return ''
 
-class ArangoDBHelper():
+class ArangoDBHelper(DSC_ArangoDBHelper):
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
-
-    def get_sort_stmt(self, sort_options: list[str], customs={}):
-        finder = re.compile(r"(.+)_((a|de)sc)ending")
-        sort_field = self.query.get('sort', sort_options[0])
-        if sort_field not in sort_options:
-            return ""
-        if m := finder.match(sort_field):
-            field = m.group(1)
-            direction = m.group(2).upper()
-            if cfield := customs.get(field):
-                return f"SORT {cfield} {direction}"
-            return f"SORT doc.{field} {direction}"
-
-    def query_as_array(self, key):
-        query = self.query.get(key)
-        if not query:
-            return []
-        return query.split(',')
-    def query_as_bool(self, key, default=True):
-        query_str = self.query.get(key)
-        if not query_str:
-            return default
-        return query_str.lower() == 'true'
-    
-    @classmethod
-    def get_page_params(cls, request):
-        kwargs = request.GET.copy()
-        page_number = positive_int(kwargs.get('page'))
-        page_limit = positive_int(kwargs.get('page_size'), cutoff=ArangoDBHelper.max_page_size, default=ArangoDBHelper.page_size)
-        return page_number, page_limit
-
+        
     @classmethod
     def get_paginated_response(cls, container,  data, page_number, page_size=page_size, full_count=0):
         return Response(
@@ -373,21 +341,12 @@ class ArangoDBHelper():
             ),
         ]
         return parameters
-    client = ArangoClient(
-        hosts=settings.ARANGODB_HOST_URL
-    )
+
     DB_NAME = f"{settings.ARANGODB_DATABASE}_database"
     def __init__(self, collection, request, container='objects') -> None:
-        self.collection = collection
-        self.db = self.client.db(
-            self.DB_NAME,
-            username=settings.ARANGODB_USERNAME,
-            password=settings.ARANGODB_PASSWORD,
-        )
+
+        super().__init__(collection, request, container)
         self.container = container
-        self.page, self.count = self.get_page_params(request)
-        self.request = request
-        self.query = request.query_params.dict()
         
     def execute_query(self, query, bind_vars={}, paginate=True, container=None):
         if paginate:
@@ -397,12 +356,6 @@ class ArangoDBHelper():
             return self.get_paginated_response(container or self.container, list(cursor), self.page, self.page_size, cursor.statistics()["fullCount"])
         return list(cursor)
    
-    def get_offset_and_count(self, count, page) -> tuple[int, int]:
-        page = page or 1
-        if page >= 2**32:
-            raise ValidationError(f"invalid page `{page}`")
-        offset = (page-1)*count
-        return offset, count
 
     def get_attack_objects(self, matrix):
         filters = []
@@ -724,9 +677,13 @@ LET matched_ids = @matches[*]._id
         if qq := self.query_as_array('knowledge_bases'):
             collections = set()
             for q in qq:
-                collections.update(KNOWLEDGE_BASE_MAPPING.get(q, []))
+                collections.update(KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.get(q, []))
             knowledge_base_filter = 'AND ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")'
             binds['knowledge_base_collections'] = list(collections)
+            
+        keep_verb = 'KEYS(doc, TRUE)'
+        if show_knowledgebase := self.query_as_bool('show_knowledgebase', False):
+            keep_verb = 'APPEND(KEYS(doc, TRUE), "_id")'
         
         query = """
             FOR doc IN semantic_search_view
@@ -735,7 +692,19 @@ LET matched_ids = @matches[*]._id
                 OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
             ) #types_filter #version_filter #knowledge_base_filter
             LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, TRUE))
+            RETURN KEEP(doc, #keep_verb)
         """
-        query = query.replace('#types_filter', types_filter).replace('#version_filter', version_filter).replace('#knowledge_base_filter', knowledge_base_filter)
-        return self.execute_query(query, bind_vars=binds)
+        query = query.replace('#types_filter', types_filter) \
+            .replace('#version_filter', version_filter) \
+            .replace('#knowledge_base_filter', knowledge_base_filter) \
+            .replace('#keep_verb', keep_verb)
+        resp = self.execute_query(query, bind_vars=binds)
+        if show_knowledgebase:
+            self.add_knowledgebase_name(resp.data['objects'])
+        return resp
+    
+    @staticmethod
+    def add_knowledgebase_name(objects):
+        for obj in objects:
+            collection_name, _, _ = obj.pop('_id').partition('/')
+            obj['knowledgebase_name'] = COLLECTION_TO_KNOWLEDGE_BASE_MAPPING[collection_name]

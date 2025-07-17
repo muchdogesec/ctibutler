@@ -42,3 +42,20 @@ def test_search_with_types(client, types):
 def test_search_with_knowledge_bases(client, knowledge_bases, expected_count):
     resp = client.get("/api/v1/search/?text=deny&knowledge_bases="+",".join(knowledge_bases))
     assert resp.data["total_results_count"] == expected_count
+
+
+def test_search_with_show_knowledgebase(client):
+    resp1 = client.get("/api/v1/search/?text=deny&show_knowledgebase=true")
+    assert all(map(lambda x: "knowledgebase_name" in x, resp1.data["objects"]))
+
+
+    resp2 = client.get("/api/v1/search/?text=deny&show_knowledgebase=false")
+    assert all(map(lambda x: "knowledgebase_name" not in x, resp2.data["objects"]))
+
+
+    resp3 = client.get("/api/v1/search/?text=deny")
+    assert all(map(lambda x: "knowledgebase_name" not in x, resp3.data["objects"]))
+
+    assert resp1.data["total_results_count"] == resp2.data["total_results_count"]
+    assert resp3.data["total_results_count"] == resp2.data["total_results_count"]
+
