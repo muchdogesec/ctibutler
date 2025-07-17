@@ -30,25 +30,42 @@ default_atlas_versions = retrieve_available_versions('atlas')
 default_location_versions = retrieve_available_versions('location')
 default_disarm_versions = retrieve_available_versions('disarm')
 
+def parse_versions(all_versions: list):
+    def parse(versions):
+        versions = [v.replace('_', '.') for v in versions.split(',')]
+        if 'all' in versions:
+            return all_versions
+        unavailable_versions = set()
+        for v in versions:
+            if v not in all_versions:
+                unavailable_versions.add(v)
+        if unavailable_versions:
+            raise argparse.ArgumentTypeError(f"unavailable versions: {', '.join(unavailable_versions)}")
+        return sorted(versions, key=all_versions.index)
+    return parse
+            
+
 # Parse CLI arguments
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Monitor and initiate multiple jobs for updates.")
     
-    parser.add_argument('--attack_enterprise_versions', type=str, help="Comma-separated versions for attack-enterprise updates.")
-    parser.add_argument('--attack_ics_versions', type=str, help="Comma-separated versions for attack-ics updates.")
-    parser.add_argument('--attack_mobile_versions', type=str, help="Comma-separated versions for attack-mobile updates.")
-    parser.add_argument('--cwe_versions', type=str, help="Comma-separated versions for CWE updates.")
-    parser.add_argument('--capec_versions', type=str, help="Comma-separated versions for CAPEC updates.")
-    parser.add_argument('--atlas_versions', type=str, help="Comma-separated versions for ATLAS updates.")
-    parser.add_argument('--location_versions', type=str, help="Comma-separated versions for Location updates.")
-    parser.add_argument('--disarm_versions', type=str, help="Comma-separated versions for DISARM updates.")
+    parser.add_argument('--attack_enterprise_versions', default=[], type=parse_versions(default_attack_enterprise_versions), help="Comma-separated versions for attack-enterprise updates.")
+    parser.add_argument('--attack_ics_versions', default=[], type=parse_versions(default_attack_ics_versions), help="Comma-separated versions for attack-ics updates.")
+    parser.add_argument('--attack_mobile_versions', default=[], type=parse_versions(default_attack_mobile_versions), help="Comma-separated versions for attack-mobile updates.")
+    parser.add_argument('--cwe_versions', default=[], type=parse_versions(default_cwe_versions), help="Comma-separated versions for CWE updates.")
+    parser.add_argument('--capec_versions', default=[], type=parse_versions(default_capec_versions), help="Comma-separated versions for CAPEC updates.")
+    parser.add_argument('--atlas_versions', default=[], type=parse_versions(default_atlas_versions), help="Comma-separated versions for ATLAS updates.")
+    parser.add_argument('--location_versions', default=[], type=parse_versions(default_location_versions), help="Comma-separated versions for Location updates.")
+    parser.add_argument('--disarm_versions', default=[], type=parse_versions(default_disarm_versions), help="Comma-separated versions for DISARM updates.")
 
 
 
     # New argument for ignore_embedded_relationships
     parser.add_argument('--ignore_embedded_relationships', type=bool, default=False, help="Set to True to ignore embedded relationships in the update.")
     
-    return parser.parse_args()
+    args = parser.parse_args()
+    print("parsed args:", args)
+    return args
 
 # Convert comma-separated CLI arguments into a list of versions
 def get_versions_from_arg(arg_value, default_versions):
@@ -146,29 +163,25 @@ def monitor_jobs(args):
     ignore_embedded_relationships = args.ignore_embedded_relationships  # Use this in each request
 
     # Step 1: attack-enterprise updates
-    attack_enterprise_versions = get_versions_from_arg(args.attack_enterprise_versions, default_attack_enterprise_versions)
-    for version in attack_enterprise_versions:
+    for version in args.attack_enterprise_versions:
         job_id = initiate_update("attack-enterprise", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"attack-enterprise (version {version})")
 
     # Step 2: attack-ics updates
-    attack_ics_versions = get_versions_from_arg(args.attack_ics_versions, default_attack_ics_versions)
-    for version in attack_ics_versions:
+    for version in args.attack_ics_versions:
         job_id = initiate_update("attack-ics", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"attack-ics (version {version})")
 
     # Step 3: attack-mobile updates
-    attack_mobile_versions = get_versions_from_arg(args.attack_mobile_versions, default_attack_mobile_versions)
-    for version in attack_mobile_versions:
+    for version in args.attack_mobile_versions:
         job_id = initiate_update("attack-mobile", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"attack-mobile (version {version})")
 
     # Step 4: CAPEC updates
-    capec_versions = get_versions_from_arg(args.capec_versions, default_capec_versions)
-    for version in capec_versions:
+    for version in args.capec_versions:
         job_id = initiate_update("capec", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"CAPEC (version {version})")
@@ -179,8 +192,7 @@ def monitor_jobs(args):
                 monitor_job_status(followup_job_id, f"CAPEC follow-up query (version {version})")
 
     # Step 5: CWE updates
-    cwe_versions = get_versions_from_arg(args.cwe_versions, default_cwe_versions)
-    for version in cwe_versions:
+    for version in args.cwe_versions:
         job_id = initiate_update("cwe", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"CWE (version {version})")
@@ -191,22 +203,19 @@ def monitor_jobs(args):
                 monitor_job_status(followup_job_id, f"CWE follow-up query (version {version})")
 
     # Step 7: Location updates
-    location_versions = get_versions_from_arg(args.location_versions, default_location_versions)
-    for version in location_versions:
+    for version in args.location_versions:
         job_id = initiate_update("location", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"Location (version {version})")
 
     # Step 8: ATLAS updates
-    atlas_versions = get_versions_from_arg(args.atlas_versions, default_atlas_versions)
-    for version in atlas_versions:
+    for version in args.atlas_versions:
         job_id = initiate_update("atlas", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"ATLAS (version {version})")
 
     # Step 9: DISARM updates
-    disarm_versions = get_versions_from_arg(args.disarm_versions, default_disarm_versions)
-    for version in disarm_versions:
+    for version in args.disarm_versions:
         job_id = initiate_update("disarm", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"DISARM (version {version})")
