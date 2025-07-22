@@ -2,7 +2,7 @@ import logging
 import re
 from django.conf import settings
 import requests
-from rest_framework import viewsets, status, decorators, exceptions
+from rest_framework import viewsets, status, decorators, exceptions, parsers
 
 from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_TO_COLLECTION_MAPPING, LOCATION_TYPES, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
@@ -70,6 +70,7 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
 
 
 class TruncateView:
+    parser_classes = [parsers.JSONParser]
     collection_to_truncate = None
     bucket_name = ""
     @extend_schema(
@@ -105,7 +106,7 @@ class TruncateView:
                     Use the response of this endpoint to install the versions on the download endpoint.
                     """
             ),
-            responses={204: {}},
+            responses={200: {"type": "array", "items": {"type": "string"}}},
     )
     @decorators.action(detail=False, methods=['GET'], url_path="versions/available")
     def versions_available(self, request):
@@ -794,6 +795,7 @@ class ACPView(viewsets.ViewSet):
     ]
 
     def create(self, request, *args, **kwargs):
+        serializers.ACPSerializer(data=request.data).is_valid(raise_exception=True)
         serializer = serializers.ACPSerializerWithMode(data={**request.data, **kwargs})
         serializer.is_valid(raise_exception=True)
         data = serializer.data.copy()
@@ -857,10 +859,10 @@ class JobView(viewsets.ModelViewSet):
         state = Filter(help_text='Filter the results by the state of the Job')
 
         def filter_type(self, qs, field_name, value: str):
-            query = {field_name: value}
+            query = dict(type=value)
             if '--' in value:
                 type, mode = value.split('--')
-                query.update({field_name: type, "parameters__mode":mode})
+                query = dict(type=type, parameters__mode=mode)
             return qs.filter(**query)
         
     def create(self, request, *args, **kwargs):
@@ -1478,7 +1480,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        responses={204:{}},
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
         summary="Search for objects",
         description=textwrap.dedent(
             """
@@ -1487,6 +1489,9 @@ class DisarmView(TruncateView, viewsets.ViewSet):
             This endpoint is particularly useful when you don't know the objects you want, or if the concept you're interested in is covered by a framework.
             """
         ),
+        parameters=[
+            OpenApiParameter("text", required=True, allow_blank=False, description='The search query. e.g `denial of service`')
+        ]
     )
 )
 class SearchView(viewsets.ViewSet):
@@ -1495,11 +1500,11 @@ class SearchView(viewsets.ViewSet):
     openapi_tags = ["Search"]
     filter_backends = [DjangoFilterBackend]
     class filterset_class(FilterSet):
-        text = CharFilter(help_text='The search query')
         types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
         knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING], help_text='Filter results by containing knowledgebase you want to search. If not passed will search all knowledgebases in CTI Butler')
         show_knowledgebase = BooleanFilter(help_text="If `true`, will add `knowledgebase_name` property to each returend object. Note, setting to `true` will break the objects in the response from being pure STIX 2.1. Default is `false`")
     def list(self, request, *args, **kwargs):
+        print(request.GET)
         return ArangoDBHelper("semantic_search_view", request).semantic_search()
 
 

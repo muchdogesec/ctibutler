@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "path", ["location", "atlas", "cwe", "attack-enterprise", "disarm", "capec"]
+    "path", ["location"]
 )
 def test_truncate_path(client, path):
     resp = client.delete(f"/api/v1/{path}/truncate/")

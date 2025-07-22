@@ -40,7 +40,7 @@ def parse_versions(all_versions: list):
             if v not in all_versions:
                 unavailable_versions.add(v)
         if unavailable_versions:
-            raise argparse.ArgumentTypeError(f"unavailable versions: {', '.join(unavailable_versions)}")
+            raise argparse.ArgumentTypeError(f"unavailable versions: {', '.join(unavailable_versions)}. select from {all_versions}")
         return sorted(versions, key=all_versions.index)
     return parse
             
