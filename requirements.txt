@@ -165,7 +165,7 @@ stix2==3.0.1
     #   stix2arango
 stix2-patterns==2.0.0
     # via stix2
-stix2arango==1.0.3
+stix2arango==1.1.0
     # via
     #   -r requirements.in
     #   arango-cti-processor
