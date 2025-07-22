@@ -15,7 +15,7 @@ headers = {
 
 def retrieve_available_versions(path):
     url = urljoin(base_url+'/', f'{path}/versions/available/')
-    resp = requests.get(url)
+    resp = requests.get(url, headers=headers)
     assert resp.status_code == 200
     versions = resp.json()
     return versions
