@@ -55,7 +55,7 @@ jobs:
       - name: test all endpoints 1
         run: |
           set -a; source tests/tests.env; set +a
-          pytest --cov --cov-branch --cov-report=xml --junitxml=unittest.junit.xml -o junit_family=legacy tests/
+          pytest --cov --cov-branch --cov-report=xml --junitxml=unittest.junit.xml -o junit_family=legacy tests/full/
       
       - name: test schema
         if: ${{ failure() || success() }}

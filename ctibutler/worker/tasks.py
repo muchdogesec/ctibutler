@@ -177,6 +177,8 @@ def upload_file(filename, collection_name, stix2arango_note=None, job_id=None, p
         username=settings.ARANGODB_USERNAME,
         password=settings.ARANGODB_PASSWORD,
         is_large_file=True,
+        create_db=False,
+        create_collection=False,
         **params,
     )
     s2a.run()
