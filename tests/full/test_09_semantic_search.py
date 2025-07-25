@@ -2,8 +2,9 @@ import pytest
 
 
 def test_search_no_query(client):
-    resp = client.get("/api/v1/search/?types=sometype")
-    assert resp.status_code == 400
+    resp = client.get("/api/v1/search/?types=relationship")
+    assert resp.status_code == 200
+    assert resp.data['total_results_count'] > 20
 
 
 def test_search_with_query(client):

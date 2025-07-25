@@ -163,6 +163,15 @@ CTI_SORT_FIELDS = [
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
 SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES).union(['relationship'])
+SEMANTIC_SEARCH_SORT_FIELDS = [
+    "modified_descending",
+    "modified_ascending",
+    "created_ascending",
+    "created_descending",
+    "name_ascending",
+    "name_descending",
+    "type_ascending",
+]
 KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
     'disarm': [
         "disarm_edge_collection",
@@ -660,44 +669,49 @@ LET matched_ids = @matches[*]._id
   
 
     def semantic_search(self):
-        search_param = self.query.get('text')
-        if not search_param:
-            raise ValidationError('query param `text` is required')
-        
         binds = {
-            'search_param': search_param,
         }
-        version_filter = 'AND doc._is_latest == TRUE'
-        types_filter = ''
-        knowledge_base_filter = ''
+        search_filters = []
+        if search_param:= self.query.get('text'):
+            search_filters.append("""
+            (
+                ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
+                OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
+            )
+            """)
+            binds.update(search_param=search_param)
+        
+
+        search_filters.append('doc._is_latest == TRUE')
+
         if types := self.query_as_array('types'):
             binds['types'] = types
-            types_filter = 'AND doc.type IN @types'
+            search_filters.append('doc.type IN @types')
 
         if qq := self.query_as_array('knowledge_bases'):
             collections = set()
             for q in qq:
                 collections.update(KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.get(q, []))
-            knowledge_base_filter = 'AND ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")'
+            search_filters.append('ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")')
             binds['knowledge_base_collections'] = list(collections)
             
         keep_verb = 'KEYS(doc, TRUE)'
         if show_knowledgebase := self.query_as_bool('show_knowledgebase', False):
             keep_verb = 'APPEND(KEYS(doc, TRUE), "_id")'
         
+        search_filters_str = ''
+        if search_filters:
+            search_filters_str = 'SEARCH ' + (' AND '.join(search_filters))
+        
         query = """
             FOR doc IN semantic_search_view
-            SEARCH (
-                ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
-                OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
-            ) #types_filter #version_filter #knowledge_base_filter
+            #SEARCH
+            #sort_stmt
             LIMIT @offset, @count
             RETURN KEEP(doc, #keep_verb)
         """
-        query = query.replace('#types_filter', types_filter) \
-            .replace('#version_filter', version_filter) \
-            .replace('#knowledge_base_filter', knowledge_base_filter) \
-            .replace('#keep_verb', keep_verb)
+        query = query.replace('#SEARCH', search_filters_str) \
+            .replace('#keep_verb', keep_verb).replace('#sort_stmt', self.get_sort_stmt(SEMANTIC_SEARCH_SORT_FIELDS))
         resp = self.execute_query(query, bind_vars=binds)
         if show_knowledgebase:
             self.add_knowledgebase_name(resp.data['objects'])
