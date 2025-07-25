@@ -1489,13 +1489,6 @@ class DisarmView(TruncateView, viewsets.ViewSet):
             This endpoint is particularly useful when you don't know the objects you want, or if the concept you're interested in is covered by a framework.
             """
         ),
-        parameters=[
-            # OpenApiParameter("text", required=True, allow_blank=False, description='The search query. e.g `denial of service`'),
-            # OpenApiParameter("types", enum=SEMANTIC_SEARCH_TYPES, description='Filter the results by STIX Object type.'),
-            # OpenApiParameter("knowledge_bases", enum=KNOWLEDGE_BASE_TO_COLLECTION_MAPPING, description='Filter results by containing knowledgebase you want to search. If not passed will search all knowledgebases in CTI Butler'),
-            # OpenApiParameter("show_knowledgebase", type=bool, description="If `true`, will add `knowledgebase_name` property to each returend object. Note, setting to `true` will break the objects in the response from being pure STIX 2.1. Default is `false`"),
-            # OpenApiParameter('sort', enum=SEMANTIC_SEARCH_SORT_FIELDS)
-        ]
     )
 )
 class SearchView(viewsets.ViewSet):
@@ -1508,9 +1501,8 @@ class SearchView(viewsets.ViewSet):
         types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
         knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING], help_text='Filter results by containing knowledgebase you want to search. If not passed will search all knowledgebases in CTI Butler')
         show_knowledgebase = BooleanFilter(help_text="If `true`, will add `knowledgebase_name` property to each returend object. Note, setting to `true` will break the objects in the response from being pure STIX 2.1. Default is `false`")
-        sort = ChoiceFilter(choices=[(f, f) for f in SEMANTIC_SEARCH_SORT_FIELDS])
+        sort = ChoiceFilter(choices=[(f, f) for f in SEMANTIC_SEARCH_SORT_FIELDS], help_text="attribute to sort by")
     def list(self, request, *args, **kwargs):
-        print(request.GET)
         return ArangoDBHelper("semantic_search_view", request).semantic_search()
 
 
