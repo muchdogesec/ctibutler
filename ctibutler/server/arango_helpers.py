@@ -171,6 +171,7 @@ SEMANTIC_SEARCH_SORT_FIELDS = [
     "name_ascending",
     "name_descending",
     "type_ascending",
+    "type_descending",
 ]
 KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
     'disarm': [
