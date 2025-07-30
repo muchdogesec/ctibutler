@@ -703,15 +703,24 @@ LET matched_ids = @matches[*]._id
         search_filters_str = ''
         if search_filters:
             search_filters_str = 'SEARCH ' + (' AND '.join(search_filters))
+
+        extra_filters = []
+
+        if not self.query_as_bool('include_deprecated', False):
+            extra_filters.append('FILTER NOT doc.revoked')
+        if not self.query_as_bool('include_revoked', False):
+            extra_filters.append('FILTER NOT doc.x_mitre_deprecated')
         
         query = """
             FOR doc IN semantic_search_view
             #SEARCH
+            #FILTER
             #sort_stmt
             LIMIT @offset, @count
             RETURN KEEP(doc, #keep_verb)
         """
         query = query.replace('#SEARCH', search_filters_str) \
+            .replace('#FILTER', '\n'.join(extra_filters)) \
             .replace('#keep_verb', keep_verb).replace('#sort_stmt', self.get_sort_stmt(SEMANTIC_SEARCH_SORT_FIELDS))
         resp = self.execute_query(query, bind_vars=binds)
         if show_knowledgebase:

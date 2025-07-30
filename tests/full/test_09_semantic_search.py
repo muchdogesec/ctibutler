@@ -60,3 +60,22 @@ def test_search_with_show_knowledgebase(client):
     assert resp1.data["total_results_count"] == resp2.data["total_results_count"]
     assert resp3.data["total_results_count"] == resp2.data["total_results_count"]
 
+@pytest.mark.parametrize(
+    ['filters', 'count'],
+    [
+        pytest.param(dict(include_deprecated=False, include_revoked=False), 99, id='exclude-both-explicit'),
+        pytest.param(dict(), 99, id='exclude-both-implicit'),
+        pytest.param(dict(include_deprecated=True, include_revoked=False), 101, id='include-deprecated-explicit'),
+        pytest.param(dict(include_deprecated=True), 101, id='exclude-revoked-implicit'),
+        pytest.param(dict(include_deprecated=False, include_revoked=True), 110, id='include-revoked-explicit'),
+        pytest.param(dict(include_revoked=True), 110, id='exlude-deprecated-implicit'),
+        pytest.param(dict(include_deprecated=True, include_revoked=True), 112, id='include-both-explicit'),
+    ]
+)
+def test_include_revoked_and_include_deprecated(client, filters, count):
+    params = {'text': 'deny'}
+    params.update(filters)
+
+    resp = client.get("/api/v1/search/", query_params=params)
+    assert resp.status_code == 200
+    assert resp.data['total_results_count'] == count
