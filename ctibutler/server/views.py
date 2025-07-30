@@ -1489,6 +1489,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
             This endpoint is particularly useful when you don't know the objects you want, or if the concept you're interested in is covered by a framework.
             """
         ),
+        parameters=REVOKED_AND_DEPRECATED_PARAMS,
     )
 )
 class SearchView(viewsets.ViewSet):
