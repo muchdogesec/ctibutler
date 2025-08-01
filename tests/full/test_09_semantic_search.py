@@ -2,7 +2,7 @@ import pytest
 
 
 def test_search_no_query(client):
-    resp = client.get("/api/v1/search/?types=relationship")
+    resp = client.get("/api/v1/search/?types=attack-pattern")
     assert resp.status_code == 200
     assert resp.data['total_results_count'] > 20
 
@@ -28,13 +28,13 @@ def test_search_with_types(client, types):
 @pytest.mark.parametrize(
     "knowledge_bases,expected_count",
     [
-        [[], 112],
+        [[], 52],
         [['attack-ics'], 0], #not ingested
-        [['attack-enterprise'], 66],
-        [['attack'], 66],
-        [['attack', 'attack-ics'], 66],
-        [['location', 'attack'], 66],
-        [['location', 'cwe'], 14],
+        [['attack-enterprise'], 13],
+        [['attack'], 13],
+        [['attack', 'attack-ics'], 13],
+        [['location', 'attack'], 13],
+        [['location', 'cwe'], 7],
         [['capec'], 25],
         [['disarm'], 7],
         [['disarm', 'capec'], 7+25],
@@ -63,13 +63,13 @@ def test_search_with_show_knowledgebase(client):
 @pytest.mark.parametrize(
     ['filters', 'count'],
     [
-        pytest.param(dict(include_deprecated=False, include_revoked=False), 99, id='exclude-both-explicit'),
-        pytest.param(dict(), 99, id='exclude-both-implicit'),
-        pytest.param(dict(include_deprecated=True, include_revoked=False), 101, id='include-deprecated-explicit'),
-        pytest.param(dict(include_deprecated=True), 101, id='exclude-revoked-implicit'),
-        pytest.param(dict(include_deprecated=False, include_revoked=True), 110, id='include-revoked-explicit'),
-        pytest.param(dict(include_revoked=True), 110, id='exlude-deprecated-implicit'),
-        pytest.param(dict(include_deprecated=True, include_revoked=True), 112, id='include-both-explicit'),
+        pytest.param(dict(include_deprecated=False, include_revoked=False), 52, id='exclude-both-explicit'),
+        pytest.param(dict(), 52, id='exclude-both-implicit'),
+        pytest.param(dict(include_deprecated=True, include_revoked=False), 54, id='include-deprecated-explicit'),
+        pytest.param(dict(include_deprecated=True), 54, id='exclude-revoked-implicit'),
+        pytest.param(dict(include_deprecated=False, include_revoked=True), 56, id='include-revoked-explicit'),
+        pytest.param(dict(include_revoked=True), 56, id='exlude-deprecated-implicit'),
+        pytest.param(dict(include_deprecated=True, include_revoked=True), 58, id='include-both-explicit'),
     ]
 )
 def test_include_revoked_and_include_deprecated(client, filters, count):

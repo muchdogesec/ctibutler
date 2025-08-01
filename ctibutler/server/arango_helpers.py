@@ -162,7 +162,7 @@ CTI_SORT_FIELDS = [
     "name_descending",
 ]
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
-SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES).union(['relationship'])
+SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
 SEMANTIC_SEARCH_SORT_FIELDS = [
     "modified_descending",
     "modified_ascending",
@@ -175,44 +175,33 @@ SEMANTIC_SEARCH_SORT_FIELDS = [
 ]
 KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
     'disarm': [
-        "disarm_edge_collection",
         "disarm_vertex_collection",
     ],
     'location':[
-        "location_edge_collection",
         "location_vertex_collection",
     ],
     'atlas': [
 
-        "mitre_atlas_edge_collection",
         "mitre_atlas_vertex_collection",
     ],
     'attack': [
-        "mitre_attack_enterprise_edge_collection",
         "mitre_attack_enterprise_vertex_collection",
-        "mitre_attack_ics_edge_collection",
         "mitre_attack_ics_vertex_collection",
-        "mitre_attack_mobile_edge_collection",
         "mitre_attack_mobile_vertex_collection",
     ],
     'attack-ics': [
-        "mitre_attack_ics_edge_collection",
         "mitre_attack_ics_vertex_collection",
     ],
     'attack-mobile': [
-        "mitre_attack_mobile_edge_collection",
         "mitre_attack_mobile_vertex_collection",
     ],
     'attack-enterprise': [
-        "mitre_attack_enterprise_edge_collection",
         "mitre_attack_enterprise_vertex_collection",
     ],
     'capec': [
-        "mitre_capec_edge_collection",
         "mitre_capec_vertex_collection",
     ],
     'cwe': [
-        "mitre_cwe_edge_collection",
         "mitre_cwe_vertex_collection",
     ]
 
