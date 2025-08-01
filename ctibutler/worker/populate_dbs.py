@@ -67,8 +67,10 @@ def create_analyzer(db, *args, **kwargs):
         if e.error_code != 10:
             raise
 
+
 def get_semantic_search_properties(db: StandardDatabase):
-    create_analyzer(db, 
+    create_analyzer(
+        db,
         "text_en_no_stem_3_10p",
         analyzer_type="text",
         properties={
@@ -82,17 +84,18 @@ def get_semantic_search_properties(db: StandardDatabase):
     )
     links = {}
     for c in db.collections():
-        if not c["name"].endswith("_collection"):
-            continue
-        links[c["name"]] = {
-            "fields": {
-                "description": {"analyzers": ["text_en", "text_en_no_stem_3_10p"]},
-                "name": {"analyzers": ["text_en", "text_en_no_stem_3_10p"]},
-                "_is_latest": {"analyzers": ["identity"]},
-                "_id": {"analyzers": ["identity"]},
-                "type": {"analyzers": ["identity"]},
+        if c["name"].endswith("_vertex_collection"):
+            links[c["name"]] = {
+                "fields": {
+                    "description": {"analyzers": ["text_en", "text_en_no_stem_3_10p"]},
+                    "name": {"analyzers": ["text_en", "text_en_no_stem_3_10p"]},
+                    "_is_latest": {"analyzers": ["identity"]},
+                    "_id": {"analyzers": ["identity"]},
+                    "type": {"analyzers": ["identity"]},
+                }
             }
-        }
+        elif c["name"].endswith("_edge_collection"):
+            links[c["name"]] = None
     return {"links": links}
 
 
