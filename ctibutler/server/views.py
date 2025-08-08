@@ -152,7 +152,10 @@ class TruncateView:
         parameters=BUNDLE_PARAMS,
     ),
     tie=extend_schema(
-        responses={200: serializers.TIEResponseSerializer},
+        responses={
+            200: serializers.TIEResponseSerializer,
+            400: DEFAULT_400_ERROR,
+        },
         parameters=[
             OpenApiParameter(
                 "technique_ids",
