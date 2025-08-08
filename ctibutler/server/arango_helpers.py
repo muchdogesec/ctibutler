@@ -224,20 +224,31 @@ def positive_int(integer_string, cutoff=None, default=1):
 
 from functools import lru_cache
 @lru_cache
-def _get_latest_version(collection, t):
-    print("checking version: ", t)
-    versions: dict = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict))).get_mitre_versions().data
-    latest_version = versions['latest']
-    if not latest_version:
-        raise Exception("can't get latest version")
-    return latest_version
+def _get_versions(collection, arango_revision):
+    print("checking version: ", arango_revision)
+    helper = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict)))
+    query = """
+        FOR doc IN @@collection
+        FILTER STARTS_WITH(doc._stix2arango_note, "version=")
+        RETURN DISTINCT doc._stix2arango_note
+        """
+    bind_vars = {'@collection': collection}
+    versions = helper.execute_query(query, bind_vars=bind_vars, paginate=False)
+    versions = helper.clean_and_sort_versions(versions)
+    return versions
 
-def get_latest_version(collection):
-    #cache for 1 minute
+def get_versions(collection):
+    #cache for revision
     try:
-        return _get_latest_version(collection, time.time()//(1*60))
+        helper = ArangoDBHelper(collection, SimpleNamespace(GET=dict(), query_params=SimpleNamespace(dict=dict)))
+        rev = helper.db.collection(collection).revision()
+        return _get_versions(collection, rev)
     except:
-        return ''
+        return []
+    
+def get_latest_version(collection):
+    versions = get_versions(collection) or ['']
+    return versions[0]
 
 class ArangoDBHelper(DSC_ArangoDBHelper):
     max_page_size = settings.MAXIMUM_PAGE_SIZE
@@ -463,15 +474,8 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             return self.get_relationships(matches)
         return self.get_paginated_response(self.container, matches, self.page, self.page_size, len(matches))
 
-    def get_mitre_versions(self, stix_id=None):
-        query = """
-        FOR doc IN @@collection
-        FILTER STARTS_WITH(doc._stix2arango_note, "version=")
-        RETURN DISTINCT doc._stix2arango_note
-        """
-        bind_vars = {'@collection': self.collection}
-        versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
-        versions = self.clean_and_sort_versions(versions)
+    def get_mitre_versions(self):
+        versions = get_versions(self.collection)
         return Response(dict(latest=versions[0] if versions else None, versions=versions))
 
     def get_mitre_modified_versions(self, external_id: str=None, source_name='mitre-attack'):

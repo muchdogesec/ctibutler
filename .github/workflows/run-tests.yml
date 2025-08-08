@@ -53,6 +53,8 @@ jobs:
           echo POSTGRES_HOST="${{ steps.get_ip.outputs.IP_ADDRESS }}" >> tests/tests.env
           echo DJANGO_WWW_PATH=$PWD/django_www_path/ >> tests/tests.env
           echo PYTHONPATH=. >> tests/tests.env
+          
+          python utilities/download_tie_models.py
 
       - name: Unit tests
         id: unit_tests

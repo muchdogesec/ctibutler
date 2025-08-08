@@ -13,6 +13,9 @@ django-cors-headers
 django-storages[s3]
 django-cleanup
 
+## tie
+numpy>=1.20
+
 ## dogesec
 dogesec_commons
 stix2arango
