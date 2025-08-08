@@ -42,3 +42,8 @@ class ACPSerializer(serializers.Serializer):
 
 class ACPSerializerWithMode(ACPSerializer):
     mode = serializers.ChoiceField(choices=list(ACP_MODES.items()))
+
+
+class TIEResponseSerializer(serializers.Serializer):
+    scores = serializers.DictField()
+    objects = serializers.ListField(child=StixObjectsSerializer())
