@@ -858,12 +858,16 @@ class JobView(viewsets.ModelViewSet):
         )
         state = Filter(help_text='Filter the results by the state of the Job')
 
-        def filter_type(self, qs, field_name, value: str):
-            query = dict(type=value)
-            if '--' in value:
-                type, mode = value.split('--')
-                query = dict(type=type, parameters__mode=mode)
-            return qs.filter(**query)
+        def filter_type(self, qs, field_name, value: list[str]):
+            from django.db.models import Q
+            query = Q()
+            for t in value:
+                type, _, mode = t.partition('--')
+                q = Q(type=type)
+                if mode:
+                    q &= Q(parameters__mode=mode)
+                query |= q
+            return qs.filter(query)
         
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)

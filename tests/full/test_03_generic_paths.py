@@ -1,5 +1,7 @@
 import pytest
 
+from ctibutler.server import models
+
 
 FAKE_VERSION = "1.9.1.9"
 
@@ -331,3 +333,27 @@ def test_stix_id_and_path_id_interchangability(client, path1, path2, stix_id, ex
     resp2 = client.get(url.format(object_id=ext_id))
     assert resp2.status_code == 200, f"expected status_code 200, got {resp2.reason}"
     assert resp1.json() == resp2.json()
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'types,count',
+    [
+        ('', 3),
+        ('disarm-update', 0),
+        ('attack-update', 1),
+        ('attack-update--mobile', 0),
+        ('attack-update--enterprise', 1),
+        ('arango-cti-processor', 1),
+        ('arango-cti-processor,disarm-update', 1),
+        ('arango-cti-processor,disarm-update,attack-update', 2),
+    ]
+)
+def test_jobs(client, types, count):
+    job1 = models.Job.objects.create(type=models.JobType.ATLAS_UPDATE, parameters={})
+    job2 = models.Job.objects.create(type=models.JobType.CTI_PROCESSOR, parameters={})
+    job3 = models.Job.objects.create(type=models.JobType.ATTACK_UPDATE, parameters={'mode': 'enterprise'})
+
+    assert client.get('/api/v1/jobs/', query_params=dict(types=types)).data['total_results_count'] == count
+
+def test_schema(client):
+    assert client.get('/api/schema/').status_code == 200
