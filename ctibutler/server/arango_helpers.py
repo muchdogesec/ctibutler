@@ -530,6 +530,9 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
                 "FILTER doc.id in @ids"
             )
 
+        if not self.query_as_bool('include_deprecated'):
+            filters.append('FILTER doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
+
         
         if generic_forms := self.query_as_array(lookup_kwarg.replace('_id', '_type')):
             form_list = []
@@ -696,7 +699,7 @@ LET matched_ids = @matches[*]._id
         extra_filters = []
 
         if not self.query_as_bool('include_deprecated', False):
-            extra_filters.append('FILTER NOT doc.revoked')
+            extra_filters.append('FILTER NOT doc.revoked AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
         if not self.query_as_bool('include_revoked', False):
             extra_filters.append('FILTER NOT doc.x_mitre_deprecated')
         

@@ -17,6 +17,8 @@ FAKE_VERSION = "1.9.1.9"
         ######## CAPEC #######
         pytest.param("capec", 1494, None),
         pytest.param("capec", 1494, dict(capec_version="3.9")),
+        pytest.param("capec", 1437, dict(capec_version="3.9", include_deprecated=False)),
+        pytest.param("capec", 1494, dict(capec_version="3.9", include_deprecated=True)),
         pytest.param("capec", 1471, dict(capec_version="3.8")),
         pytest.param("capec", 0, dict(capec_version=FAKE_VERSION)),
         ######## CWE #######

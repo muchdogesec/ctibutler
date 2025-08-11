@@ -70,6 +70,9 @@ def test_search_with_show_knowledgebase(client):
         pytest.param(dict(include_deprecated=False, include_revoked=True), 56, id='include-revoked-explicit'),
         pytest.param(dict(include_revoked=True), 56, id='exlude-deprecated-implicit'),
         pytest.param(dict(include_deprecated=True, include_revoked=True), 58, id='include-both-explicit'),
+        pytest.param(dict(types='attack-pattern', knowledge_base='capec'), 32, id='capec-implicit-exclude-deprecated'),
+        pytest.param(dict(types='attack-pattern', knowledge_base='capec', include_deprecated=False), 32, id='capec-explicit-exclude-deprecated'),
+        pytest.param(dict(types='attack-pattern', knowledge_base='capec', include_deprecated=True), 34, id='capec-explicit-include-deprecated'),
     ]
 )
 def test_include_revoked_and_include_deprecated(client, filters, count):

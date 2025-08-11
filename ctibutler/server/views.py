@@ -688,6 +688,7 @@ class CapecView(TruncateView, viewsets.ViewSet):
         types = ChoiceCSVFilter(choices=[(f,f) for f in CAPEC_TYPES], help_text='Filter the results by STIX Object type.')
         capec_version = CharFilter(help_text="By default only the latest CAPEC version objects will be returned. You can enter a specific CAPEC version here. e.g. `3.7`. You can get a full list of versions on the GET CAPEC versions endpoint.")
         sort = ChoiceFilter(choices=[(f,f) for f in CTI_SORT_FIELDS], help_text="sort by object property/field")
+        include_deprecated = BooleanFilter(help_text="By default all objects with use `x_capec_status == Deprecated|Obsolete` are included, set to false to filter out objects that are deprecated.")
 
     
     def create(self, request, *args, **kwargs):
