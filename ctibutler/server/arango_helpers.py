@@ -242,7 +242,14 @@ def get_latest_version(collection):
 class ArangoDBHelper(DSC_ArangoDBHelper):
     max_page_size = settings.MAXIMUM_PAGE_SIZE
     page_size = settings.DEFAULT_PAGE_SIZE
-        
+    semantic_search_view = 'semantic_search_view'
+    SEMANTIC_SEARCH_QUERY_TEXT = """
+    (
+        ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
+        OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
+    )
+    """
+    
     @classmethod
     def get_paginated_response(cls, container,  data, page_number, page_size=page_size, full_count=0):
         return Response(
@@ -361,8 +368,8 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         types = ATTACK_TYPES
         if new_types := self.query_as_array('types'):
             types = types.intersection(new_types)
+        collection_name = f'mitre_attack_{matrix}_vertex_collection'
         bind_vars = {
-                "@collection": f'mitre_attack_{matrix}_vertex_collection',
                 "types": list(types),
         }
 
@@ -376,7 +383,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
                 bind_vars['attack_form_list'] = form_list
 
 
-        if q := self.query.get(f'attack_version', get_latest_version(bind_vars['@collection'])):
+        if q := self.query.get(f'attack_version', get_latest_version(collection_name)):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
         else:
@@ -388,36 +395,29 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
                 "FILTER doc.id in @ids"
             )
 
-        bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
-        bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
+        if not self.query_as_bool('include_deprecated', False):
+            filters.append('FILTER NOT doc.revoked AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
+        if not self.query_as_bool('include_revoked', False):
+            filters.append('FILTER NOT doc.x_mitre_deprecated')
 
         if value := self.query_as_array('attack_id'):
             bind_vars['attack_ids'] = [v.lower() for v in value]
             filters.append(
                 "FILTER LOWER(doc.external_references[0].external_id) in @attack_ids"
             )
-        if q := self.query.get('name'):
-            bind_vars['name'] = q.lower()
-            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
 
         if q := self.query.get('alias'):
             bind_vars['alias'] = q.lower()
             filters.append('FILTER APPEND(doc.aliases, doc.x_mitre_aliases)[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
-
-        if q := self.query.get('description'):
-            bind_vars['description'] = q.lower()
-            filters.append('FILTER CONTAINS(LOWER(doc.description), @description)')
-
-        query = """
-            FOR doc in @@collection
-            FILTER CONTAINS(@types, doc.type) AND (@include_revoked OR NOT doc.revoked) AND (@include_deprecated OR NOT doc.x_mitre_deprecated)
-            #filters
-            #sort_stmt
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('#filters', '\n'.join(filters)) \
-            .replace('#sort_stmt', self.get_sort_stmt(CTI_SORT_FIELDS))
-        return self.execute_query(query, bind_vars=bind_vars)
+        
+        search_filters = ['doc.type IN @types', 'ANALYZER(STARTS_WITH(doc._id, @collection_name), "identity")']
+        
+        if q := self.query.get("text"):
+            bind_vars['search_param'] = q
+            search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
+            
+        bind_vars.update(collection_name=collection_name)
+        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_fields=CTI_SORT_FIELDS)
 
 
     def get_object_by_external_id(self, ext_id: str, version_param, relationship_mode=False, revokable=False, bundle=False):
@@ -514,11 +514,11 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             types = types.intersection(new_types)
 
         bind_vars = {
-                "@collection": self.collection,
+                # "@collection": self.collection,
                 "types": list(types),
                 **more_binds
         }
-        if q := self.query.get(version_param, get_latest_version(bind_vars['@collection'])):
+        if q := self.query.get(version_param, get_latest_version(self.collection)):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
             filters.append('FILTER doc._stix2arango_note == @mitre_version')
         else:
@@ -530,6 +530,9 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
                 "FILTER doc.id in @ids"
             )
 
+        if not self.query_as_bool('include_deprecated'):
+            filters.append('FILTER doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
+
         
         if generic_forms := self.query_as_array(lookup_kwarg.replace('_id', '_type')):
             form_list = []
@@ -539,29 +542,24 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             if form_list:
                 filters.append('FILTER @generic_form_list[? ANY FILTER MATCHES(doc, CURRENT)]')
                 bind_vars['generic_form_list'] = form_list
+        if q := self.query.get('name'):
+            bind_vars['name'] = q.lower()
+            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
 
         if value := self.query_as_array(lookup_kwarg):
             bind_vars['ext_ids'] = [v.lower() for v in value]
             filters.append(
                 "FILTER LOWER(doc.external_references[0].external_id) in @ext_ids"
             )
-        if q := self.query.get('name'):
-            bind_vars['name'] = q.lower()
-            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
-
-        if q := self.query.get('description'):
-            bind_vars['description'] = q.lower()
-            filters.append('FILTER CONTAINS(LOWER(doc.description), @description)')
-
-        query = """
-            FOR doc in @@collection FILTER doc.type IN @types
-            #filters
-            #sort_stmt
-            LIMIT @offset, @count
-            RETURN KEEP(doc, KEYS(doc, true))
-        """.replace('#filters', '\n'.join(filters+more_filters)) \
-            .replace('#sort_stmt', self.get_sort_stmt(CTI_SORT_FIELDS))
-        return self.execute_query(query, bind_vars=bind_vars)
+        search_filters = ['doc.type IN @types', 'ANALYZER(STARTS_WITH(doc._id, @collection_name), "identity")']
+        bind_vars.update(collection_name=self.collection)
+        
+        if q := self.query.get("text"):
+            bind_vars['search_param'] = q
+            search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
+        filters.extend(more_filters)
+            
+        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_fields=CTI_SORT_FIELDS)
     
     def get_relationships(self, matches):
         binds = {
@@ -663,12 +661,7 @@ LET matched_ids = @matches[*]._id
         }
         search_filters = []
         if search_param:= self.query.get('text'):
-            search_filters.append("""
-            (
-                ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.name, "text_en") OR ANALYZER(TOKENS(@search_param, "text_en") ALL IN doc.description, "text_en")
-                OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
-            )
-            """)
+            search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
             binds.update(search_param=search_param)
         
 
@@ -678,42 +671,57 @@ LET matched_ids = @matches[*]._id
             binds['types'] = types
             search_filters.append('doc.type IN @types')
 
+        collections = set()
         if qq := self.query_as_array('knowledge_bases'):
-            collections = set()
             for q in qq:
                 collections.update(KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.get(q, []))
-            search_filters.append('ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")')
             binds['knowledge_base_collections'] = list(collections)
-            
-        keep_verb = 'KEYS(doc, TRUE)'
-        if show_knowledgebase := self.query_as_bool('show_knowledgebase', False):
-            keep_verb = 'APPEND(KEYS(doc, TRUE), "_id")'
-        
-        search_filters_str = ''
-        if search_filters:
-            search_filters_str = 'SEARCH ' + (' AND '.join(search_filters))
+            search_filters.append('ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")')
 
         extra_filters = []
 
         if not self.query_as_bool('include_deprecated', False):
-            extra_filters.append('FILTER NOT doc.revoked')
+            extra_filters.append('FILTER NOT doc.revoked AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
         if not self.query_as_bool('include_revoked', False):
             extra_filters.append('FILTER NOT doc.x_mitre_deprecated')
+        keep_verb=None
+        if show_knowledgebase := self.query_as_bool('show_knowledgebase', False):
+            keep_verb = 'KEEP(doc, APPEND(KEYS(doc, TRUE), "_id"))'
+        resp = self.generic_query(self.semantic_search_view, search_filters, extra_filters, binds, return_verb=keep_verb)
+        if show_knowledgebase:
+            self.add_knowledgebase_name(resp.data['objects'])
+        return resp
+    
+    def generic_query(self, collection_or_view, search_filters: list[str], extra_filters: list[str], binds, sort_fields=SEMANTIC_SEARCH_SORT_FIELDS, return_verb=None, use_limit=True):
+        search_filters_str = ''
+        binds['@collection_or_view'] = collection_or_view
+        return_verb = return_verb or 'KEEP(doc, KEYS(doc, TRUE))'
+        kwargs = dict(paginate=False)
         
+        if not use_limit:
+            limit_stmt = ''
+        elif isinstance(use_limit, str):
+            limit_stmt = use_limit
+        else:
+            limit_stmt = 'LIMIT @offset, @count'
+            kwargs.update(paginate=True)
+
+
         query = """
-            FOR doc IN semantic_search_view
+            FOR doc IN @@collection_or_view
             #SEARCH
             #FILTER
             #sort_stmt
-            LIMIT @offset, @count
-            RETURN KEEP(doc, #keep_verb)
+            #LIMIT
+            RETURN #return_verb
         """
+        if search_filters:
+            search_filters_str = 'SEARCH ' + (' AND '.join(search_filters))
         query = query.replace('#SEARCH', search_filters_str) \
             .replace('#FILTER', '\n'.join(extra_filters)) \
-            .replace('#keep_verb', keep_verb).replace('#sort_stmt', self.get_sort_stmt(SEMANTIC_SEARCH_SORT_FIELDS))
-        resp = self.execute_query(query, bind_vars=binds)
-        if show_knowledgebase:
-            self.add_knowledgebase_name(resp.data['objects'])
+            .replace('#return_verb', return_verb).replace('#sort_stmt', self.get_sort_stmt(sort_fields)) \
+            .replace('#LIMIT', limit_stmt)
+        resp = self.execute_query(query, bind_vars=binds, **kwargs)
         return resp
     
     @staticmethod
