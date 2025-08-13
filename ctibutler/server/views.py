@@ -159,7 +159,7 @@ class TruncateView:
         parameters=[
             OpenApiParameter(
                 "technique_ids",
-                description="techniques to predict for",
+                description="Techniques generate prediction from. Pass in format `T1548,T1134`",
                 explode=False,
                 style="form",
                 many=True,
@@ -397,8 +397,14 @@ class AttackView(TruncateView, viewsets.ViewSet):
                 ),
             ),
             tie=extend_schema(
-                summary=f"[{matrix_name_human}] Predict next set of possible techniques",
-                description=f"[{matrix_name_human}] Use given techniques to predict next set of possible techniques",
+                summary=f"Suggest techniques an adversary is likely to have used based on a set of observed techniques",
+                description=textwrap.dedent(
+                    f"""
+                    Pass a list of ATT&CK {matrix_name_human} Techniques to predict other Techniques likely to be employed in an attack.
+
+                    This uses the [MITRE CTID Technique Inference Engine](https://center-for-threat-informed-defense.github.io/technique-inference-engine/) using the [WalsRecommender model](https://github.com/center-for-threat-informed-defense/technique-inference-engine/blob/main/src/tie/recommender/wals_recommender.py) where a pretrained model (on Enterprise v15.0) is loaded from file (that is downloaded at CTI Butler install time).
+                    """
+                ),
             ),
         )
         class TempAttackView(cls):
