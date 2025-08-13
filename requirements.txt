@@ -20,15 +20,15 @@ attrs==25.3.0
     #   referencing
 billiard==4.2.1
     # via celery
-boto3==1.39.4
+boto3==1.40.5
     # via django-storages
-botocore==1.39.4
+botocore==1.40.5
     # via
     #   boto3
     #   s3transfer
 celery==5.5.3 ; python_version >= "3.8"
     # via -r requirements.in
-certifi==2025.7.14
+certifi==2025.8.3
     # via requests
 charset-normalizer==3.4.2
     # via requests
@@ -44,7 +44,7 @@ click-plugins==1.1.1.2
     # via celery
 click-repl==0.3.0
     # via celery
-django==5.2.4
+django==5.2.5
     # via
     #   -r requirements.in
     #   django-cors-headers
@@ -62,12 +62,12 @@ django-filter==25.1
     #   dogesec-commons
 django-storages[s3]==1.14.6
     # via -r requirements.in
-djangorestframework==3.16.0
+djangorestframework==3.16.1
     # via
     #   -r requirements.in
     #   dogesec-commons
     #   drf-spectacular
-dogesec-commons==1.1.2
+dogesec-commons==1.1.7
     # via -r requirements.in
 drf-spectacular==0.28.0
     # via
@@ -91,7 +91,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-jsonschema==4.24.0
+jsonschema==4.25.0
     # via
     #   arango-cti-processor
     #   drf-spectacular
@@ -100,6 +100,8 @@ jsonschema-specifications==2025.4.1
     # via jsonschema
 kombu==5.5.4
     # via celery
+numpy==2.3.2
+    # via -r requirements.in
 packaging==25.0
     # via
     #   gunicorn
@@ -128,7 +130,7 @@ pytz==2025.2
     # via stix2
 pyyaml==6.0.2
     # via drf-spectacular
-redis==6.2.0
+redis==6.4.0
     # via -r requirements.in
 referencing==0.36.2
     # via
@@ -144,11 +146,11 @@ requests==2.32.4
     #   stix2arango
 requests-toolbelt==1.0.0
     # via python-arango
-rpds-py==0.26.0
+rpds-py==0.27.0
     # via
     #   jsonschema
     #   referencing
-s3transfer==0.13.0
+s3transfer==0.13.1
     # via boto3
 simplejson==3.20.1
     # via stix2
@@ -165,7 +167,7 @@ stix2==3.0.1
     #   stix2arango
 stix2-patterns==2.0.0
     # via stix2
-stix2arango==1.1.0
+stix2arango==1.1.1
     # via
     #   -r requirements.in
     #   arango-cti-processor

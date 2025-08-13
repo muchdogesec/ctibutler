@@ -18,10 +18,11 @@ services:
         extends: env_django
         command: >
                 bash -c "
-                    python manage.py collectstatic --no-input &&
-                        python manage.py makemigrations &&
-                            python manage.py migrate &&
-                                python -m ctibutler.worker.populate_dbs && 
+                    python utilities/download_tie_models.py &&
+                        python manage.py collectstatic --no-input &&
+                            python manage.py makemigrations &&
+                                python manage.py migrate &&
+                                    python -m ctibutler.worker.populate_dbs &&
                     gunicorn ctibutler.wsgi:application  --reload --bind 0.0.0.0:8006
                     " 
         ports:

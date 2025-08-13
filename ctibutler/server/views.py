@@ -6,6 +6,7 @@ from rest_framework import viewsets, status, decorators, exceptions, parsers
 
 from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_TO_COLLECTION_MAPPING, LOCATION_TYPES, SEMANTIC_SEARCH_SORT_FIELDS, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
+from ctibutler.server.tie import ExtractedWalsRecommender
 from ctibutler.server.utils import Pagination, Response, Ordering
 from ctibutler.worker.tasks import new_task
 from ctibutler.server import models
@@ -116,27 +117,56 @@ class TruncateView:
         versions = [s.strip() for s in resp.text.splitlines()]
         return Response(versions)
 
+
 @extend_schema_view(
-    create=extend_schema(
-    ),
+    create=extend_schema(),
     list_objects=extend_schema(
-        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
-        filters=True
+        responses={
+            200: serializers.StixObjectsSerializer(many=True),
+            400: DEFAULT_400_ERROR,
+        },
+        filters=True,
     ),
     retrieve_objects=extend_schema(
-        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        responses={
+            200: serializers.StixObjectsSerializer(many=True),
+            400: DEFAULT_400_ERROR,
+        },
         parameters=REVOKED_AND_DEPRECATED_PARAMS,
     ),
     retrieve_object_relationships=extend_schema(
-        responses={200: ArangoDBHelper.get_paginated_response_schema('relationships', 'relationship'), 400: DEFAULT_400_ERROR},
-        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters() + REVOKED_AND_DEPRECATED_PARAMS,
+        responses={
+            200: ArangoDBHelper.get_paginated_response_schema(
+                "relationships", "relationship"
+            ),
+            400: DEFAULT_400_ERROR,
+        },
+        parameters=ArangoDBHelper.get_relationship_schema_operation_parameters()
+        + REVOKED_AND_DEPRECATED_PARAMS,
     ),
-
     bundle=extend_schema(
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={
+            200: ArangoDBHelper.get_paginated_response_schema(),
+            400: DEFAULT_400_ERROR,
+        },
         parameters=BUNDLE_PARAMS,
     ),
-)  
+    tie=extend_schema(
+        responses={
+            200: serializers.TIEResponseSerializer,
+            400: DEFAULT_400_ERROR,
+        },
+        parameters=[
+            OpenApiParameter(
+                "technique_ids",
+                description="Techniques generate prediction from. Pass in format `T1548,T1134`",
+                explode=False,
+                style="form",
+                many=True,
+            ),
+        ],
+    ),
+)
 class AttackView(TruncateView, viewsets.ViewSet):
     openapi_tags = ["ATT&CK"]
     lookup_url_kwarg = 'attack_id'
@@ -151,11 +181,11 @@ class AttackView(TruncateView, viewsets.ViewSet):
     def matrix(self):
         m: re.Match = re.search(r"/attack-(\w+)/", self.request.path)
         return m.group(1)
-    
+
     @property
     def bucket_name(self):
         return f"ATTACK_{self.matrix}"
-    
+
     serializer_class = serializers.StixObjectsSerializer(many=True)
     pagination_class = Pagination("objects")
 
@@ -221,6 +251,25 @@ class AttackView(TruncateView, viewsets.ViewSet):
     def object_versions(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_mitre_modified_versions(attack_id)
 
+    def get_tie(self, matrix, techniques):
+        model = ExtractedWalsRecommender()
+        version = '15_0'
+        model.load(f"tie_models/{matrix}/attack-{matrix}-{version}.npz")
+        return dict(model.make_predictions(techniques))
+        
+    
+    @decorators.action(detail=False, methods=["GET"])
+    def tie(self, request):
+        techniques = [t for t in request.GET.get('technique_ids', '').split(',') if t]
+        query = request._request.GET = request.GET.copy()
+        scores = self.get_tie(
+            self.matrix,
+            techniques,
+        )
+        query['attack_id'] = ','.join(scores)
+        objects = self.list_objects(request=request).data['objects']
+        return Response(dict(scores=scores, objects=objects))
+    
     @classmethod
     def attack_view(cls, matrix_name: str):
         matrix_name_human = matrix_name.title()
@@ -251,7 +300,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
                             )
                         ],
                     ),
-                    400: DEFAULT_400_ERROR
+                    400: DEFAULT_400_ERROR,
                 },
                 request=serializers.MitreTaskSerializer,
                 summary=f"Download MITRE ATT&CK {matrix_name_human} Objects",
@@ -346,11 +395,26 @@ class AttackView(TruncateView, viewsets.ViewSet):
                     """
                 ),
             ),
+            tie=extend_schema(
+                summary=f"Suggest techniques an adversary is likely to have used based on a set of observed techniques",
+                description=textwrap.dedent(
+                    f"""
+                    Pass a list of ATT&CK {matrix_name_human} Techniques to predict other Techniques likely to be employed in an attack.
+
+                    This uses the [MITRE CTID Technique Inference Engine](https://center-for-threat-informed-defense.github.io/technique-inference-engine/) using the [WalsRecommender model](https://github.com/center-for-threat-informed-defense/technique-inference-engine/blob/main/src/tie/recommender/wals_recommender.py) where a pretrained model (on Enterprise v15.0) is loaded from file (that is downloaded at CTI Butler install time).
+                    """
+                ),
+            ),
         )
         class TempAttackView(cls):
             matrix = matrix_name
             openapi_tags = [f"ATT&CK {matrix_name_human}"]
             collection_to_truncate = f"mitre_attack_{matrix}"
+
+            if matrix_name != "enterprise":
+                tie = None
+                
+
         TempAttackView.__name__ = f'{matrix_name.title()}AttackView'
         return TempAttackView
 
@@ -1061,7 +1125,6 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper(f'mitre_atlas_vertex_collection', request).get_mitre_modified_versions(atlas_id, source_name='mitre-atlas')
 
 
-
 @extend_schema_view(
     create=extend_schema(
         responses={
@@ -1476,7 +1539,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:disarm_id>/versions", detail=False, serializer_class=serializers.MitreObjectVersions(many=True), pagination_class=None)
     def object_versions(self, request, *args, disarm_id=None, **kwargs):
         return ArangoDBHelper(self.arango_collection, request).get_mitre_modified_versions(disarm_id, source_name='DISARM')
-    
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -1520,7 +1583,6 @@ class SearchView(viewsets.ViewSet):
 @decorators.api_view(["GET"])
 def health_check(request):
    return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class SchemaViewCached(SpectacularAPIView):
