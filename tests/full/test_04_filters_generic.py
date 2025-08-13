@@ -40,31 +40,47 @@ import pytest
         ],
         [
             "attack-enterprise",
-            dict(name="VNC"),
-            1,
-            ["attack-pattern--01327cde-66c4-4123-bf34-5f258d59457b"],
+            dict(text="VNC"),
+            8,
+            {
+                "attack-pattern--4061e78c-1284-44b4-9116-73e4ac3912f7",
+                "attack-pattern--01327cde-66c4-4123-bf34-5f258d59457b",
+                "attack-pattern--54a649ff-439a-41a4-9856-8d144a2551ba",
+                "attack-pattern--b2d03cea-aec1-45ca-9744-9ee583c1e1cc",
+                "attack-pattern--692074ae-bb62-4a5e-a735-02cb6bde458c",
+                "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+                "attack-pattern--10d51417-ee35-4589-b1ff-b6df1c334e8d",
+                "attack-pattern--09c4c11e-4fa1-4f8c-8dad-3cf8e69ad119",
+            },
         ],
         [
             "attack-enterprise",
-            dict(name="vnc"),
-            1,
-            ["attack-pattern--01327cde-66c4-4123-bf34-5f258d59457b"],
+            {"text": "Malware Detect Analyze"},
+            4,
+            {
+                "attack-pattern--d511a6f6-4a33-41d5-bc95-c343875d1377",
+                "attack-pattern--e4dc8c01-417f-458d-9ee0-bb0617c1b391",
+                "attack-pattern--5bfccc3f-2326-4112-86cc-c1ece9d8a2b5",
+                "attack-pattern--2f41939b-54c3-41d6-8f8b-35f1ec18ed97",
+            },
         ],
         [
             "attack-enterprise",
-            dict(name="INC Ransomware"),
-            1,
-            ["malware--f25d4207-25b2-4bb0-a17a-403943c670ad"],
+            {"text": "ransomwar sentinel"},
+            7,
+            {
+                "malware--48d96fa0-d027-45aa-a8c3-5d09f65d596d",
+                "intrusion-set--b8137919-38cb-4db0-90f3-437be885faba",
+                "malware--46cbafbc-8907-42d3-9002-5327c26f8927",
+                "malware--f25d4207-25b2-4bb0-a17a-403943c670ad",
+                "intrusion-set--cb41e991-65f4-4668-a65f-f4200545b5a1",
+                "malware--b5dc19b7-588d-403b-848d-c868bd61ffa1",
+                "malware--5911d2ca-64f6-49b3-b94f-29b5d185085c",
+            },
         ],
         [
             "attack-enterprise",
-            dict(name="c ransomw"),
-            1,
-            ["malware--f25d4207-25b2-4bb0-a17a-403943c670ad"],
-        ],
-        [
-            "attack-enterprise",
-            dict(description="bleeping Computer inc Ransomware"),
+            dict(text="bleeping Computer inc Ransomware"),
             1,
             ["intrusion-set--cb41e991-65f4-4668-a65f-f4200545b5a1"],
         ],
@@ -109,17 +125,26 @@ import pytest
         ],
         [
             "capec",
-            dict(name="brute force"),
-            2,
-            [
-                "attack-pattern--65737f80-588a-449a-af08-0508486d9481",
+            {"text": "brute force"},
+            11,
+            {
                 "attack-pattern--7b423196-9de6-400f-91de-a1f26b3f19f1",
-            ],
+                "attack-pattern--8c7bab16-5ecd-4778-9b04-c185bceed170",
+                "attack-pattern--86a5e931-7f53-46fe-b6f0-c88498f6557f",
+                "course-of-action--aba24572-8817-4d88-92bf-765eaa6ae508",
+                "attack-pattern--9197c7a2-6a03-40da-b2a6-df5f1d69e8fb",
+                "attack-pattern--8d88a81c-bde9-4fb3-acbe-901c783d6427",
+                "attack-pattern--65737f80-588a-449a-af08-0508486d9481",
+                "course-of-action--8fc9e23c-7780-4d34-8bd6-01ec3f063b9c",
+                "course-of-action--8ce2fd56-5e92-4999-b81d-697c7ddb5202",
+                "attack-pattern--631dcf7a-d23f-45b3-b72a-ebd5a3625aeb",
+                "attack-pattern--a9dc4914-409a-4f71-80df-c5cc3923d112",
+            },
         ],
         [
             "capec",
             dict(
-                description="Do not provide the means for an attacker to determine success independently"
+                text="Do not provide the means for an attacker to determine success independently"
             ),
             1,
             ["course-of-action--4cce5adb-bd38-46a1-b756-9c85290ad8e7"],
@@ -159,15 +184,23 @@ import pytest
         ],
         [
             "cwe",
-            dict(name="unnecessary privilege"),
-            1,
-            ["weakness--998c48c2-66cd-5735-adf7-d3ef5d975e92"],
+            {"text": "unnecessary privilege"},
+            2,
+            {
+                "weakness--543176f7-7273-58c1-8962-52d5bb2e0b1a",
+                "weakness--998c48c2-66cd-5735-adf7-d3ef5d975e92",
+            },
         ],
         [
             "cwe",
-            dict(description="LoweR PrivilEGE"),
-            1,
-            ["weakness--0755061e-b66f-5445-8303-3b5415e6675d"],
+            {"text": "LoweR PrivilEGE"},
+            4,
+            {
+                "weakness--65e6a1f5-9776-596a-ba6f-bfc18cb4c00b",
+                "weakness--1c0c0b0a-0c95-5d54-923f-c95929206d7f",
+                "weakness--0755061e-b66f-5445-8303-3b5415e6675d",
+                "weakness--082c9a20-e32d-5992-b981-7223a83d70a9",
+            },
         ],
         ###### Location #########
         [
@@ -346,41 +379,18 @@ def test_group_filter(client, path, group_type, expected_count):
 
 
 @pytest.mark.parametrize(
-    ["path", "name", "expected_count"],
+    ["path", "search_text", "expected_count"],
     [
-        ["attack-enterprise", "privilege", 4],
-        ["cwe", "privilege", 16],
-        ["capec", "privilege", 8],
-        ["atlas", "Account", 2],
-        ["location", "nigeria", 1],
-        ["disarm", "Account", 18],
-    ],
-)
-def test_name_filter(client, path, name, expected_count):
-    url = f"/api/v1/{path}/objects/"
-    resp = client.get(url, query_params=dict(name=name))
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["total_results_count"] == expected_count
-    for obj in data["objects"]:
-        assert name.lower() in obj["name"].lower()
-
-
-@pytest.mark.parametrize(
-    ["path", "description", "expected_count"],
-    [
-        ["attack-enterprise", "privilege", 133],
-        ["cwe", "privilege", 78],
-        ["capec", "privilege", 94],
+        ["attack-enterprise", "privilege", 132],
+        ["cwe", "privilege", 77],
+        ["capec", "fronting", 6],
         ["atlas", "Account", 7],
         ["disarm", "Account", 79],
     ],
 )
-def test_description_filter(client, path, description, expected_count):
+def test_description_filter(client, path, search_text, expected_count):
     url = f"/api/v1/{path}/objects/"
-    resp = client.get(url, query_params=dict(description=description))
+    resp = client.get(url, query_params=dict(text=search_text))
     assert resp.status_code == 200
     data = resp.json()
     assert data["total_results_count"] == expected_count
-    for obj in data["objects"]:
-        assert description.lower() in obj["description"].lower()
