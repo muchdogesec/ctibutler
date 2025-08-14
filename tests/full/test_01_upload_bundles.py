@@ -12,6 +12,7 @@ path_versions_1 = [
 
 path_versions_2 = [
     ("/api/v1/attack-enterprise/", "15_1"),
+    ("/api/v1/attack-ics/", "17_0"),
     ("/api/v1/cwe/", "4_15"),
     ("/api/v1/capec/", "3_8"),
     ("/api/v1/disarm/", "1_5"),

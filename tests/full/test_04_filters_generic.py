@@ -336,6 +336,7 @@ def test_filter_type(client, path, types, expected_count):
         ["attack-enterprise", "Data Source", 37],
         ["attack-enterprise", "Data Component", 106],
         ["attack-enterprise", "Asset", 0],
+        ["attack-ics", "Asset", 14],
         ######### DISARM ###########
         ["disarm", "Tactic", 16],
         ["disarm", "Technique", 103],
