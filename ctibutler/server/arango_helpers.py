@@ -1,12 +1,10 @@
 import contextlib
-import time
 from types import SimpleNamespace
 import typing
 from django.conf import settings
 from ctibutler.server.utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-from rest_framework.validators import ValidationError
 from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
 from ctibutler.server import utils
 if typing.TYPE_CHECKING:
@@ -68,7 +66,8 @@ ATTACK_TYPES = set([
     "x-mitre-data-component",
     "x-mitre-data-source",
     "x-mitre-matrix",
-    "x-mitre-tactic"
+    "x-mitre-tactic",
+    'x-mitre-asset'
 ]
 )
 
@@ -407,9 +406,9 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             )
 
         if not self.query_as_bool('include_deprecated', False):
-            filters.append('FILTER NOT doc.revoked AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
+            filters.append('FILTER NOT doc.x_mitre_deprecated AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
         if not self.query_as_bool('include_revoked', False):
-            filters.append('FILTER NOT doc.x_mitre_deprecated')
+            filters.append('FILTER NOT doc.revoked')
 
         if value := self.query_as_array('attack_id'):
             bind_vars['attack_ids'] = [v.lower() for v in value]
@@ -681,13 +680,12 @@ LET matched_ids = @matches[*]._id
                 collections.update(KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.get(q, []))
             binds['knowledge_base_collections'] = list(collections)
             search_filters.append('ANALYZER(STARTS_WITH(doc._id, @knowledge_base_collections), "identity")')
-
         extra_filters = []
 
         if not self.query_as_bool('include_deprecated', False):
-            extra_filters.append('FILTER NOT doc.revoked AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
+            extra_filters.append('FILTER doc.x_mitre_deprecated != TRUE AND doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
         if not self.query_as_bool('include_revoked', False):
-            extra_filters.append('FILTER NOT doc.x_mitre_deprecated')
+            extra_filters.append('FILTER doc.revoked != TRUE')
         keep_verb=None
         if show_knowledgebase := self.query_as_bool('show_knowledgebase', False):
             keep_verb = 'KEEP(doc, APPEND(KEYS(doc, TRUE), "_id"))'
