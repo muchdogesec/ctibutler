@@ -151,6 +151,12 @@ class TruncateView:
         },
         parameters=BUNDLE_PARAMS,
     ),
+    navigator=extend_schema(
+        responses={
+            200: serializers.AttackNavigatorSerializer,
+            400: DEFAULT_400_ERROR,
+        },
+    ),
     tie=extend_schema(
         responses={
             200: serializers.TIEResponseSerializer,
@@ -240,6 +246,15 @@ class AttackView(TruncateView, viewsets.ViewSet):
     @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/bundle", detail=False)
     def bundle(self, request, *args, attack_id=None, **kwargs):
         return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, self.lookup_url_kwarg.replace('_id', '_version'), revokable=True, bundle=True)
+    
+    @extend_schema(
+            parameters=[
+                OpenApiParameter('attack_version', description="By default only the latest ATT&CK version objects will be returned. You can enter a specific ATT&CK version here. e.g. `13.1`. You can get a full list of versions on the GET ATT&CK versions endpoint.")
+            ],
+    )
+    @decorators.action(methods=['GET'], url_path="objects/<str:attack_id>/navigator", detail=False)
+    def navigator(self, request, *args, attack_id=None, **kwargs):
+        return ArangoDBHelper(f'mitre_attack_{self.matrix}_vertex_collection', request).get_object_by_external_id(attack_id, self.lookup_url_kwarg.replace('_id', '_version'), revokable=True, nav_mode=True)
 
     @extend_schema()
     @decorators.action(detail=False, methods=["GET"], serializer_class=serializers.MitreVersionsSerializer, url_path="versions/installed")
@@ -375,6 +390,18 @@ class AttackView(TruncateView, viewsets.ViewSet):
             ),
             bundle=extend_schema(
                 summary=f"Get all objects linked to the MITRE ATT&CK {matrix_name_human} Object",
+                description=textwrap.dedent(
+                    """
+                    This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+
+                    It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
+
+                    If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
+                    """
+                ),
+            ),
+            navigator=extend_schema(
+                summary=f"Get navigator layer file for MITRE ATT&CK {matrix_name_human} Object",
                 description=textwrap.dedent(
                     """
                     This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.

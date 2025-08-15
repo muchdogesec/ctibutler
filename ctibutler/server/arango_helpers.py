@@ -6,6 +6,7 @@ from ctibutler.server.utils import Pagination, Response
 from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
+from rest_framework import exceptions
 from ctibutler.server import utils
 if typing.TYPE_CHECKING:
     from .. import settings
@@ -244,7 +245,7 @@ def get_versions(collection):
         return _get_versions(collection, rev)
     except:
         return []
-    
+
 def get_latest_version(collection):
     versions = get_versions(collection) or ['']
     return versions[0]
@@ -259,7 +260,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.name, "text_en_no_stem_3_10p") OR ANALYZER(TOKENS(@search_param, "text_en_no_stem_3_10p") ALL IN doc.description, "text_en_no_stem_3_10p")
     )
     """
-    
+
     @classmethod
     def get_paginated_response(cls, container,  data, page_number, page_size=page_size, full_count=0):
         return Response(
@@ -363,7 +364,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
 
         super().__init__(collection, request, container)
         self.container = container
-        
+
     def execute_query(self, query, bind_vars={}, paginate=True, container=None):
         if paginate:
             bind_vars['offset'], bind_vars['count'] = self.get_offset_and_count(self.count, self.page)
@@ -371,7 +372,6 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         if paginate:
             return self.get_paginated_response(container or self.container, list(cursor), self.page, self.page_size, cursor.statistics()["fullCount"])
         return list(cursor)
-   
 
     def get_attack_objects(self, matrix):
         filters = []
@@ -391,7 +391,6 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             if form_list:
                 filters.append('FILTER @attack_form_list[? ANY FILTER MATCHES(doc, CURRENT)]')
                 bind_vars['attack_form_list'] = form_list
-
 
         if q := self.query.get(f'attack_version', get_latest_version(collection_name)):
             bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
@@ -419,18 +418,17 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         if q := self.query.get('alias'):
             bind_vars['alias'] = q.lower()
             filters.append('FILTER APPEND(doc.aliases, doc.x_mitre_aliases)[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
-        
+
         search_filters = ['doc.type IN @types', 'ANALYZER(STARTS_WITH(doc._id, @collection_name), "identity")']
-        
+
         if q := self.query.get("text"):
             bind_vars['search_param'] = q
             search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
-            
+
         bind_vars.update(collection_name=collection_name)
         return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_fields=CTI_SORT_FIELDS)
 
-
-    def get_object_by_external_id(self, ext_id: str, version_param, relationship_mode=False, revokable=False, bundle=False):
+    def get_object_by_external_id(self, ext_id: str, version_param, relationship_mode=False, revokable=False, bundle=False, nav_mode=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower(), 'keep_values': None}
         filters = ['FILTER doc._stix2arango_note == @mitre_version']
         mitre_version: str = None
@@ -439,7 +437,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             bind_vars.update(mitre_version="version="+mitre_version.replace('.', '_').strip('v'))
         else:
             filters[0] = 'FILTER doc._is_latest'
-        
+
         if revokable:
             bind_vars['include_deprecated'] = self.query_as_bool('include_deprecated', False)
             bind_vars['include_revoked'] = self.query_as_bool('include_revoked', False)
@@ -450,7 +448,6 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             _, _ = ext_id.split('--')
             main_filter = "FILTER doc.id == @ext_id"
 
-        
         query = '''
             FOR doc in @@collection
             #main_filter
@@ -461,8 +458,13 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         query = query.replace('#main_filter', main_filter).replace('#filters', '\n'.join(filters))
         if bundle or relationship_mode:
             bind_vars.update(keep_values=['_id', '_stix2arango_note'])
+        if nav_mode:
+            bind_vars.update(keep_values=['_id', 'name', 'external_references', 'id', 'type', '_stix2arango_note'])
         bind_vars.update(offset=0, count=None)
         matches = self.execute_query(query, bind_vars=bind_vars, paginate=False)
+
+        if nav_mode:
+            return self.get_nav(matches)
 
         matches = sorted(matches, key=lambda m: utils.split_mitre_version(m.pop('_stix2arango_note', '=').split("=", 1)[-1]), reverse=True)
         matches = matches[:1]
@@ -471,6 +473,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             return self.get_bundle(matches)
         if relationship_mode:
             return self.get_relationships(matches)
+
         return self.get_paginated_response(self.container, matches, self.page, self.page_size, len(matches))
 
     def get_mitre_versions(self):
@@ -496,12 +499,12 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             'include_revoked': self.query_as_bool('include_revoked', False),
             'include_deprecated': self.query_as_bool('include_deprecated', False),
             }
-        
+
         versions = self.execute_query(query, bind_vars=bind_vars, paginate=False)
         for mod in versions:
             mod['versions'] = self.clean_and_sort_versions(mod['versions'])
         return Response(versions)
-    
+
     def clean_and_sort_versions(self, versions, replace_underscore=True):
         replace_character = '.' if replace_underscore else '_'
         versions = sorted([
@@ -536,7 +539,6 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         if not self.query_as_bool('include_deprecated'):
             filters.append('FILTER doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
 
-        
         if generic_forms := self.query_as_array(lookup_kwarg.replace('_id', '_type')):
             form_list = []
             for form in generic_forms:
@@ -556,14 +558,14 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             )
         search_filters = ['doc.type IN @types', 'ANALYZER(STARTS_WITH(doc._id, @collection_name), "identity")']
         bind_vars.update(collection_name=self.collection)
-        
+
         if q := self.query.get("text"):
             bind_vars['search_param'] = q
             search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
         filters.extend(more_filters)
-            
+
         return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_fields=CTI_SORT_FIELDS)
-    
+
     def get_relationships(self, matches):
         binds = {
             '@view': settings.VIEW_NAME,
@@ -596,8 +598,8 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             other_filters.append('FILTER SPLIT(d.target_ref, "--")[0] IN @rel_target_ref_type')
 
         match self.query.get('relationship_direction'):
-            case 'source_ref':
-                direction_query = 'd._from IN matched_ids'
+            case "source_ref":
+                direction_query = "d._from IN matched_ids"
             case 'target_ref':
                 direction_query = 'd._to IN matched_ids'
             case _:
@@ -623,6 +625,92 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
 
         return self.execute_query(new_query, bind_vars=binds, container='relationships')
 
+    def get_nav(self, matches):
+        binds = {
+            '@view': settings.VIEW_NAME,
+            'matches': matches
+        }
+        if not matches:
+            raise exceptions.NotFound('not found')
+        matched_object = matches[0]
+        if matched_object['type'] not in ['tool', 'malware', 'intrusion-set', 'campaign', 'course-of-action', 'x-mitre-asset']:
+            raise exceptions.ParseError(f'object of type `{matched_object["type"]}` not supported')
+        version = matched_object['_stix2arango_note'].split('=')[-1]
+        new_query = """
+        LET matched_ids = @matches[*]._id
+        FOR d IN @@view
+        SEARCH d.type == 'relationship' AND (d._from IN matched_ids OR d._to IN matched_ids)
+        RETURN [d._from, d._to, d.description]
+        """
+        relationships = self.execute_query(new_query, bind_vars=binds, paginate=False)
+        techniques = {}
+        for obj in relationships:
+            stix_id = None
+            if 'attack-pattern' in obj[0]:
+                stix_id = obj[0]
+            elif "attack-pattern" in obj[1]:
+                stix_id = obj[1]
+            if stix_id:
+                techniques[stix_id] = {
+                    "comment": obj[2],
+                    "score": 100,
+                    "showSubtechniques": True,
+                }
+        final_query = """
+        FOR d IN @@view
+        SEARCH d._id IN @technique_stix_ids
+        RETURN [d._id, d.external_references[0].external_id]
+        """
+        for stix_id, ext_id in self.execute_query(final_query, bind_vars={'@view': settings.VIEW_NAME, 'technique_stix_ids': list(techniques)}, paginate=False):
+            techniques[stix_id].update(techniqueID=ext_id)
+
+        name = matched_object['name']
+        attack_id = ''
+        if matched_object['external_references'] and matched_object['external_references'][0]['source_name'] == 'mitre-attack':
+            attack_id = matched_object['external_references'][0]['external_id']
+        domain = self.collection.split('_')[2]
+
+        nav_retval = {
+            "description": f"Techniques used by {name} ({attack_id})",
+            "name": attack_id,
+            "domain": f'{domain}-attack',
+            "versions": {
+                "layer": "4.5",
+                "attack": version.replace('_', '.'),
+                "navigator": "5.1.0"
+            },
+                "techniques": [t for t in techniques.values() if t.get('techniqueID')],
+                "gradient": {
+                    "colors": [
+                        "#ffffff",
+                        "#ff6666"
+                    ],
+                    "minValue": 0,
+                    "maxValue": 100
+                },
+                "legendItems": [],
+                "metadata": [
+                    {
+                        "name": "stix_id",
+                        "value": matched_object['id']
+                    },
+                    {
+                        "name": "attack_id",
+                        "value": attack_id
+                    }
+                ],
+                "links": [
+                    {
+                        "label": "cti_butler",
+                        "url": "https://app.ctibutler.com"
+                    }
+                ],
+                "layout": {
+                    "layout": "side"
+                }
+            }
+
+        return Response(nav_retval)
 
     def get_bundle(self, matches):
         binds = {
@@ -638,7 +726,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         if types := self.query_as_array('types'):
             late_filters.append('FILTER d.type IN @types')
             binds['types'] = types
-        
+
         query = '''
 LET matched_ids = @matches[*]._id
 
@@ -657,7 +745,6 @@ LET matched_ids = @matches[*]._id
                     .replace('#more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}") \
                     .replace('#late_filters', '\n'.join(late_filters))
         return self.execute_query(query, bind_vars=binds)
-  
 
     def semantic_search(self):
         binds = {
@@ -666,7 +753,6 @@ LET matched_ids = @matches[*]._id
         if search_param:= self.query.get('text'):
             search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
             binds.update(search_param=search_param)
-        
 
         search_filters.append('doc._is_latest == TRUE')
 
@@ -693,13 +779,13 @@ LET matched_ids = @matches[*]._id
         if show_knowledgebase:
             self.add_knowledgebase_name(resp.data['objects'])
         return resp
-    
+
     def generic_query(self, collection_or_view, search_filters: list[str], extra_filters: list[str], binds, sort_fields=SEMANTIC_SEARCH_SORT_FIELDS, return_verb=None, use_limit=True):
         search_filters_str = ''
         binds['@collection_or_view'] = collection_or_view
         return_verb = return_verb or 'KEEP(doc, KEYS(doc, TRUE))'
         kwargs = dict(paginate=False)
-        
+
         if not use_limit:
             limit_stmt = ''
         elif isinstance(use_limit, str):
@@ -707,7 +793,6 @@ LET matched_ids = @matches[*]._id
         else:
             limit_stmt = 'LIMIT @offset, @count'
             kwargs.update(paginate=True)
-
 
         query = """
             FOR doc IN @@collection_or_view
@@ -725,7 +810,7 @@ LET matched_ids = @matches[*]._id
             .replace('#LIMIT', limit_stmt)
         resp = self.execute_query(query, bind_vars=binds, **kwargs)
         return resp
-    
+
     @staticmethod
     def add_knowledgebase_name(objects):
         for obj in objects:
