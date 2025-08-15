@@ -1,33 +1,25 @@
 import logging
-import os
 from pathlib import Path
 import shutil
 from urllib.parse import urljoin
 
 import requests
-from ctibutler.server.models import Job, JobType
+from ctibutler.server.models import Job
 from ctibutler.server import models
-# from ctibutler.web import models
-from celery import chain, group, shared_task, Task
-# from .stixifier import ctibutlerProcessor, ReportProperties
-from tempfile import NamedTemporaryFile
+from celery import Task
 import tempfile
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.files.storage import default_storage
-import stix2
 from datetime import datetime, date, timedelta
 import typing
 from django.conf import settings
 from .celery import app
 from stix2arango.stix2arango import Stix2Arango
 
-from arango_cti_processor.managers import RELATION_MANAGERS as CVE_RELATION_MANAGERS
+from arango_cti_processor.managers import TechniqueTactic
 from arango_cti_processor.__main__ import run_all as run_task_with_acp
 import logging
 
 if typing.TYPE_CHECKING:
     from ..import settings
-POLL_INTERVAL = 1
 
 
 def create_celery_task_from_job(job: Job):
@@ -99,7 +91,7 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
             raise NotImplementedError("Unknown type for mitre task")
     
     temp_dir = get_job_temp_dir(job)
-    task = download_file.si(url, temp_dir, job_id=job.id) | upload_file.s(collection_name, stix2arango_note=f'version={version}', job_id=job.id, params=job.parameters)
+    task = download_file.si(url, temp_dir, job_id=job.id) | upload_file.s(collection_name, version=version, job_id=job.id, params=job.parameters)
     return (task | remove_temp_and_set_completed.si(temp_dir, job_id=job.id))
 
 def get_job_temp_dir(job):
@@ -161,11 +153,14 @@ def download_file(urlpath, tempdir, job_id=None):
 
 
 @app.task(base=CustomTask)
-def upload_file(filename, collection_name, stix2arango_note=None, job_id=None, params=dict()):
+def upload_file(filename, collection_name, version=None, job_id=None, params=dict()):
+    if version:
+        stix2arango_note=f'version={version}'
+    else:
+        stix2arango_note = f"ctibutler-job--{job_id}"
+
     if not filename:
         return
-    if not stix2arango_note:
-        stix2arango_note = f"ctibutler-job--{job_id}"
 
     logging.info('uploading %s with note: %s', filename, stix2arango_note)
     s2a = Stix2Arango(
@@ -182,6 +177,7 @@ def upload_file(filename, collection_name, stix2arango_note=None, job_id=None, p
         **params,
     )
     s2a.run()
+    TechniqueTactic.make_relations(collection_name, version, database=settings.ARANGODB_DATABASE, stix2arango_note=stix2arango_note)
 
 
 @app.task(base=CustomTask)

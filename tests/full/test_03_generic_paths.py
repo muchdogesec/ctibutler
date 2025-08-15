@@ -130,9 +130,9 @@ def test_object_versions(client, path, object_id, expected_versions):
     ["path", "object_id", "expected_count", "params"],
     [
         ############## ATTACK
-        pytest.param("attack-enterprise", "T1021.005", 46, None),
-        pytest.param("attack-enterprise", "T1021.005", 46, dict(attack_version="16.0")),
-        pytest.param("attack-enterprise", "T1021.005", 44, dict(attack_version="15.1")),
+        pytest.param("attack-enterprise", "T1021.005", 48, None),
+        pytest.param("attack-enterprise", "T1021.005", 48, dict(attack_version="16.0")),
+        pytest.param("attack-enterprise", "T1021.005", 46, dict(attack_version="15.1")),
         pytest.param(
             "attack-enterprise", "T1021.005", 0, dict(attack_version=FAKE_VERSION)
         ),
@@ -147,8 +147,8 @@ def test_object_versions(client, path, object_id, expected_versions):
         pytest.param("cwe", "CWE-863", 35, dict(cwe_version="4.15")),
         pytest.param("cwe", "CWE-863", 0, dict(cwe_version=FAKE_VERSION)),
         ############## DISARM
-        pytest.param("disarm", "T0017.001", 11, None),
-        pytest.param("disarm", "T0017.001", 11, dict(disarm_version="1.5")),
+        pytest.param("disarm", "T0017.001", 13, None),
+        pytest.param("disarm", "T0017.001", 13, dict(disarm_version="1.5")),
         pytest.param("disarm", "DISARM", 1401, dict(disarm_version="1.6")),
         pytest.param("disarm", "DISARM", 1151, dict(disarm_version="1.5")),
         pytest.param("disarm", "DISARM", 0, dict(disarm_version=FAKE_VERSION)),
@@ -271,8 +271,8 @@ def test_object_modified(client, path, object_id, expected_modified, params):
             dict(capec_version="3.8", relationship_direction="target_ref"),
         ),
         ##############
-        pytest.param("disarm", "T0086.003", 5, None),
-        pytest.param("disarm", "T0086.003", 5, dict(disarm_version="1.5")),
+        pytest.param("disarm", "T0086.003", 6, None),
+        pytest.param("disarm", "T0086.003", 6, dict(disarm_version="1.5")),
     ],
 )
 def test_object_count_relationships(client, path, object_id, expected_count, params):
