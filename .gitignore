@@ -8,3 +8,4 @@ Pipfile*
 ctibutler-venv/
 .hypothesis
 tie_models/
+db_loader_tempfiles/
