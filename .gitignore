@@ -7,3 +7,4 @@ www/
 Pipfile*
 ctibutler-venv/
 .hypothesis
+tie_models/
