@@ -404,11 +404,15 @@ class AttackView(TruncateView, viewsets.ViewSet):
                 summary=f"Get navigator layer file for MITRE ATT&CK {matrix_name_human} Object",
                 description=textwrap.dedent(
                     """
-                    This endpoint will return all the STIX objects referenced in `relationship` objects where the source object is found as a `source_ref` or `target_ref`.
+                    This endpoint will return a [MITRE ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) layer file for the chosen object.
 
-                    It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
+                    Only the following object types are supported to generate a layer file:
 
-                    If you want to see an overview of how MITRE ATT&CK objects are linked, [see this diagram](https://miro.com/app/board/uXjVKBgHZ2I=/).
+                    * Software (`SNNNN`, `tool`, `malware`)
+                    * Groups (`GNNNN`, `intrusion-set`)
+                    * Campaigns (`CNNNN`, `campaign`)
+                    * Mitigations (`MNNNN`, `course-of-action`)
+                    * Assets (`ANNNN`, `x-mitre-asset`)
                     """
                 ),
             ),
