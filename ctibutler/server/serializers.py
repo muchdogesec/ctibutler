@@ -57,9 +57,23 @@ class AttackNavigatorSerializer(JSONSchemaSerializer):
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "MITRE ATT&CK Navigator Layer v4.5",
         "type": "object",
-        "required": ["version", "name", "domain", "techniques"],
+        "required": ["versions", "name", "domain", "techniques"],
         "properties": {
-            "version": {"type": "string", "enum": ["4.5"]},
+            "versions": {
+                "type": "object",
+                "description": "Version information for ATT&CK Navigator and Layer.",
+                "properties": {
+                    "layer": {
+                        "type": "string"
+                    },
+                    "attack": {
+                        "type": "string"
+                    },
+                    "navigator": {
+                        "type": "string"
+                    }
+                }
+            },
             "name": {"type": "string"},
             "domain": {
                 "type": "string",
