@@ -160,7 +160,10 @@ CTI_SORT_FIELDS = [
     "created_descending",
     "name_ascending",
     "name_descending",
+    "type_ascending",
+    "type_descending",
 ]
+
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
 SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
 SEMANTIC_SEARCH_SORT_FIELDS = [
@@ -207,7 +210,7 @@ KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
 
 }
 COLLECTION_TO_KNOWLEDGE_BASE_MAPPING = {v: k for k, vv in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.items() for v in vv}
-
+ATTACK_SORT_FIELDS = CTI_SORT_FIELDS+['attack_id_ascending', 'attack_id_descending']
 
 def positive_int(integer_string, cutoff=None, default=1):
     """
@@ -426,7 +429,9 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
 
         bind_vars.update(collection_name=collection_name)
-        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_fields=CTI_SORT_FIELDS)
+        sort_statement = self.get_sort_stmt(ATTACK_SORT_FIELDS, customs=dict(attack_id='doc.external_references[0].external_id'))
+
+        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_statement=sort_statement)
 
     def get_object_by_external_id(self, ext_id: str, version_param, relationship_mode=False, revokable=False, bundle=False, nav_mode=False):
         bind_vars={'@collection': self.collection, 'ext_id': ext_id.lower(), 'keep_values': None}
@@ -513,7 +518,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         ], key=utils.split_mitre_version, reverse=True)
         return [f"{v}" for v in versions]
 
-    def get_weakness_or_capec_objects(self, lookup_kwarg, cwe=True, types=CWE_TYPES, more_binds={}, more_filters=[], forms={}):
+    def get_weakness_or_capec_objects(self, lookup_kwarg, types=CWE_TYPES, more_binds={}, more_filters=[], forms={}):
         version_param = lookup_kwarg.replace('_id', '_version')
         filters = []
         if new_types := self.query_as_array('types'):
@@ -563,8 +568,20 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             bind_vars['search_param'] = q
             search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
         filters.extend(more_filters)
-
-        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_fields=CTI_SORT_FIELDS)
+        sort_statement = self.get_sort_stmt(
+            CTI_SORT_FIELDS
+            + [
+                lookup_kwarg + "_descending",
+                lookup_kwarg + "_ascending",
+                "location_type_ascending",
+                "location_type_descending",
+            ],
+            customs={
+                lookup_kwarg: "doc.external_references[0].external_id",
+                "location_type": 'FIRST(doc.external_references[* FILTER CURRENT.source_name == "type"]).external_id',
+            },
+        )
+        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_statement=sort_statement)
 
     def get_relationships(self, matches):
         binds = {
@@ -780,7 +797,7 @@ LET matched_ids = @matches[*]._id
             self.add_knowledgebase_name(resp.data['objects'])
         return resp
 
-    def generic_query(self, collection_or_view, search_filters: list[str], extra_filters: list[str], binds, sort_fields=SEMANTIC_SEARCH_SORT_FIELDS, return_verb=None, use_limit=True):
+    def generic_query(self, collection_or_view, search_filters: list[str], extra_filters: list[str], binds, sort_statement='', sort_fields=SEMANTIC_SEARCH_SORT_FIELDS, return_verb=None, use_limit=True):
         search_filters_str = ''
         binds['@collection_or_view'] = collection_or_view
         return_verb = return_verb or 'KEEP(doc, KEYS(doc, TRUE))'
@@ -794,6 +811,9 @@ LET matched_ids = @matches[*]._id
             limit_stmt = 'LIMIT @offset, @count'
             kwargs.update(paginate=True)
 
+        if not sort_statement:
+            sort_statement = self.get_sort_stmt(sort_fields)
+
         query = """
             FOR doc IN @@collection_or_view
             #SEARCH
@@ -806,7 +826,7 @@ LET matched_ids = @matches[*]._id
             search_filters_str = 'SEARCH ' + (' AND '.join(search_filters))
         query = query.replace('#SEARCH', search_filters_str) \
             .replace('#FILTER', '\n'.join(extra_filters)) \
-            .replace('#return_verb', return_verb).replace('#sort_stmt', self.get_sort_stmt(sort_fields)) \
+            .replace('#return_verb', return_verb).replace('#sort_stmt', sort_statement) \
             .replace('#LIMIT', limit_stmt)
         resp = self.execute_query(query, bind_vars=binds, **kwargs)
         return resp
