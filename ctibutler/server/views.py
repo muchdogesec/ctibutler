@@ -147,7 +147,8 @@ class TruncateView:
     bundle=extend_schema(
         responses={
             200: ArangoDBHelper.get_paginated_response_schema(),
-            400: DEFAULT_400_ERROR,
+            400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR,
+            
         },
         parameters=BUNDLE_PARAMS,
     ),
@@ -550,7 +551,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
             MITRE CWE objects can also be `source_ref` to CAPEC objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
@@ -745,7 +746,7 @@ class CweView(TruncateView, viewsets.ViewSet):
             It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
@@ -1051,7 +1052,7 @@ class JobView(viewsets.ModelViewSet):
             It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     object_versions=extend_schema(
@@ -1264,7 +1265,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
             """
         ),
         filters=False,
-        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
@@ -1477,7 +1478,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
             If you want to see an overview of how MITRE DISARM objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
