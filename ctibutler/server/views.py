@@ -29,7 +29,7 @@ REVOKED_AND_DEPRECATED_PARAMS = [
     OpenApiParameter('include_revoked', type=OpenApiTypes.BOOL, description="By default all objects with `revoked` are ignored. Set this to `true` to include them."),
     OpenApiParameter('include_deprecated', type=OpenApiTypes.BOOL, description="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them."),
 ]
-BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
+BUNDLE_PARAMS = ArangoDBHelper.get_schema_operation_parameters() + [
     OpenApiParameter(
         "include_embedded_refs",
         description=textwrap.dedent(
@@ -37,7 +37,7 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
             If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`. If set to `true` then the objects referenced in the embedded refs relationships will not be shown. This is an arango_cti_processor setting.
             """
         ),
-        type=OpenApiTypes.BOOL
+        type=OpenApiTypes.BOOL,
     ),
     OpenApiParameter(
         "types",
@@ -61,11 +61,16 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
             "tool",
             "extension-definition",
             "grouping",
-            "weakness"
+            "weakness",
         ],
         explode=False,
         style="form",
         many=True,
+    ),
+    OpenApiParameter(
+        "include_embedded_sros",
+        type=OpenApiTypes.BOOL,
+        description="set to `true` to include the embedded relationships linking the objects. Setting to `false` (default) will still return the target object, but wont return the embedded SRO linking them. Set to `true` if your downstream software CANNOT interpret STIX embedded relationships",
     ),
 ]
 

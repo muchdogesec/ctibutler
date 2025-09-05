@@ -373,20 +373,16 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
 
     @classmethod
     def get_default_objects(cls, db: StandardDatabase):
-        non_clear_tlp_markers = [
-            "marking-definition--55d920b0-5e8b-4f79-9ee9-91f868d9b421",
-            "marking-definition--939a9414-2ddd-4d32-a0cd-375ea402b003",
-            "marking-definition--bab4a63c-aed9-4cf5-a766-dfca5abac2bb",
-            "marking-definition--e828b379-4e03-4974-9ac4-e53a884c97c1",
+        default_object_ids = [
+            "extension-definition--31725edc-7d81-5db7-908a-9134f322284a"
         ]
         if cls.default_objects:
             return cls.default_objects
         cls.default_objects = list(db.aql.execute("""
         FOR d IN @@view
-        SEARCH d.type IN ['identity', 'marking-definition', 'extension-definition']
-        FILTER d.id NOT IN @non_clear_tlp_markers
+        SEARCH d.id IN @default_object_ids
         RETURN d._id
-        """, bind_vars={'@view': settings.VIEW_NAME, 'non_clear_tlp_markers': non_clear_tlp_markers}))
+        """, bind_vars={'@view': settings.VIEW_NAME, 'default_object_ids': default_object_ids}))
         return cls.default_objects
 
     def execute_query(self, query, bind_vars={}, paginate=True, container=None):
@@ -763,8 +759,8 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         if not self.query_as_bool('include_embedded_refs', True):
             more_search_filters.append('d._is_ref != TRUE')
 
-        if not self.query_as_bool('include_embedded_sros', True):
-            late_filters.append('d._is_ref != TRUE')
+        if not self.query_as_bool('include_embedded_sros', False):
+            late_filters.append('FILTER d._is_ref != TRUE')
 
         if types := self.query_as_array('types'):
             late_filters.append('FILTER d.type IN @types')
