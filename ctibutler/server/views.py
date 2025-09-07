@@ -1121,7 +1121,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('atlas_version', description="Filter the results by the version of ATLAS")
+                OpenApiParameter('atlas_version', description="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.9.0`. You can get a full list of versions on the GET ATLAS versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>", detail=False)
@@ -1129,7 +1129,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         return ArangoDBHelper('mitre_atlas_vertex_collection', request).get_object_by_external_id(atlas_id, self.lookup_url_kwarg.replace('_id', '_version'))    
     @extend_schema(
             parameters=[
-                OpenApiParameter('atlas_version', description="Filter the results by the version of ATLAS")
+                OpenApiParameter('atlas_version', description="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.9.0`. You can get a full list of versions on the GET ATLAS versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/relationships", detail=False)
@@ -1138,7 +1138,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         
     @extend_schema(
             parameters=[
-                OpenApiParameter('atlas_version', description="Filter the results by the version of ATLAS")
+                OpenApiParameter('atlas_version', description="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.9.0`. You can get a full list of versions on the GET ATLAS versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:atlas_id>/bundle", detail=False)
@@ -1336,7 +1336,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('location_version', description="Filter the results by the version of Location")
+                OpenApiParameter('location_version', description="By default only the latest Location version objects will be returned. You can enter a specific Location version here. e.g. `1.0`. You can get a full list of versions on the GET Location versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:location_id>", detail=False)
@@ -1346,7 +1346,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
       
     @extend_schema(
             parameters=[
-                OpenApiParameter('location_version', description="Filter the results by the version of Location")
+                OpenApiParameter('location_version', description="By default only the latest Location version objects will be returned. You can enter a specific Location version here. e.g. `1.0`. You can get a full list of versions on the GET Location versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/relationships", detail=False)
@@ -1355,7 +1355,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
     
     @extend_schema(
             parameters=[
-                OpenApiParameter('location_version', description="Filter the results by the version of Location")
+                OpenApiParameter('location_version', description="By default only the latest Location version objects will be returned. You can enter a specific Location version here. e.g. `1.0`. You can get a full list of versions on the GET Location versions endpoint.")
             ],
     )
     @decorators.action(methods=['GET'], url_path="objects/<str:location_id>/bundle", detail=False)
