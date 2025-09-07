@@ -8,6 +8,7 @@ from drf_spectacular.types import OpenApiTypes
 from dogesec_commons.objects.helpers import ArangoDBHelper as DSC_ArangoDBHelper
 from rest_framework import exceptions
 from ctibutler.server import utils
+from arango.database import StandardDatabase
 if typing.TYPE_CHECKING:
     from .. import settings
 
@@ -367,6 +368,22 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
 
         super().__init__(collection, request, container)
         self.container = container
+
+    default_objects: list[str] = []
+
+    @classmethod
+    def get_default_objects(cls, db: StandardDatabase):
+        default_object_ids = [
+            "extension-definition--31725edc-7d81-5db7-908a-9134f322284a"
+        ]
+        if cls.default_objects:
+            return cls.default_objects
+        cls.default_objects = list(db.aql.execute("""
+        FOR d IN @@view
+        SEARCH d.id IN @default_object_ids
+        RETURN d._id
+        """, bind_vars={'@view': settings.VIEW_NAME, 'default_object_ids': default_object_ids}))
+        return cls.default_objects
 
     def execute_query(self, query, bind_vars={}, paginate=True, container=None):
         if paginate:
@@ -736,27 +753,35 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         }
         more_search_filters = []
         late_filters = []
+        if not matches:
+            raise exceptions.NotFound({'error': 'No such object'})
 
         if not self.query_as_bool('include_embedded_refs', True):
             more_search_filters.append('d._is_ref != TRUE')
+
+        if not self.query_as_bool('include_embedded_sros', False):
+            late_filters.append('FILTER d._is_ref != TRUE')
 
         if types := self.query_as_array('types'):
             late_filters.append('FILTER d.type IN @types')
             binds['types'] = types
 
-        query = '''
-LET matched_ids = @matches[*]._id
+        binds['more_bundle_ids'] = [x for x in self.get_default_objects(self.db) if x.startswith(self.collection)]
 
- LET bundle_ids = FLATTEN(
-    FOR d IN @@view SEARCH d.type == 'relationship' AND (d._from IN matched_ids OR d._to IN matched_ids) #more_search_filters
+        query = '''
+    LET matched_ids = @matches[*]._id
+
+    LET bundle_ids = FLATTEN(
+        FOR d IN @@view SEARCH d.type == 'relationship' AND (d._from IN matched_ids OR d._to IN matched_ids) #more_search_filters
+        COLLECT id = d.id INTO docs LET d = FIRST(FOR dd IN docs[*].d SORT dd.modified DESC, dd._record_modified DESC LIMIT 1 RETURN dd) // dedeuplicate across multiple actip runs
+        RETURN [d._id, d._from, d._to]
+    ) 
+    
+    FOR d IN @@view SEARCH d._id IN UNION(bundle_ids, matched_ids, @more_bundle_ids)
+    #late_filters
     COLLECT id = d.id INTO docs LET d = FIRST(FOR dd IN docs[*].d SORT dd.modified DESC, dd._record_modified DESC LIMIT 1 RETURN dd) // dedeuplicate across multiple actip runs
-    RETURN [d._id, d._from, d._to]
- ) 
- 
- FOR d IN @@view SEARCH d._id IN APPEND(bundle_ids, matched_ids)
- #late_filters
- LIMIT @offset, @count
- RETURN KEEP(d, KEYS(d, TRUE))
+    LIMIT @offset, @count
+    RETURN KEEP(d, KEYS(d, TRUE))
 '''
         query = query \
                     .replace('#more_search_filters', "" if not more_search_filters else f" AND {' and '.join(more_search_filters)}") \

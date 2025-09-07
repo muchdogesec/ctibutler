@@ -29,7 +29,7 @@ REVOKED_AND_DEPRECATED_PARAMS = [
     OpenApiParameter('include_revoked', type=OpenApiTypes.BOOL, description="By default all objects with `revoked` are ignored. Set this to `true` to include them."),
     OpenApiParameter('include_deprecated', type=OpenApiTypes.BOOL, description="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them."),
 ]
-BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
+BUNDLE_PARAMS = ArangoDBHelper.get_schema_operation_parameters() + [
     OpenApiParameter(
         "include_embedded_refs",
         description=textwrap.dedent(
@@ -37,7 +37,7 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
             If `ignore_embedded_relationships` is set to `false` in the POST request to download data, stix2arango will create SROS for embedded relationships (e.g. from `created_by_refs`). You can choose to show them (`true`) or hide them (`false`) using this parameter. Default value if not passed is `true`. If set to `true` then the objects referenced in the embedded refs relationships will not be shown. This is an arango_cti_processor setting.
             """
         ),
-        type=OpenApiTypes.BOOL
+        type=OpenApiTypes.BOOL,
     ),
     OpenApiParameter(
         "types",
@@ -61,11 +61,16 @@ BUNDLE_PARAMS =  ArangoDBHelper.get_schema_operation_parameters()+ [
             "tool",
             "extension-definition",
             "grouping",
-            "weakness"
+            "weakness",
         ],
         explode=False,
         style="form",
         many=True,
+    ),
+    OpenApiParameter(
+        "include_embedded_sros",
+        type=OpenApiTypes.BOOL,
+        description="set to `true` to include the embedded relationships linking the objects. Setting to `false` (default) will still return the target object, but wont return the embedded SRO linking them. Set to `true` if your downstream software CANNOT interpret STIX embedded relationships",
     ),
 ]
 
@@ -147,7 +152,8 @@ class TruncateView:
     bundle=extend_schema(
         responses={
             200: ArangoDBHelper.get_paginated_response_schema(),
-            400: DEFAULT_400_ERROR,
+            400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR,
+            
         },
         parameters=BUNDLE_PARAMS,
     ),
@@ -550,7 +556,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
             MITRE CWE objects can also be `source_ref` to CAPEC objects. Requires POST arango-cti-processor request using `cwe-capec` mode for this data to show.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
@@ -745,7 +751,7 @@ class CweView(TruncateView, viewsets.ViewSet):
             It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
@@ -1051,7 +1057,7 @@ class JobView(viewsets.ModelViewSet):
             It will also return the `relationship` objects too, allowing you to easily import the entire network graph of objects into other tools.
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     object_versions=extend_schema(
@@ -1264,7 +1270,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
             """
         ),
         filters=False,
-        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR},
+        responses={200: serializers.StixObjectsSerializer(many=True), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
@@ -1477,7 +1483,7 @@ class LocationView(TruncateView, viewsets.ViewSet):
             If you want to see an overview of how MITRE DISARM objects are linked, [see this diagram](https://miro.com/app/board/uXjVKpOg6bM=/).
             """
         ),
-        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR},
+        responses={200: ArangoDBHelper.get_paginated_response_schema(), 400: DEFAULT_400_ERROR, 404: DEFAULT_404_ERROR},
         parameters=BUNDLE_PARAMS,
     ),
     truncate=extend_schema(
