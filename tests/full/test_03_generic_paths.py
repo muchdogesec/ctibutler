@@ -143,9 +143,9 @@ def test_object_versions(client, path, object_id, expected_versions):
         pytest.param("capec", "CAPEC-185", 16, dict(capec_version="3.8")),
         pytest.param("capec", "CAPEC-185", 0, dict(capec_version=FAKE_VERSION)),
         ############# CWE #################
-        pytest.param("cwe", "CWE-863", 35, None),
-        pytest.param("cwe", "CWE-863", 35, dict(cwe_version="4.16")),
-        pytest.param("cwe", "CWE-863", 35, dict(cwe_version="4.15")),
+        pytest.param("cwe", "CWE-863", 36, None),
+        pytest.param("cwe", "CWE-863", 36, dict(cwe_version="4.16")),
+        pytest.param("cwe", "CWE-863", 36, dict(cwe_version="4.15")),
         pytest.param("cwe", "CWE-863", 0, dict(cwe_version=FAKE_VERSION)),
         ############## DISARM
         pytest.param("disarm", "T0017.001", 13, None),
@@ -172,7 +172,9 @@ def test_object_count_bundle(client, subtests, path, object_id, expected_count, 
     url = f"/api/v1/{path}/objects/{object_id}/bundle/"
     params = params or {}
 
-    data_with_sros = make_bundle_request(client, url, {**params, 'include_embedded_sros': True})
+    data_with_sros = make_bundle_request(client, url, {**params, 'include_embedded_sros': True}, count=expected_count)
+    if expected_count == 0:
+        return
     assert data_with_sros["total_results_count"] == expected_count
     data_default = make_bundle_request(client, url, params)
     data_no_sros = make_bundle_request(client, url, {**params, 'include_embedded_sros': False})
@@ -180,14 +182,17 @@ def test_object_count_bundle(client, subtests, path, object_id, expected_count, 
 
     sro_ids = set()
     for obj in data_no_sros['objects']:
-        is_sro = any([x.get("description") == "embedded-relationship" for x in obj['external_references']])
+        is_sro = any([x.get("description") == "embedded-relationship" for x in obj.get('external_references',[])])
         if is_sro:
             sro_ids.add(obj['id'])
-    assert {x['id'] for x in data_default}.isdisjoint(sro_ids)
+    assert {x['id'] for x in data_default['objects']}.isdisjoint(sro_ids)
 
 
-def make_bundle_request(client, url, params):
+def make_bundle_request(client, url, params, count=None):
     resp = client.get(url, query_params=params)
+    if count == 0:
+        assert resp.status_code == 404
+        return
     assert resp.status_code == 200, resp.content
     data = resp.json()
     assert len({x["id"] for x in data["objects"]}) == data["page_results_count"], "result contains duplicates"

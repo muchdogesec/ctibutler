@@ -969,9 +969,6 @@ class JobView(viewsets.ModelViewSet):
                     q &= Q(parameters__mode=mode)
                 query |= q
             return qs.filter(query)
-        
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
 
 
 @extend_schema_view(
