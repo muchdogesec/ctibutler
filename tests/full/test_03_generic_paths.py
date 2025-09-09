@@ -17,7 +17,9 @@ FAKE_VERSION = "1.9.1.9"
         ######## CAPEC #######
         pytest.param("capec", 1494, None),
         pytest.param("capec", 1494, dict(capec_version="3.9")),
-        pytest.param("capec", 1437, dict(capec_version="3.9", include_deprecated=False)),
+        pytest.param(
+            "capec", 1437, dict(capec_version="3.9", include_deprecated=False)
+        ),
         pytest.param("capec", 1494, dict(capec_version="3.9", include_deprecated=True)),
         pytest.param("capec", 1471, dict(capec_version="3.8")),
         pytest.param("capec", 0, dict(capec_version=FAKE_VERSION)),
@@ -68,7 +70,6 @@ def test_path_versions(client, path, expected_versions):
     assert resp.status_code == 200
     versions = tuple(resp.json()["versions"])
     assert versions == tuple(expected_versions)
-
 
     resp2 = client.get(f"/api/v1/{path}/versions/available/")
     assert resp2.status_code == 200
@@ -167,16 +168,30 @@ def test_object_versions(client, path, object_id, expected_versions):
         pytest.param("location", "ZA", 0, dict(location_version=FAKE_VERSION)),
     ],
 )
-def test_object_count_bundle(client, path, object_id, expected_count, params):
+def test_object_count_bundle(client, subtests, path, object_id, expected_count, params):
     url = f"/api/v1/{path}/objects/{object_id}/bundle/"
+    params = params or {}
+
+    data_with_sros = make_bundle_request(client, url, {**params, 'include_embedded_sros': True})
+    assert data_with_sros["total_results_count"] == expected_count
+    data_default = make_bundle_request(client, url, params)
+    data_no_sros = make_bundle_request(client, url, {**params, 'include_embedded_sros': False})
+    assert data_default == data_no_sros, 'embedded sros should not be returned by default'
+
+    sro_ids = set()
+    for obj in data_no_sros['objects']:
+        is_sro = any([x.get("description") == "embedded-relationship" for x in obj['external_references']])
+        if is_sro:
+            sro_ids.add(obj['id'])
+    assert {x['id'] for x in data_default}.isdisjoint(sro_ids)
+
+
+def make_bundle_request(client, url, params):
     resp = client.get(url, query_params=params)
-    assert resp.status_code == 200
+    assert resp.status_code == 200, resp.content
     data = resp.json()
-    assert data["total_results_count"] == expected_count
-    ## check uniqueness of objects by id
-    assert (
-        len({x["id"] for x in data["objects"]}) == data["page_results_count"]
-    ), "response contains duplicates"
+    assert len({x["id"] for x in data["objects"]}) == data["page_results_count"], "result contains duplicates"
+    return data
 
 
 @pytest.mark.parametrize(
@@ -336,26 +351,35 @@ def test_stix_id_and_path_id_interchangability(client, path1, path2, stix_id, ex
     assert resp2.status_code == 200, f"expected status_code 200, got {resp2.reason}"
     assert resp1.json() == resp2.json()
 
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'types,count',
+    "types,count",
     [
-        ('', 3),
-        ('disarm-update', 0),
-        ('attack-update', 1),
-        ('attack-update--mobile', 0),
-        ('attack-update--enterprise', 1),
-        ('arango-cti-processor', 1),
-        ('arango-cti-processor,disarm-update', 1),
-        ('arango-cti-processor,disarm-update,attack-update', 2),
-    ]
+        ("", 3),
+        ("disarm-update", 0),
+        ("attack-update", 1),
+        ("attack-update--mobile", 0),
+        ("attack-update--enterprise", 1),
+        ("arango-cti-processor", 1),
+        ("arango-cti-processor,disarm-update", 1),
+        ("arango-cti-processor,disarm-update,attack-update", 2),
+    ],
 )
 def test_jobs(client, types, count):
     job1 = models.Job.objects.create(type=models.JobType.ATLAS_UPDATE, parameters={})
     job2 = models.Job.objects.create(type=models.JobType.CTI_PROCESSOR, parameters={})
-    job3 = models.Job.objects.create(type=models.JobType.ATTACK_UPDATE, parameters={'mode': 'enterprise'})
+    job3 = models.Job.objects.create(
+        type=models.JobType.ATTACK_UPDATE, parameters={"mode": "enterprise"}
+    )
 
-    assert client.get('/api/v1/jobs/', query_params=dict(types=types)).data['total_results_count'] == count
+    assert (
+        client.get("/api/v1/jobs/", query_params=dict(types=types)).data[
+            "total_results_count"
+        ]
+        == count
+    )
+
 
 def test_schema(client):
-    assert client.get('/api/schema/').status_code == 200
+    assert client.get("/api/schema/").status_code == 200
