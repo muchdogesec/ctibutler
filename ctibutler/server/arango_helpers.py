@@ -213,19 +213,6 @@ KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
 COLLECTION_TO_KNOWLEDGE_BASE_MAPPING = {v: k for k, vv in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.items() for v in vv}
 ATTACK_SORT_FIELDS = CTI_SORT_FIELDS+['attack_id_ascending', 'attack_id_descending']
 
-def positive_int(integer_string, cutoff=None, default=1):
-    """
-    Cast a string to a strictly positive integer.
-    """
-    with contextlib.suppress(ValueError, TypeError):
-        ret = int(integer_string)
-        if ret <= 0:
-            return default
-        if cutoff:
-            return min(ret, cutoff)
-        return ret
-    return default
-
 from functools import lru_cache
 @lru_cache
 def _get_versions(collection, arango_revision):
@@ -600,7 +587,8 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         )
         return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars, sort_statement=sort_statement)
 
-    def get_relationships(self, matches):
+    def get_relationships(self, matches):  # pragma: no cover
+        # this endpoint is to be removed
         binds = {
             '@view': settings.VIEW_NAME,
             'matches': matches

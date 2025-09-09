@@ -20,10 +20,6 @@ class Response(response.Response):
         headers = headers or {}
         headers.update(self.DEFAULT_HEADERS)
         super().__init__(data, status, template_name, headers, exception, content_type)
-    
-class ErrorResp(Response):
-    def __init__(self, status, title, details=None):
-        super().__init__({"message": title, "code": status}, status=status)
 
 
 def split_mitre_version(version: str):
