@@ -194,7 +194,8 @@ def calculate_predicted_matrix(
     if method == PredictionMethod.DOT:
         U_scaled = U
         V_scaled = V
-    elif method == PredictionMethod.COSINE:
+    elif method == PredictionMethod.COSINE:   # pragma: no cover
+        # this part is not in use at the moment
         U_norm = np.expand_dims(np.linalg.norm(U, ord=2, axis=1), axis=1)
         V_norm = np.expand_dims(np.linalg.norm(V, ord=2, axis=1), axis=1)
 

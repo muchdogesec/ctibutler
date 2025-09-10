@@ -58,15 +58,13 @@ def run_acp_task(data: dict, job: Job):
     return (task | remove_temp_and_set_completed.si(None, job_id=job.id))
     
 
-
-
 def run_mitre_task(data, job: Job, mitre_type='cve'):
     version = data['version'].replace('.', '_')
     match mitre_type:
         case 'attack-enterprise':
             url = urljoin(settings.ATTACK_ENTERPRISE_BUCKET_ROOT_PATH, f"enterprise-attack-{version}.json")
             collection_name = 'mitre_attack_enterprise'
-        case 'attack-mobile':
+        case 'attack-mobile':  # pragma: no cover
             url = urljoin(settings.ATTACK_MOBILE_BUCKET_ROOT_PATH, f"mobile-attack-{version}.json")
             collection_name = 'mitre_attack_mobile'
         case 'attack-ics':
@@ -96,19 +94,6 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
 
 def get_job_temp_dir(job):
     return str(Path(tempfile.gettempdir())/f"ctibutler/{job.type}--{str(job.id)}")
-
-def date_range(start_date: date, end_date: date):
-    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-    d = start_date
-    while d <= end_date:
-        yield d
-        d += timedelta(1)
-
-def daily_url(d: date, type='cve'):
-    dstr = d.strftime('%Y_%m_%d')
-    return f"{type}/{d.strftime('%Y-%m')}/{type}-bundle-{dstr}-00_00_00-{dstr}-23_59_59.json"
-
 
 class CustomTask(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -140,27 +125,15 @@ def download_file(urlpath, tempdir, job_id=None):
         job.state = models.JobState.PROCESSING
         job.save()
     resp = requests.get(urlpath)
-    if resp.status_code == 200:
-        filename = Path(tempdir)/resp.url.split('/')[-1]
-        filename.write_bytes(resp.content)
-        return str(filename)
-    elif resp.status_code == 404:
-        job.errors.append(f'{resp.url} not found')
-    else:
-        job.errors.append(f'{resp.url} failed with status code: {resp.status_code}')
-    job.save()
-    logging.info('error occured: %d', resp.status_code)
+    resp.raise_for_status()
+    filename = Path(tempdir)/resp.url.split('/')[-1]
+    filename.write_bytes(resp.content)
+    return str(filename)
 
 
 @app.task(base=CustomTask)
 def upload_file(filename, collection_name, version=None, job_id=None, params=dict()):
-    if version:
-        stix2arango_note=f'version={version}'
-    else:
-        stix2arango_note = f"ctibutler-job--{job_id}"
-
-    if not filename:
-        return
+    stix2arango_note=f'version={version}'
 
     logging.info('uploading %s with note: %s', filename, stix2arango_note)
     s2a = Stix2Arango(
@@ -199,7 +172,3 @@ from celery import signals
 @signals.worker_ready.connect
 def mark_old_jobs_as_failed(**kwargs):
     Job.objects.filter(state=models.JobState.PENDING).update(state = models.JobState.FAILED, errors=["marked as failed on startup"])
-
-@app.task
-def log(*args):
-    logging.info(*args)

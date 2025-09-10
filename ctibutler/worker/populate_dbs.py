@@ -62,7 +62,7 @@ def create_collections():
 def create_analyzer(db, *args, **kwargs):
     try:
         return db.create_analyzer(*args, **kwargs)
-    except arango.exceptions.AnalyzerCreateError as e:
+    except arango.exceptions.AnalyzerCreateError as e:  # pragma: no cover
         print(e.message)
         if e.error_code != 10:
             raise
@@ -126,5 +126,5 @@ def setup_arangodb():
     setup_semantic_search_view()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     setup_arangodb()
