@@ -63,16 +63,10 @@ class AttackNavigatorSerializer(JSONSchemaSerializer):
                 "type": "object",
                 "description": "Version information for ATT&CK Navigator and Layer.",
                 "properties": {
-                    "layer": {
-                        "type": "string"
-                    },
-                    "attack": {
-                        "type": "string"
-                    },
-                    "navigator": {
-                        "type": "string"
-                    }
-                }
+                    "layer": {"type": "string"},
+                    "attack": {"type": "string"},
+                    "navigator": {"type": "string"},
+                },
             },
             "name": {"type": "string"},
             "domain": {
@@ -81,15 +75,15 @@ class AttackNavigatorSerializer(JSONSchemaSerializer):
             },
             "description": {"type": "string"},
             "gradient": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "required": ["color", "minValue", "maxValue"],
-                    "properties": {
-                        "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
-                        "minValue": {"type": "number"},
-                        "maxValue": {"type": "number"},
+                "type": "object",
+                "required": ["colors", "minValue", "maxValue"],
+                "properties": {
+                    "colors": {
+                        "type": "array",
+                        "items": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
                     },
+                    "minValue": {"type": "number"},
+                    "maxValue": {"type": "number"},
                 },
             },
             "legendItems": {
@@ -141,4 +135,3 @@ class AttackNavigatorSerializer(JSONSchemaSerializer):
         },
         "additionalProperties": True,
     }
-
