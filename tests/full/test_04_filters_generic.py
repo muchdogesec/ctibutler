@@ -81,7 +81,7 @@ import pytest
         [
             "attack-enterprise",
             {"name": "sun"},
-            7,
+            3,
             {
                 "malware--56e6b6c2-e573-4969-8bab-783205cebbbf",
                 "malware--a8839c95-029f-44cf-8f3d-a3cf2039e927",
