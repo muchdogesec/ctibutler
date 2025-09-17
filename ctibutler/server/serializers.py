@@ -104,6 +104,7 @@ class AttackNavigatorSerializer(JSONSchemaSerializer):
                     "type": "object",
                     "required": ["techniqueID"],
                     "properties": {
+                        "showSubtechniques": {"type": "boolean"},
                         "techniqueID": {"type": "string"},
                         "score": {"type": ["number", "null"]},
                         "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
