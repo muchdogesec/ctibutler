@@ -92,7 +92,7 @@ class TruncateView:
                 collection_name = f'{self.collection_to_truncate}_{suffix}_collection'
                 logging.info('%s: truncating %s', self.__class__.__name__, collection_name)
                 collection_ = db.collection(collection_name)
-                collection_.truncate()
+                collection_.truncate(sync=True)
                 logging.info('%s: collection `%s` truncated', self.__class__.__name__, collection_name)
         except Exception as e:
             logging.exception("%s: truncation failed", self.__class__.__name__)
