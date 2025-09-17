@@ -80,6 +80,16 @@ import pytest
         ],
         [
             "attack-enterprise",
+            {"name": "sun"},
+            3,
+            {
+                "malware--56e6b6c2-e573-4969-8bab-783205cebbbf",
+                "malware--a8839c95-029f-44cf-8f3d-a3cf2039e927",
+                "malware--bf48e7f8-752c-4ce8-bf8f-748edacd8fa6",
+            },
+        ],
+        [
+            "attack-enterprise",
             dict(text="bleeping Computer inc Ransomware"),
             1,
             ["intrusion-set--cb41e991-65f4-4668-a65f-f4200545b5a1"],
@@ -161,6 +171,12 @@ import pytest
             dict(cwe_id="cwe-250"),
             1,
             ["weakness--998c48c2-66cd-5735-adf7-d3ef5d975e92"],
+        ],
+        [
+            "cwe",
+            dict(cwe_version="4.15", name="InherENTLY DangEROus FunCTIon"),
+            1,
+            ["weakness--0ba4df3e-7815-52b7-b672-a48c56d2a286"],
         ],
         [
             "cwe",
