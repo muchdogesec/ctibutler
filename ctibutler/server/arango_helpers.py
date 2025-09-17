@@ -422,6 +422,11 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
                 "FILTER LOWER(doc.external_references[0].external_id) in @attack_ids"
             )
 
+        
+        if name := self.query.get('name'):
+            bind_vars['name'] = name.lower()
+            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
+
         if q := self.query.get('alias'):
             bind_vars['alias'] = q.lower()
             filters.append('FILTER APPEND(doc.aliases, doc.x_mitre_aliases)[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
@@ -545,6 +550,10 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
                 "FILTER doc.id in @ids"
             )
 
+        if name := self.query.get('name'):
+            bind_vars['name'] = name.lower()
+            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
+
         if not self.query_as_bool('include_deprecated'):
             filters.append('FILTER doc.x_capec_status NOT IN ["Deprecated", "Obsolete"]')
 
@@ -556,9 +565,6 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             if form_list:
                 filters.append('FILTER @generic_form_list[? ANY FILTER MATCHES(doc, CURRENT)]')
                 bind_vars['generic_form_list'] = form_list
-        if q := self.query.get('name'):
-            bind_vars['name'] = q.lower()
-            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
 
         if value := self.query_as_array(lookup_kwarg):
             bind_vars['ext_ids'] = [v.lower() for v in value]
@@ -571,6 +577,7 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
         if q := self.query.get("text"):
             bind_vars['search_param'] = q
             search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
+        
         filters.extend(more_filters)
         sort_statement = self.get_sort_stmt(
             CTI_SORT_FIELDS
