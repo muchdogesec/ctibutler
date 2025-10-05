@@ -4,6 +4,8 @@
 
 ## Before you begin...
 
+![](docs/ctibutler-web.png)
+
 We offer a fully hosted web version of CTI Butler which includes many additional features over those in this codebase. [You can find out more about the web version here](https://www.ctibutler.com/).
 
 ## Overview
@@ -20,12 +22,6 @@ A web API for the following STIX 2.1 datasets:
 * MITRE ATLAS
 * Locations
 * DISARM
-
-## tl;dr
-
-[![CTI Butler](https://img.youtube.com/vi/84SgT-ess4E/0.jpg)](https://www.youtube.com/watch?v=84SgT-ess4E)
-
-[Watch the demo](https://www.youtube.com/watch?v=84SgT-ess4E).
 
 ## Install
 
