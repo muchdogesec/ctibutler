@@ -4,10 +4,10 @@ import pytest
 @pytest.mark.parametrize(
     ["include_deprecated", "include_revoked", "version", "expected_count"],
     [
-        [True, True, "", 2187],
-        [True, False, "", 2048],
-        [False, True, "", 1918],
-        [False, False, "", 1779],
+        [True, True, "", 2186],
+        [True, False, "", 2047],
+        [False, True, "", 1917],
+        [False, False, "", 1778],
         [True, True, "15.1", 2103],
         [True, False, "15.1", 1964],
         [False, True, "15.1", 1834],
