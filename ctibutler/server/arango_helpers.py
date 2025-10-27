@@ -69,12 +69,16 @@ ATTACK_TYPES = set([
     "x-mitre-data-source",
     "x-mitre-matrix",
     "x-mitre-tactic",
-    'x-mitre-asset'
+    'x-mitre-asset',
+    "x-mitre-detection-strategy",
+    "x-mitre-analytic",
 ]
 )
 
 ATTACK_FORMS = {
     "Tactic": [dict(type='x-mitre-tactic')],
+    "Analytic": [dict(type='x-mitre-analytic')],
+    "Detection Strategy": [dict(type='x-mitre-detection-strategy')],
     "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
     "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
     "Mitigation": [dict(type='course-of-action')],
