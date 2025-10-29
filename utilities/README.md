@@ -13,7 +13,6 @@ The scripts below will use the API to import data...
 
 ```shell
 python3 utilities/import_all_data.py \
-	--ignore_embedded_relationships True \
 	--attack_enterprise_versions all \
 	--attack_ics_versions all \
 	--attack_mobile_versions all \
@@ -30,7 +29,6 @@ The script is hardcoded to ignore the generation of embedded refs from SRO and S
 
 ```shell
 python3 utilities/import_all_data.py \
-	--ignore_embedded_relationships True \
 	--attack_enterprise_versions 16_0,17_0 \
 	--attack_ics_versions 16_0,17_0 \
 	--attack_mobile_versions 16_0,17_0 \
