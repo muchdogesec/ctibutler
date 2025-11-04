@@ -2,6 +2,7 @@ import pytest
 
 
 path_versions_1 = [
+    ("/api/v1/sector/", "1_0"),
     ("/api/v1/location/", "1_0"),
     ("/api/v1/disarm/", "1_6"),
     ("/api/v1/atlas/", "4_9_0"),

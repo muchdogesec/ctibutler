@@ -182,6 +182,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "DISARM", "description": "Manage and search MITRE DISARM objects."},
         {"name": "ATLAS", "description": "Manage and search MITRE ATLAS objects."},
         {"name": "Location", "description": "Manage and search Location objects."},
+        {"name": "Sector", "description": "Manage and search Sector identity objects."},
         {"name": "Objects", "description": "Explore all STIX Objects in the database."},
         {"name": "Arango CTI Processor", "description": "Trigger the generation of relationships between objects."},
         {"name": "Jobs", "description": "Search through Jobs triggered when downloading data and creating relationships."},
@@ -204,7 +205,7 @@ ATTACK_ICS_BUCKET_ROOT_PATH = os.environ["ATTACK_ICS_BUCKET_ROOT_PATH"]
 ATLAS_BUCKET_ROOT_PATH = os.environ["ATLAS_BUCKET_ROOT_PATH"]
 LOCATION_BUCKET_ROOT_PATH = os.environ["LOCATION_BUCKET_ROOT_PATH"]
 DISARM_BUCKET_ROOT_PATH = os.environ["DISARM_BUCKET_ROOT_PATH"]
-
+SECTOR_BUCKET_ROOT_PATH = os.environ["SECTOR_BUCKET_ROOT_PATH"]
 # stixifier settings
 ARANGODB_DATABASE_VIEW = VIEW_NAME
 SRO_OBJECTS_ONLY_LATEST = os.getenv('SRO_OBJECTS_ONLY_LATEST', True)

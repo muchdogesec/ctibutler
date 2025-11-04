@@ -168,6 +168,10 @@ CTI_SORT_FIELDS = [
     "type_ascending",
     "type_descending",
 ]
+SECTORS_SORT_FIELDS = [
+    "name_ascending",
+    "name_descending",
+]
 
 OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
 SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
@@ -493,6 +497,52 @@ class ArangoDBHelper(DSC_ArangoDBHelper):
             return self.get_relationships(matches)
 
         return self.get_paginated_response(self.container, matches, self.page, self.page_size, len(matches))
+    
+    def get_sector_objects(self):
+        filters = ['FILTER doc.identity_class == "class"']
+        collection_name = 'sector_vertex_collection'
+        bind_vars = {
+        }
+
+        if q := self.query.get(f'sector_version', get_latest_version(collection_name)):
+            bind_vars['mitre_version'] = "version="+q.replace('.', '_').strip('v')
+            filters.append('FILTER doc._stix2arango_note == @mitre_version')
+        else:
+            filters.append('FILTER doc._is_latest')
+
+        if value := self.query_as_array('id'):
+            bind_vars['ids'] = value
+            filters.append(
+                "FILTER doc.id in @ids"
+            )
+
+        if value := self.query_as_array('sector_id'):
+            bind_vars['sector_ids'] = [v.lower() for v in value]
+            filters.append(
+                "FILTER LOWER(doc.external_references[0].external_id) in @sector_ids"
+            )
+
+        
+        if name := self.query.get('name'):
+            bind_vars['name'] = name.lower()
+            filters.append('FILTER CONTAINS(LOWER(doc.name), @name)')
+
+        if q := self.query.get('alias'):
+            bind_vars['alias'] = q.lower()
+            filters.append('FILTER APPEND(doc.aliases, doc.x_opencti_aliases)[? ANY FILTER CONTAINS(LOWER(CURRENT), @alias)]')
+
+        search_filters = ['doc.type == "identity"', 'ANALYZER(STARTS_WITH(doc._id, @collection_name), "identity")']
+
+        if q := self.query.get("text"):
+            bind_vars['search_param'] = q
+            search_filters.append(self.SEMANTIC_SEARCH_QUERY_TEXT)
+
+        sort_statement = self.get_sort_stmt(SECTORS_SORT_FIELDS)
+
+
+        bind_vars.update(collection_name=collection_name)
+        return self.generic_query(self.semantic_search_view, search_filters, filters, bind_vars)
+    
 
     def get_mitre_versions(self):
         versions = get_versions(self.collection)

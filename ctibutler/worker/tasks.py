@@ -27,6 +27,8 @@ def create_celery_task_from_job(job: Job):
     match job.type:
         case models.JobType.LOCATION_UPDATE:
             task = run_mitre_task(data, job, 'location')
+        case models.JobType.SECTOR_UPDATE:
+            task = run_mitre_task(data, job, 'sector')
         case models.JobType.ATLAS_UPDATE:
             task = run_mitre_task(data, job, 'atlas')
         case models.JobType.ATTACK_UPDATE:
@@ -82,6 +84,9 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
         case "location":
             url = urljoin(settings.LOCATION_BUCKET_ROOT_PATH, f"location-bundle-v{version}.json")
             collection_name = "location"
+        case "sector":
+            url = urljoin(settings.SECTOR_BUCKET_ROOT_PATH, f"sector-bundle-v{version}.json")
+            collection_name = "sector"
         case "disarm":
             url = urljoin(settings.DISARM_BUCKET_ROOT_PATH, f"disarm-bundle-v{version}.json")
             collection_name = "disarm"

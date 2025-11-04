@@ -21,6 +21,7 @@ collections_to_create = [
     "mitre_cwe",
     "mitre_attack_ics",
     "mitre_attack_enterprise",
+    "sector",
 ]
 
 
