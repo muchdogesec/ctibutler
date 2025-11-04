@@ -41,6 +41,10 @@ FAKE_VERSION = "1.9.1.9"
         pytest.param("location", 279, None),
         pytest.param("location", 279, dict(location_version="1.0")),
         pytest.param("location", 0, dict(location_version=FAKE_VERSION)),
+        ######## Sector ########
+        pytest.param("sector", 71, None),
+        pytest.param("sector", 71, dict(sector_version="1.0")),
+        pytest.param("sector", 0, dict(sector_version=FAKE_VERSION)),
     ],
 )
 def test_path_objects_count(client, path, expected_result_count, params):
@@ -63,6 +67,7 @@ def test_path_objects_count(client, path, expected_result_count, params):
         pytest.param("cwe", ["4.16", "4.15"]),
         pytest.param("location", ["1.0"]),
         pytest.param("disarm", ["1.6", "1.5"]),
+        pytest.param("sector", ["1.0"]),
     ],
 )
 def test_path_versions(client, path, expected_versions):
@@ -118,6 +123,11 @@ def test_path_versions(client, path, expected_versions):
             "US",
             [{"modified": "2020-01-01T00:00:00.000Z", "versions": ["1.0"]}],
         ),
+        pytest.param(
+            "sector",
+            "defense-industry",
+            [{"modified": "2020-01-01T00:00:00.000Z", "versions": ["1.0"]}],
+        ),
     ],
 )
 def test_object_versions(client, path, object_id, expected_versions):
@@ -166,6 +176,10 @@ def test_object_versions(client, path, object_id, expected_versions):
         pytest.param("location", "ZA", 13, None),
         pytest.param("location", "ZA", 13, dict(location_version="1.0")),
         pytest.param("location", "ZA", 0, dict(location_version=FAKE_VERSION)),
+        ############ Location ###############
+        pytest.param("sector", "defense-industry", 9, None),
+        pytest.param("sector", "defense-industry", 9, dict(sector_version="1.0")),
+        pytest.param("sector", "defense-industry", 0, dict(sector_version=FAKE_VERSION)),
     ],
 )
 def test_object_count_bundle(client, subtests, path, object_id, expected_count, params):
@@ -264,6 +278,14 @@ def make_bundle_request(client, url, params, count=None):
         pytest.param(
             "location", "FR", "2020-01-01T00:00:00.000Z", dict(atlas_version="1.0")
         ),
+        ############# Sector ##############
+        pytest.param("sector", "defense-industry", "2020-01-01T00:00:00.000Z", None),
+        pytest.param(
+            "sector", "defense-industry", "2020-01-01T00:00:00.000Z", dict(atlas_version="1.0")
+        ),
+        pytest.param(
+            "sector", "healthcare-research", "2020-01-01T00:00:00.000Z", dict(atlas_version="1.0")
+        ),
     ],
 )
 def test_object_modified(client, path, object_id, expected_modified, params):
@@ -339,6 +361,8 @@ def get_all_params(params):
                 "CAPEC-699",
             ),
             ("location", "location--e68e76c5-60f1-506e-b495-86adb8ec0a5b", "US"),
+            ("sector", "identity--337297ea-12b9-5842-b19a-7637b1fab2c2", "defense-industry"),
+            ("sector", "identity--47820dd1-770d-598c-a387-9840ac7fcdaa", "healthcare-research"),
             (
                 "attack-enterprise",
                 "attack-pattern--01327cde-66c4-4123-bf34-5f258d59457b",

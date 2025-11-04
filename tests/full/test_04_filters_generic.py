@@ -218,6 +218,34 @@ import pytest
                 "weakness--082c9a20-e32d-5992-b981-7223a83d70a9",
             },
         ],
+        ###### Sector #########
+        [
+            "sector",
+            dict(sector_id="defense-industry"),
+            1,
+            ["identity--337297ea-12b9-5842-b19a-7637b1fab2c2"],
+        ],
+        [
+            "sector",
+            dict(alias="oil"),
+            1,
+            ["identity--80e60fc6-713e-5274-be33-a5d4df09d30c"],
+        ],
+        [
+            "sector",
+            dict(sector_id="healthcare-research"),
+            1,
+            ["identity--47820dd1-770d-598c-a387-9840ac7fcdaa"],
+        ],
+        [
+            "sector",
+            dict(name="lthcare"),
+            2,
+            [
+                "identity--e3c438a2-8f01-5f3a-b17a-e8c2735f4d18",
+                "identity--47820dd1-770d-598c-a387-9840ac7fcdaa",
+            ],
+        ],
         ###### Location #########
         [
             "location",
@@ -300,8 +328,8 @@ def test_normal_filters(client, path, filters, expected_count, items):
     resp = client.get(url, query_params=filters)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["total_results_count"] == expected_count
     assert {obj["id"] for obj in data["objects"]} == set(items)
+    assert data["total_results_count"] == expected_count
 
 
 @pytest.mark.parametrize(

@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='job',
             name='type',
-            field=models.CharField(choices=[('attack-update', 'Attack Update'), ('cwe-update', 'Cwe Update'), ('capec-update', 'Capec Update'), ('arango-cti-processor', 'Cti Processor'), ('atlas-update', 'Atlas Update'), ('location-update', 'Location Update'), ('disarm-update', 'Disarm Update')], max_length=64),
+            field=models.CharField(choices=[('attack-update', 'Attack Update'), ('cwe-update', 'Cwe Update'), ('capec-update', 'Capec Update'), ('arango-cti-processor', 'Cti Processor'), ('atlas-update', 'Atlas Update'), ('location-update', 'Location Update'), ('disarm-update', 'Disarm Update'), ('sector-update', 'Sector Update')], max_length=64),
         ),
     ]
