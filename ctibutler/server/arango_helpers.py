@@ -186,37 +186,38 @@ SEMANTIC_SEARCH_SORT_FIELDS = [
     "type_descending",
 ]
 KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
-    'disarm': [
+    "disarm": [
         "disarm_vertex_collection",
     ],
-    'location':[
+    "location": [
         "location_vertex_collection",
     ],
-    'atlas': [
-
+    "atlas": [
         "mitre_atlas_vertex_collection",
     ],
-    'attack': [
+    "attack": [
         "mitre_attack_enterprise_vertex_collection",
         "mitre_attack_ics_vertex_collection",
         "mitre_attack_mobile_vertex_collection",
     ],
-    'attack-ics': [
+    "attack-ics": [
         "mitre_attack_ics_vertex_collection",
     ],
-    'attack-mobile': [
+    "attack-mobile": [
         "mitre_attack_mobile_vertex_collection",
     ],
-    'attack-enterprise': [
+    "attack-enterprise": [
         "mitre_attack_enterprise_vertex_collection",
     ],
-    'capec': [
+    "capec": [
         "mitre_capec_vertex_collection",
     ],
-    'cwe': [
+    "cwe": [
         "mitre_cwe_vertex_collection",
-    ]
-
+    ],
+    "sector": [
+        "sector_vertex_collection",
+    ],
 }
 COLLECTION_TO_KNOWLEDGE_BASE_MAPPING = {v: k for k, vv in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.items() for v in vv}
 ATTACK_SORT_FIELDS = CTI_SORT_FIELDS+['attack_id_ascending', 'attack_id_descending']

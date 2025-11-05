@@ -40,6 +40,7 @@ def test_search_with_types(client, types):
         [['capec'], 25],
         [['disarm'], 7],
         [['disarm', 'capec'], 7+25],
+        [['sector'], 86],
     ],
 )
 def test_search_with_knowledge_bases(client, knowledge_bases, expected_count):
@@ -65,13 +66,13 @@ def test_search_with_show_knowledgebase(client):
 @pytest.mark.parametrize(
     ['filters', 'count'],
     [
-        pytest.param(dict(include_deprecated=False, include_revoked=False), 5747, id='exclude-both-explicit'),
-        pytest.param(dict(), 5747, id='exclude-both-implicit'),
-        pytest.param(dict(include_deprecated=True, include_revoked=False), 6093, id='include-deprecated-explicit'),
-        pytest.param(dict(include_deprecated=True), 6093, id='exclude-revoked-implicit'),
-        pytest.param(dict(include_deprecated=False, include_revoked=True), 5913, id='include-revoked-explicit'),
-        pytest.param(dict(include_revoked=True), 5913, id='exlude-deprecated-implicit'),
-        pytest.param(dict(include_deprecated=True, include_revoked=True), 6259, id='include-both-explicit'),
+        pytest.param(dict(include_deprecated=False, include_revoked=False), 5833, id='exclude-both-explicit'),
+        pytest.param(dict(), 5833, id='exclude-both-implicit'),
+        pytest.param(dict(include_deprecated=True, include_revoked=False), 6179, id='include-deprecated-explicit'),
+        pytest.param(dict(include_deprecated=True), 6179, id='exclude-revoked-implicit'),
+        pytest.param(dict(include_deprecated=False, include_revoked=True), 5999, id='include-revoked-explicit'),
+        pytest.param(dict(include_revoked=True), 5999, id='exlude-deprecated-implicit'),
+        pytest.param(dict(include_deprecated=True, include_revoked=True), 6345, id='include-both-explicit'),
         pytest.param(dict(knowledge_bases='capec'), 1452, id='capec-implicit-exclude-deprecated'),
         pytest.param(dict(knowledge_bases='capec', include_deprecated=False), 1452, id='capec-exclude-deprecated-explicit'),
         pytest.param(dict(knowledge_bases='capec', include_deprecated=True), 1509, id='capec-include-deprecated-explicit'),
