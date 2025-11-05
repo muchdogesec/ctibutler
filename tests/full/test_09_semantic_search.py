@@ -40,7 +40,6 @@ def test_search_with_types(client, types):
         [['capec'], 25],
         [['disarm'], 7],
         [['disarm', 'capec'], 7+25],
-        [['sector'], 86],
     ],
 )
 def test_search_with_knowledge_bases(client, knowledge_bases, expected_count):
@@ -76,6 +75,7 @@ def test_search_with_show_knowledgebase(client):
         pytest.param(dict(knowledge_bases='capec'), 1452, id='capec-implicit-exclude-deprecated'),
         pytest.param(dict(knowledge_bases='capec', include_deprecated=False), 1452, id='capec-exclude-deprecated-explicit'),
         pytest.param(dict(knowledge_bases='capec', include_deprecated=True), 1509, id='capec-include-deprecated-explicit'),
+        pytest.param(dict(knowledge_bases='sector'), 86, id='capec-include-deprecated-explicit'),
     ]
 )
 def test_include_revoked_and_include_deprecated(client, filters, count):
