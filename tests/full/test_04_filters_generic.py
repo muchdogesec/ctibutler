@@ -228,8 +228,11 @@ import pytest
         [
             "sector",
             dict(alias="oil"),
-            1,
-            ["identity--80e60fc6-713e-5274-be33-a5d4df09d30c"],
+            2,
+            [
+                "identity--80e60fc6-713e-5274-be33-a5d4df09d30c",
+                "identity--4e74399e-3f17-5be1-b398-204199f122c4",
+            ],
         ],
         [
             "sector",

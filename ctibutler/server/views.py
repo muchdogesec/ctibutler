@@ -4,7 +4,7 @@ from django.conf import settings
 import requests
 from rest_framework import viewsets, status, decorators, exceptions, parsers
 
-from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, ATTACK_SORT_FIELDS, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_TO_COLLECTION_MAPPING, LOCATION_TYPES, SECTORS_SORT_FIELDS, SEMANTIC_SEARCH_SORT_FIELDS, SEMANTIC_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
+from ctibutler.server.arango_helpers import ATLAS_FORMS, ATLAS_TYPES, ATTACK_SORT_FIELDS, CTI_SORT_FIELDS, CWE_TYPES, DISARM_FORMS, DISARM_TYPES, KNOWLEDGE_BASE_TO_COLLECTION_MAPPING, LOCATION_TYPES, SECTORS_SORT_FIELDS, SEMANTIC_SEARCH_SORT_FIELDS, ALL_SEARCH_TYPES, ArangoDBHelper, ATTACK_TYPES, ATTACK_FORMS, CAPEC_TYPES, LOCATION_SUBTYPES
 from ctibutler.server.autoschema import DEFAULT_400_ERROR, DEFAULT_404_ERROR
 from ctibutler.server.tie import ExtractedWalsRecommender
 from ctibutler.server.utils import Pagination, Response, Ordering
@@ -42,28 +42,7 @@ BUNDLE_PARAMS = ArangoDBHelper.get_schema_operation_parameters() + [
     OpenApiParameter(
         "types",
         description="Only show objects of selected types",
-        enum=[
-            "relationship",
-            "identity",
-            "location",
-            "marking-definition",
-            "attack-pattern",
-            "course-of-action",
-            "campaign",
-            "intrusion-set",
-            "malware",
-            "x-mitre-analytic",
-            "x-mitre-asset",
-            "x-mitre-collection",
-            "x-mitre-data-component",
-            "x-mitre-data-source",
-            "x-mitre-matrix",
-            "x-mitre-tactic",
-            "tool",
-            "extension-definition",
-            "grouping",
-            "weakness",
-        ],
+        enum=ALL_SEARCH_TYPES,
         explode=False,
         style="form",
         many=True,
@@ -1877,7 +1856,7 @@ class SearchView(viewsets.ViewSet):
     filter_backends = [DjangoFilterBackend]
     class filterset_class(FilterSet):
         text = CharFilter(help_text='The search query. e.g `denial of service`')
-        types = ChoiceCSVFilter(choices=[(f,f) for f in SEMANTIC_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
+        types = ChoiceCSVFilter(choices=[(f,f) for f in ALL_SEARCH_TYPES], help_text='Filter the results by STIX Object type.')
         knowledge_bases = ChoiceCSVFilter(choices=[(f, f) for f in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING], help_text='Filter results by containing knowledgebase you want to search. If not passed will search all knowledgebases in CTI Butler')
         show_knowledgebase = BooleanFilter(help_text="If `true`, will add `knowledgebase_name` property to each returend object. Note, setting to `true` will break the objects in the response from being pure STIX 2.1. Default is `false`")
         sort = ChoiceFilter(choices=[(f, f) for f in SEMANTIC_SEARCH_SORT_FIELDS], help_text="attribute to sort by")
