@@ -14,45 +14,6 @@ if typing.TYPE_CHECKING:
 
 import textwrap
 
-SDO_TYPES = set(
-    [
-        "report",
-        "note",
-        "indicator",
-        "attack-pattern",
-        "weakness",
-        "campaign",
-        "course-of-action",
-        "infrastructure",
-        "intrusion-set",
-        "malware",
-        "threat-actor",
-        "tool",
-        "identity",
-        "location",
-    ]
-)
-SCO_TYPES = set(
-    [
-        "ipv4-addr",
-        "network-traffic",
-        "ipv6-addr",
-        "domain-name",
-        "url",
-        "file",
-        "directory",
-        "email-addr",
-        "mac-addr",
-        "windows-registry-key",
-        "autonomous-system",
-        "user-agent",
-        "cryptocurrency-wallet",
-        "cryptocurrency-transaction",
-        "bank-card",
-        "bank-account",
-        "phone-number",
-    ]
-)
 TLP_TYPES = set([
     "marking-definition"
 ])
@@ -173,8 +134,7 @@ SECTORS_SORT_FIELDS = [
     "name_descending",
 ]
 
-OBJECT_TYPES = SDO_TYPES.union(SCO_TYPES).union(["relationship"])
-SEMANTIC_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
+ALL_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
 SEMANTIC_SEARCH_SORT_FIELDS = [
     "modified_descending",
     "modified_ascending",

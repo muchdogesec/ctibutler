@@ -42,8 +42,8 @@ FAKE_VERSION = "1.9.1.9"
         pytest.param("location", 279, dict(location_version="1.0")),
         pytest.param("location", 0, dict(location_version=FAKE_VERSION)),
         ######## Sector ########
-        pytest.param("sector", 71, None),
-        pytest.param("sector", 71, dict(sector_version="1.0")),
+        pytest.param("sector", 70, None),
+        pytest.param("sector", 70, dict(sector_version="1.0")),
         pytest.param("sector", 0, dict(sector_version=FAKE_VERSION)),
     ],
 )
