@@ -11,19 +11,21 @@ services:
             - DJANGO_SETTINGS_MODULE=ctibutler.settings
             - CELERY_BROKER_URL=redis://redis:6379/0
             - result_backend=redis://redis:6379/1
-            - POSTGRES_HOST=pgdb
         env_file:
             - ./.env
-    django:
-        extends: env_django
         command: >
                 bash -c "
                     python utilities/download_tie_models.py &&
                         python manage.py collectstatic --no-input &&
                             python manage.py makemigrations &&
-                                python manage.py migrate &&
-                                    python -m ctibutler.worker.populate_dbs &&
-                    gunicorn ctibutler.wsgi:application  --reload --bind 0.0.0.0:8006
+                                python manage.py migrate
+                    "
+    django:
+        extends: env_django
+        command: >
+                bash -c "
+                    python -m ctibutler.worker.populate_dbs &&
+                            gunicorn ctibutler.wsgi:application  --reload --bind 0.0.0.0:8006
                     " 
         ports:
             - 8006:8006
@@ -43,25 +45,7 @@ services:
                   celery -A ctibutler.worker worker -l INFO
                   "
         depends_on:
-            pgdb:
-                condition: service_healthy
             redis:
                 condition: service_started
-    pgdb:
-        image: postgres
-        env_file:
-          - ./.env
-
-        volumes:
-            - pgdata:/var/lib/postgresql/data/
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-            interval: 10s
-            retries: 5
-            start_period: 10s
-            timeout: 10s
     redis:
         image: "redis:alpine"
-
-volumes:
-    pgdata:
