@@ -190,7 +190,7 @@ class AttackView(TruncateView, viewsets.ViewSet):
         include_revoked = BooleanFilter(help_text="By default all objects with `revoked` are ignored. Set this to `true` to include them.")
         include_deprecated = BooleanFilter(help_text="By default all objects with `x_mitre_deprecated` are ignored. Set this to `true` to include them.")
         alias = CharFilter(help_text='Filter the results by the `x_mitre_aliases` property of the object. Search is a wildcard, so `sun` will return all objects with x_mitre_aliases that contains the string `sun`, e.g `SUNBURST`.')
-        attack_type = ChoiceFilter(choices=[(f,f) for f in ATTACK_FORMS], help_text='Filter the results by Attack Object type.')
+        attack_type = ChoiceCSVFilter(choices=[(f,f) for f in ATTACK_FORMS], help_text='Filter the results by Attack Object type.')
         sort = ChoiceFilter(choices=[(f,f) for f in ATTACK_SORT_FIELDS], help_text="sort by object property/field")
         name = CharFilter(help_text='Filter results by `name`. Is wildcard so `evi` will match `revil`, `evil`, etc.')
 
@@ -1083,7 +1083,7 @@ class AtlasView(TruncateView, viewsets.ViewSet):
         name = CharFilter(help_text='Filter results by `name`. Is wildcard so `evi` will match `revil`, `evil`, etc.')
         types = ChoiceCSVFilter(choices=[(f,f) for f in ATLAS_TYPES], help_text='Filter the results by STIX Object type.')
         atlas_version = CharFilter(help_text="By default only the latest ATLAS version objects will be returned. You can enter a specific ATLAS version here. e.g. `4.9.0`. You can get a full list of versions on the GET ATLAS versions endpoint.")
-        atlas_type = ChoiceFilter(choices=[(f,f) for f in ATLAS_FORMS], help_text='Filter the results by ATLAS Object type.')
+        atlas_type = ChoiceCSVFilter(choices=[(f,f) for f in ATLAS_FORMS], help_text='Filter the results by ATLAS Object type.')
         SORT_FIELDS = CTI_SORT_FIELDS+['atlas_id_ascending', 'atlas_id_descending']
         sort = ChoiceFilter(choices=[(f,f) for f in SORT_FIELDS], help_text="sort by object property/field")
 
@@ -1500,7 +1500,7 @@ class DisarmView(TruncateView, viewsets.ViewSet):
         name = CharFilter(help_text='Filter results by `name`. Is wildcard so `evi` will match `revil`, `evil`, etc.')
         types = ChoiceCSVFilter(choices=[(f,f) for f in DISARM_TYPES], help_text='Filter the results by STIX Object type.')
         disarm_version = CharFilter(help_text="By default only the latest DISARM version objects will be returned. You can enter a specific DISARM version here. e.g. `1.5`. You can get a full list of versions on the GET DISARM versions endpoint.")
-        disarm_type = ChoiceFilter(choices=[(f,f) for f in DISARM_FORMS], help_text='Filter the results by DISARM Object type.')
+        disarm_type = ChoiceCSVFilter(choices=[(f,f) for f in DISARM_FORMS], help_text='Filter the results by DISARM Object type.')
         SORT_FIELDS = CTI_SORT_FIELDS+['disarm_id_ascending', 'disarm_id_descending']
         sort = ChoiceFilter(choices=[(f,f) for f in SORT_FIELDS], help_text="sort by object property/field")
 
