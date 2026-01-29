@@ -41,6 +41,8 @@ def create_celery_task_from_job(job: Job):
             task = run_acp_task(data, job)
         case models.JobType.DISARM_UPDATE:
             task = run_mitre_task(data, job, 'disarm')
+        case models.JobType.D3FEND_UPDATE:
+            task = run_mitre_task(data, job, 'd3fend')
     task.set_immutable(True)
     return task
 
@@ -90,6 +92,9 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
         case "disarm":
             url = urljoin(settings.DISARM_BUCKET_ROOT_PATH, f"disarm-bundle-v{version}.json")
             collection_name = "disarm"
+        case "d3fend":
+            url = urljoin(settings.D3FEND_BUCKET_ROOT_PATH, f"d3fend-bundle-v{version}.json")
+            collection_name = "d3fend"
         case _:
             raise NotImplementedError("Unknown type for mitre task")
     

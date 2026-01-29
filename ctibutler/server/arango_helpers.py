@@ -178,6 +178,9 @@ KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
     "sector": [
         "sector_vertex_collection",
     ],
+    "d3fend": [
+        "d3fend_vertex_collection",
+    ]
 }
 COLLECTION_TO_KNOWLEDGE_BASE_MAPPING = {v: k for k, vv in KNOWLEDGE_BASE_TO_COLLECTION_MAPPING.items() for v in vv}
 ATTACK_SORT_FIELDS = CTI_SORT_FIELDS+['attack_id_ascending', 'attack_id_descending']

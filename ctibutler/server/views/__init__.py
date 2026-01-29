@@ -18,6 +18,7 @@ from .capec_view import CapecView
 from .acp_view import ACPView
 from .job_view import JobView
 from .atlas_view import AtlasView
+from .d3fend_view import D3fendView
 from .location_view import LocationView
 from .disarm_view import DisarmView
 from .sector_view import SectorView
@@ -35,6 +36,7 @@ __all__ = [
     'ACPView',
     'JobView',
     'AtlasView',
+    'D3fendView',
     'LocationView',
     'DisarmView',
     'SectorView',
