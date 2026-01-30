@@ -30,15 +30,18 @@ from ctibutler.server import serializers
 from .commons import TruncateView, ChoiceCSVFilter, BUNDLE_PARAMS
 
 # D3FEND-specific type and form definitions
-D3FEND_TYPES = set(["attack-pattern", "indicator", "x-mitre-tactic"])
+D3FEND_TYPES = set(
+    ["course-of-action", "indicator", "x-mitre-tactic", "x-mitre-matrix"]
+)
 
 D3FEND_FORMS = {
     "Tactic": [dict(type="x-mitre-tactic")],
-    "Technique": [
-        dict(type="attack-pattern", x_mitre_is_subtechnique=False),
-        dict(type="attack-pattern", x_mitre_is_subtechnique=None),
+    "Mitigation": [
+        dict(type="course-of-action", x_mitre_is_subtechnique=False),
+        dict(type="course-of-action", x_mitre_is_subtechnique=None),
     ],
-    "Sub-technique": [dict(type="attack-pattern", x_mitre_is_subtechnique=True)],
+    "Sub-mitigation": [dict(type="course-of-action", x_mitre_is_subtechnique=True)],
+    "Matrix": [dict(type="x-mitre-matrix")],
     "Artifact": [dict(type="indicator")],
 }
 
@@ -101,7 +104,7 @@ D3FEND_FORMS = {
         summary="Get a D3FEND object",
         description=textwrap.dedent(
             """
-            Get a D3FEND object by its D3FEND ID (e.g. `d3f:T1001`, `d3f:D3-A`) OR its STIX ID (e.g. `attack-pattern--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`).
+            Get a D3FEND object by its D3FEND ID (e.g. `d3f:T1001`, `d3f:D3-A`) OR its STIX ID (e.g. `course-of-action--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`).
 
             If you do not know the ID of the object you can use the GET D3FEND Objects endpoint to find it.
             """
@@ -174,13 +177,13 @@ class D3fendView(TruncateView, viewsets.ViewSet):
             "stix_id",
             type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
-            description="The STIX ID (e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `course-of-action--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`)",
+            description="The STIX ID (e.g. `course-of-action--64db2878-ae36-46ab-b47a-f71fff575aba`, `course-of-action--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`)",
         ),
         OpenApiParameter(
             "d3fend_id",
             type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
-            description="The D3FEND ID, e.g `d3f:T1001`, `d3f:D3-A` OR its STIX ID e.g. `attack-pattern--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`",
+            description="The D3FEND ID, e.g `d3f:T1001`, `d3f:D3-A` OR its STIX ID e.g. `course-of-action--f09d9beb-4cb5-4094-83b6-e46bedc8a20e`",
         ),
     ]
 
@@ -191,7 +194,7 @@ class D3fendView(TruncateView, viewsets.ViewSet):
 
     class filterset_class(FilterSet):
         id = BaseCSVFilter(
-            help_text="Filter the results using the STIX ID of an object. e.g. `attack-pattern--64db2878-ae36-46ab-b47a-f71fff575aba`, `course-of-action--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`."
+            help_text="Filter the results using the STIX ID of an object. e.g. `course-of-action--64db2878-ae36-46ab-b47a-f71fff575aba`, `course-of-action--6b232c1e-ada7-4cd4-b538-7a1ef6193e2f`."
         )
         d3fend_id = BaseCSVFilter(
             help_text="Filter the results by the D3FEND ID of the object. e.g. `d3f:T1001`, `d3f:D3-A`."

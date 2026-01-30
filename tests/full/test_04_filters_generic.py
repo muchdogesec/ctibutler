@@ -335,7 +335,7 @@ import pytest
             "d3fend",
             dict(d3fend_id="D3-OE"),
             1,
-            ["attack-pattern--a360ce51-7b1f-5978-828e-2e0582a64c15"],
+            ["course-of-action--a360ce51-7b1f-5978-828e-2e0582a64c15"],
         ],
     ],
 )
@@ -402,9 +402,9 @@ def test_filter_type(client, path, types, expected_count):
         ["disarm", "Technique", 103],
         ["disarm", "Sub-technique", 288],
         ########## D3FEND ###########
-        ["d3fend", "Technique", 30],
+        ["d3fend", "Mitigation", 30],
         ["d3fend", "Tactic", 7],
-        ["d3fend", "Sub-technique", 237],
+        ["d3fend", "Sub-mitigation", 237],
         ["d3fend", "Artifact", 873]
     ],
 )
@@ -413,6 +413,7 @@ def test_group_filter(client, path, group_type, expected_count):
         "Tactic": "x-mitre-tactic",
         "Group": "intrusion-set",
         "Mitigation": "course-of-action",
+        "Sub-mitigation": "course-of-action",
         "Campaign": "campaign",
         "Data Source": "x-mitre-data-source",
         "Data Component": "x-mitre-data-component",
@@ -439,6 +440,16 @@ def test_group_filter(client, path, group_type, expected_count):
                 assert (
                     obj.get("x_mitre_is_subtechnique", False) == True
                 ), "x_mitre_is_subtechnique must be True for sub-techinque"
+            case "Sub-mitigation":
+                assert obj["type"] == "course-of-action"
+                assert (
+                    obj.get("x_mitre_is_subtechnique", False) == True
+                ), "x_mitre_is_subtechnique must be True for sub-mitigation"
+            case "Mitigation":
+                assert obj["type"] == "course-of-action"
+                assert (
+                    obj.get("x_mitre_is_subtechnique", False) != True
+                ), "x_mitre_is_subtechnique must be False or NULL for mitigation"
             case "Software":
                 assert obj["type"] in ["malware", "tool"]
             case _:
