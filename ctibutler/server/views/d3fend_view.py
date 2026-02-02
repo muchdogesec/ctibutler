@@ -76,7 +76,7 @@ D3FEND_FORMS = {
 
             The following key/values are accepted in the body of the request:
 
-            * `version` (required): the version of D3FEND you want to download in the format `N_N_N_type`, e.g. `0_12_0_beta` for `0.12.0-beta`. You can see all versions installed and available to download on the version endpoints.
+            * `version` (required): the version of D3FEND you want to download in the format `N_N_N`, e.g. `1_3_0` for `1.3.0`. You can see all versions installed and available to download on the version endpoints.
             * `ignore_embedded_relationships` (optional - default: `false`): Most objects contains embedded relationships inside them (e.g. `created_by_ref`). Setting this to `false` (recommended) will get stix2arango to generate SROs for these embedded relationships so they can be searched. `true` will ignore them. This includes all objects (use ignore SRO/SMO for more granular options). This is a stix2arango setting.
             * `ignore_embedded_relationships_sro` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SRO objects (`type` = `relationship`). Default is `false`. This is a stix2arango setting.
             * `ignore_embedded_relationships_smo` (optional): boolean, if `true` passed, will stop any embedded relationships from being generated from SMO objects (`type` = `marking-definition`, `extension-definition`, `language-content`). Default is `false`. This is a stix2arango setting.
@@ -210,7 +210,7 @@ class D3fendView(TruncateView, viewsets.ViewSet):
             help_text="Filter the results by STIX Object type.",
         )
         d3fend_version = CharFilter(
-            help_text="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `0.12.0-beta`. You can get a full list of versions on the GET D3FEND versions endpoint."
+            help_text="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `1.3.0`. You can get a full list of versions on the GET D3FEND versions endpoint."
         )
         d3fend_type = ChoiceCSVFilter(
             choices=[(f, f) for f in D3FEND_FORMS],
@@ -242,7 +242,7 @@ class D3fendView(TruncateView, viewsets.ViewSet):
         parameters=[
             OpenApiParameter(
                 "d3fend_version",
-                description="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `0.12.0-beta`. You can get a full list of versions on the GET D3FEND versions endpoint.",
+                description="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `1.3.0`. You can get a full list of versions on the GET D3FEND versions endpoint.",
             )
         ],
     )
@@ -260,7 +260,7 @@ class D3fendView(TruncateView, viewsets.ViewSet):
         parameters=[
             OpenApiParameter(
                 "d3fend_version",
-                description="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `0.12.0-beta`. You can get a full list of versions on the GET D3FEND versions endpoint.",
+                description="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `1.3.0`. You can get a full list of versions on the GET D3FEND versions endpoint.",
             )
         ],
     )
@@ -280,7 +280,7 @@ class D3fendView(TruncateView, viewsets.ViewSet):
         parameters=[
             OpenApiParameter(
                 "d3fend_version",
-                description="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `0.12.0-beta`. You can get a full list of versions on the GET D3FEND versions endpoint.",
+                description="By default only the latest D3FEND version objects will be returned. You can enter a specific D3FEND version here. e.g. `1.3.0`. You can get a full list of versions on the GET D3FEND versions endpoint.",
             )
         ],
     )
