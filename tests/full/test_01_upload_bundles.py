@@ -9,6 +9,7 @@ path_versions_1 = [
     ("/api/v1/attack-enterprise/", "16_0"),
     ("/api/v1/cwe/", "4_16"),
     ("/api/v1/capec/", "3_9"),
+    ("/api/v1/d3fend/", "1_3_0"),
 ]
 
 path_versions_2 = [
@@ -25,7 +26,7 @@ path_versions_2 = [
 def test_make_upload(client, eager_celery, path, version):
     payload = dict(version=version)
     resp = client.post(path, data=payload, content_type="application/json")
-    assert resp.status_code == 201
+    assert resp.status_code == 201, resp.content
     job_data = resp.json()
     job_id = job_data["id"]
     job_resp = client.get(f"/api/v1/jobs/{job_id}/")
@@ -34,16 +35,20 @@ def test_make_upload(client, eager_celery, path, version):
 
 
 @pytest.mark.parametrize(
-    "mode",
+    "mode,version",
     [
-        "capec-attack",
-        "cwe-capec",
+        ("capec-attack", None),
+        ("cwe-capec", None),
+        ("d3fend-attack", "1_3_0"),
     ],
 )
 @pytest.mark.django_db
-def test_acvep_run(client, eager_celery, mode):
-    resp = client.post(f"/api/v1/arango-cti-processor/{mode}/")
-    assert resp.status_code == 201
+def test_acvep_run(client, eager_celery, mode, version):
+    payload = {}
+    if version is not None:
+        payload["version"] = version
+    resp = client.post(f"/api/v1/arango-cti-processor/{mode}/", data=payload, content_type="application/json")
+    assert resp.status_code == 201, resp.content
     job_data = resp.json()
     job_id = job_data["id"]
     job_resp = client.get(f"/api/v1/jobs/{job_id}/")

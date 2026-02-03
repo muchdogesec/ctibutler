@@ -177,6 +177,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "ATT&CK Enterprise", "description": "Manage and search MITRE ATT&CK Enterprise objects."},
         {"name": "ATT&CK ICS", "description": "Manage and search MITRE ATT&CK ICS objects."},
         {"name": "ATT&CK Mobile", "description": "Manage and search MITRE ATT&CK Mobile objects."},
+        {"name": "D3FEND", "description": "Manage and search MITRE D3FEND objects."},
         {"name": "CAPEC", "description": "Manage and search MITRE CAPEC objects."},
         {"name": "CWE", "description": "Manage and search MITRE CWE objects."},
         {"name": "DISARM", "description": "Manage and search MITRE DISARM objects."},
@@ -206,6 +207,7 @@ ATLAS_BUCKET_ROOT_PATH = os.environ["ATLAS_BUCKET_ROOT_PATH"]
 LOCATION_BUCKET_ROOT_PATH = os.environ["LOCATION_BUCKET_ROOT_PATH"]
 DISARM_BUCKET_ROOT_PATH = os.environ["DISARM_BUCKET_ROOT_PATH"]
 SECTOR_BUCKET_ROOT_PATH = os.environ["SECTOR_BUCKET_ROOT_PATH"]
+D3FEND_BUCKET_ROOT_PATH = os.environ["D3FEND_BUCKET_ROOT_PATH"]
 # stixifier settings
 ARANGODB_DATABASE_VIEW = VIEW_NAME
 SRO_OBJECTS_ONLY_LATEST = os.getenv('SRO_OBJECTS_ONLY_LATEST', True)

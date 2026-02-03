@@ -19,6 +19,7 @@ class JobType(models.TextChoices):
     LOCATION_UPDATE = "location-update"
     DISARM_UPDATE   = "disarm-update"
     SECTOR_UPDATE   = "sector-update"
+    D3FEND_UPDATE   = "d3fend-update"
 
 class Job(models.Model):
     # file = models.OneToOneField(File, on_delete=models.CASCADE)

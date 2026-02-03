@@ -5,6 +5,7 @@ from rest_framework import serializers, validators
 ACP_MODES = {
     "capec-attack": "Relate CAPEC objects to ATT&CK objects",
     "cwe-capec": "Relate CWE objects to CAPEC objects",
+    "d3fend-attack": "Relate D3FEND objects to ATT&CK objects",
 }
 
 class StixObjectsSerializer(serializers.Serializer):
@@ -37,6 +38,7 @@ class MitreObjectVersions(serializers.Serializer):
 
 class ACPSerializer(serializers.Serializer):
     ignore_embedded_relationships = serializers.BooleanField(default=False)
+    version = serializers.CharField(required=False)
     modified_min = serializers.DateTimeField(required=False)
     created_min = serializers.DateTimeField(required=False)
 

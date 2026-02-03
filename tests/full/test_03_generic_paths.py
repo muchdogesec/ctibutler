@@ -24,9 +24,9 @@ FAKE_VERSION = "1.9.1.9"
         pytest.param("capec", 1471, dict(capec_version="3.8")),
         pytest.param("capec", 0, dict(capec_version=FAKE_VERSION)),
         ######## CWE #######
-        pytest.param("cwe", 1297, None),
-        pytest.param("cwe", 1297, dict(cwe_version="4.16")),
-        pytest.param("cwe", 1296, dict(cwe_version="4.15")),
+        pytest.param("cwe", 1334, None),
+        pytest.param("cwe", 1334, dict(cwe_version="4.16")),
+        pytest.param("cwe", 1332, dict(cwe_version="4.15")),
         pytest.param("cwe", 0, dict(cwe_version=FAKE_VERSION)),
         ######## DISARM #######
         pytest.param("disarm", 410, None),
@@ -153,9 +153,9 @@ def test_object_versions(client, path, object_id, expected_versions):
         pytest.param("capec", "CAPEC-185", 16, dict(capec_version="3.8")),
         pytest.param("capec", "CAPEC-185", 0, dict(capec_version=FAKE_VERSION)),
         ############# CWE #################
-        pytest.param("cwe", "CWE-863", 36, None),
-        pytest.param("cwe", "CWE-863", 36, dict(cwe_version="4.16")),
-        pytest.param("cwe", "CWE-863", 36, dict(cwe_version="4.15")),
+        pytest.param("cwe", "CWE-863", 44, None),
+        pytest.param("cwe", "CWE-863", 44, dict(cwe_version="4.16")),
+        pytest.param("cwe", "CWE-863", 42, dict(cwe_version="4.15")),
         pytest.param("cwe", "CWE-863", 0, dict(cwe_version=FAKE_VERSION)),
         ############## DISARM
         pytest.param("disarm", "T0017.001", 13, None),
