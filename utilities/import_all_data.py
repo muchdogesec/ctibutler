@@ -143,9 +143,10 @@ def initiate_cwe_followup():
         print(f"Failed to initiate CWE follow-up query: {response.status_code} - {response.text}")
         return None
     
-def initiate_d3fend_followup():
+def initiate_d3fend_followup(version):
     data = {
-        "ignore_embedded_relationships": True
+        "ignore_embedded_relationships": True,
+        "version": version
     }
     print(f"Initiating D3FEND follow-up query...")
     response = requests.post(f'{base_url}/arango-cti-processor/d3fend-knowledgebases/', headers=headers, json=data)
@@ -237,7 +238,7 @@ def monitor_jobs(args):
             monitor_job_status(job_id, f"D3FEND (version {version})")
             
             # Run the follow-up D3FEND query
-            followup_job_id = initiate_d3fend_followup()
+            followup_job_id = initiate_d3fend_followup(version)
             if followup_job_id:
                 monitor_job_status(followup_job_id, f"D3FEND follow-up query (version {version})")
 
