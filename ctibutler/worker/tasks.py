@@ -93,7 +93,7 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
             url = urljoin(settings.DISARM_BUCKET_ROOT_PATH, f"disarm-bundle-v{version}.json")
             collection_name = "disarm"
         case "d3fend":
-            url = urljoin(settings.D3FEND_BUCKET_ROOT_PATH, f"d3fend-bundle-v{version}.json")
+            url = urljoin(settings.D3FEND_BUCKET_ROOT_PATH, f"d3fend-v{version}-bundle.json")
             collection_name = "d3fend"
         case _:
             raise NotImplementedError("Unknown type for mitre task")

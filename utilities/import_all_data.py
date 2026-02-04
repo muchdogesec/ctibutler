@@ -29,6 +29,7 @@ default_capec_versions = retrieve_available_versions('capec')
 default_atlas_versions = retrieve_available_versions('atlas')
 default_location_versions = retrieve_available_versions('location')
 default_disarm_versions = retrieve_available_versions('disarm')
+default_d3fend_versions = retrieve_available_versions('d3fend')
 
 def parse_versions(all_versions: list):
     def parse(versions):
@@ -57,6 +58,7 @@ def parse_arguments():
     parser.add_argument('--atlas_versions', default=[], type=parse_versions(default_atlas_versions), help="Comma-separated versions for ATLAS updates.")
     parser.add_argument('--location_versions', default=[], type=parse_versions(default_location_versions), help="Comma-separated versions for Location updates.")
     parser.add_argument('--disarm_versions', default=[], type=parse_versions(default_disarm_versions), help="Comma-separated versions for DISARM updates.")
+    parser.add_argument('--d3fend_versions', default=[], type=parse_versions(default_d3fend_versions), help="Comma-separated versions for D3FEND updates.")
 
 
 
@@ -140,6 +142,21 @@ def initiate_cwe_followup():
     else:
         print(f"Failed to initiate CWE follow-up query: {response.status_code} - {response.text}")
         return None
+    
+def initiate_d3fend_followup():
+    data = {
+        "ignore_embedded_relationships": True
+    }
+    print(f"Initiating D3FEND follow-up query...")
+    response = requests.post(f'{base_url}/arango-cti-processor/d3fend-knowledgebases/', headers=headers, json=data)
+    
+    if response.status_code == 201:
+        print("D3FEND follow-up query initiated successfully.")
+        job_id = response.json()['id']
+        return job_id
+    else:
+        print(f"Failed to initiate D3FEND follow-up query: {response.status_code} - {response.text}")
+        return None
 
 # Function to monitor the job status and ensure completion
 def monitor_job_status(job_id, job_name):
@@ -212,6 +229,17 @@ def monitor_jobs(args):
         job_id = initiate_update("disarm", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"DISARM (version {version})")
+
+    # Step 10: D3FEND updates
+    for version in args.d3fend_versions:
+        job_id = initiate_update("d3fend", version, ignore_embedded_relationships)
+        if job_id:
+            monitor_job_status(job_id, f"D3FEND (version {version})")
+            
+            # Run the follow-up D3FEND query
+            followup_job_id = initiate_d3fend_followup()
+            if followup_job_id:
+                monitor_job_status(followup_job_id, f"D3FEND follow-up query (version {version})")
 
 # Run the script
 if __name__ == "__main__":
