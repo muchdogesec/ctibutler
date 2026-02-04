@@ -39,7 +39,7 @@ def test_make_upload(client, eager_celery, path, version):
     [
         ("capec-attack", None),
         ("cwe-capec", None),
-        ("d3fend-attack", "1_3_0"),
+        ("d3fend-knowledgebases", "1_3_0"),
     ],
 )
 @pytest.mark.django_db
