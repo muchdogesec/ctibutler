@@ -5,7 +5,7 @@ from rest_framework import serializers, validators
 ACP_MODES = {
     "capec-attack": "Relate CAPEC objects to ATT&CK objects",
     "cwe-capec": "Relate CWE objects to CAPEC objects",
-    "d3fend-attack": "Relate D3FEND objects to ATT&CK objects",
+    "d3fend-knowledgebases": "Relate D3FEND objects to ATT&CK and CWE objects",
 }
 
 class StixObjectsSerializer(serializers.Serializer):

@@ -20,7 +20,9 @@ python3 utilities/import_all_data.py \
 	--capec_versions all \
 	--atlas_versions all \
 	--location_versions all \
-	--disarm_versions all
+	--disarm_versions all \
+	--d3fend_versions all \
+	--sector_versions all
 ```
 
 The script is hardcoded to ignore the generation of embedded refs from SRO and SMO objects (`--ignore_embedded_relationships_smo True` `--ignore_embedded_relationships_sro True`) which are not useful -- generally SDO / SCO embedded refs are useful (`--ignore_embedded_relationships_smo False` is set in script)
@@ -29,14 +31,16 @@ The script is hardcoded to ignore the generation of embedded refs from SRO and S
 
 ```shell
 python3 utilities/import_all_data.py \
-	--attack_enterprise_versions 16_0,17_0 \
-	--attack_ics_versions 16_0,17_0 \
-	--attack_mobile_versions 16_0,17_0 \
-	--cwe_versions 4_16,4_17 \
+	--attack_enterprise_versions 17_0,18_0 \
+	--attack_ics_versions 17_0,18_0 \
+	--attack_mobile_versions 17_0,18_0 \
+	--cwe_versions 4_18,4_19 \
 	--capec_versions 3_8,3_9 \
-	--atlas_versions 4_9_0 \
+	--atlas_versions 5_1_1 \
 	--location_versions 1_0 \
-	--disarm_versions 1_5,1_6
+	--disarm_versions 1_5,1_6 \
+	--d3fend_versions 1_3_0 \
+	--sector_versions 1_0
 ```
 
 To see available versions (these are the files that CTI Butler versions/available endpoints use to report versions, then replace `.` with `_`), 
