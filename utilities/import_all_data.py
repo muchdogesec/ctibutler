@@ -20,7 +20,7 @@ def retrieve_available_versions(path):
     versions = resp.json()
     return versions
 
-# Default versions for attack and CWE updates
+# Default versions
 default_attack_enterprise_versions = retrieve_available_versions('attack-enterprise')
 default_attack_ics_versions = retrieve_available_versions('attack-ics')
 default_attack_mobile_versions = retrieve_available_versions('attack-mobile')
@@ -30,6 +30,7 @@ default_atlas_versions = retrieve_available_versions('atlas')
 default_location_versions = retrieve_available_versions('location')
 default_disarm_versions = retrieve_available_versions('disarm')
 default_d3fend_versions = retrieve_available_versions('d3fend')
+default_sector_versions = retrieve_available_versions('sector')
 
 def parse_versions(all_versions: list):
     def parse(versions):
@@ -59,7 +60,7 @@ def parse_arguments():
     parser.add_argument('--location_versions', default=[], type=parse_versions(default_location_versions), help="Comma-separated versions for Location updates.")
     parser.add_argument('--disarm_versions', default=[], type=parse_versions(default_disarm_versions), help="Comma-separated versions for DISARM updates.")
     parser.add_argument('--d3fend_versions', default=[], type=parse_versions(default_d3fend_versions), help="Comma-separated versions for D3FEND updates.")
-
+    parser.add_argument('--sector_versions', default=[], type=parse_versions(default_sector_versions), help="Comma-separated versions for Sector updates.")
 
 
     # New argument for ignore_embedded_relationships
@@ -241,6 +242,12 @@ def monitor_jobs(args):
             followup_job_id = initiate_d3fend_followup(version)
             if followup_job_id:
                 monitor_job_status(followup_job_id, f"D3FEND follow-up query (version {version})")
+
+    # Step 11: Sector updates
+    for version in args.sector_versions:
+        job_id = initiate_update("sector", version, ignore_embedded_relationships)
+        if job_id:
+            monitor_job_status(job_id, f"Sector (version {version})")
 
 # Run the script
 if __name__ == "__main__":
