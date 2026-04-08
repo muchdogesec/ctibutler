@@ -16,3 +16,12 @@ def eager_celery():
 # def django_db_setup(django_db_setup, django_db_blocker):
 #     with django_db_blocker.unblock():
 #         yield
+
+@pytest.fixture(scope="session")
+def api_schema():
+    import schemathesis
+    from ctibutler.asgi import application
+    """Provide a schemathesis schema for API validation."""
+    schema = schemathesis.openapi.from_asgi("/api/schema/?format=json", application)
+    schema.config.base_url = "http://localhost:8006/"
+    return schema

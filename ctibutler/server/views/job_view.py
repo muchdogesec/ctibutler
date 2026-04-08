@@ -3,7 +3,7 @@ import textwrap
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from django_filters.rest_framework import FilterSet, Filter, DjangoFilterBackend
+from django_filters.rest_framework import BaseCSVFilter, FilterSet, Filter, DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 
@@ -72,7 +72,7 @@ class JobView(viewsets.ModelViewSet):
             help_text='Filter the results by the type of Job',
             choices=get_type_choices(), method='filter_type'
         )
-        state = Filter(help_text='Filter the results by the state of the Job')
+        state = BaseCSVFilter(help_text='Filter the results by the state of the Job', lookup_expr='in')
 
         def filter_type(self, qs, field_name, value: list[str]):
             from django.db.models import Q
