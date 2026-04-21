@@ -124,7 +124,7 @@ python-dateutil==2.9.0.post0
     # via
     #   botocore
     #   celery
-python-dotenv==1.1.1
+python-dotenv==1.2.2
     # via stix2arango
 pytz==2025.2
     # via stix2
