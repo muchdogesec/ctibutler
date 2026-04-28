@@ -97,7 +97,8 @@ F3_TYPES = set([
   "identity",
   "marking-definition",
   "x-mitre-matrix",
-  "x-mitre-tactic"
+  "x-mitre-tactic",
+  "x-mitre-collection",
 ])
 
 ATLAS_TYPES = set([
