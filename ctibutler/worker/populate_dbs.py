@@ -23,6 +23,7 @@ collections_to_create = [
     "mitre_attack_enterprise",
     "sector",
     "d3fend",
+    "mitre_f3"
 ]
 
 

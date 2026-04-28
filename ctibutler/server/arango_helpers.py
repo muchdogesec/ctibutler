@@ -66,6 +66,12 @@ DISARM_FORMS = {
     "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
 }
 
+F3_FORMS = {
+    "Tactic": [dict(type='x-mitre-tactic')],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
+}
+
 LOCATION_TYPES = set([
     'location'
 ])
@@ -79,6 +85,14 @@ CWE_TYPES = set([
 )
 
 DISARM_TYPES = set([
+  "attack-pattern",
+  "identity",
+  "marking-definition",
+  "x-mitre-matrix",
+  "x-mitre-tactic"
+])
+
+F3_TYPES = set([
   "attack-pattern",
   "identity",
   "marking-definition",
@@ -134,7 +148,7 @@ SECTORS_SORT_FIELDS = [
     "name_descending",
 ]
 
-ALL_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
+ALL_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, F3_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
 SEMANTIC_SEARCH_SORT_FIELDS = [
     "modified_descending",
     "modified_ascending",
