@@ -161,6 +161,9 @@ SEMANTIC_SEARCH_SORT_FIELDS = [
     "type_descending",
 ]
 KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
+    "mitre-fraud": [
+        "mitre_f3_vertex_collection",
+    ],
     "disarm": [
         "disarm_vertex_collection",
     ],
