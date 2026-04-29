@@ -23,6 +23,7 @@ from .location_view import LocationView
 from .disarm_view import DisarmView
 from .sector_view import SectorView
 from .search_view import SearchView
+from .mitre_f3 import F3View
 
 # Import utility views and functions
 from .utility_views import health_check, SchemaViewCached
@@ -41,6 +42,7 @@ __all__ = [
     'DisarmView',
     'SectorView',
     'SearchView',
+    'F3View',
     
     # Utility views
     'health_check',
