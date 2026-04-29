@@ -31,6 +31,7 @@ default_location_versions = retrieve_available_versions('location')
 default_disarm_versions = retrieve_available_versions('disarm')
 default_d3fend_versions = retrieve_available_versions('d3fend')
 default_sector_versions = retrieve_available_versions('sector')
+default_f3_versions = retrieve_available_versions('mitre-fraud')
 
 def parse_versions(all_versions: list):
     def parse(versions):
@@ -61,6 +62,7 @@ def parse_arguments():
     parser.add_argument('--disarm_versions', default=[], type=parse_versions(default_disarm_versions), help="Comma-separated versions for DISARM updates.")
     parser.add_argument('--d3fend_versions', default=[], type=parse_versions(default_d3fend_versions), help="Comma-separated versions for D3FEND updates.")
     parser.add_argument('--sector_versions', default=[], type=parse_versions(default_sector_versions), help="Comma-separated versions for Sector updates.")
+    parser.add_argument('--f3_versions', default=[], type=parse_versions(default_f3_versions), help="Comma-separated versions for MITRE F3 updates.")
 
 
     # New argument for ignore_embedded_relationships
@@ -192,7 +194,13 @@ def monitor_jobs(args):
         if job_id:
             monitor_job_status(job_id, f"attack-mobile (version {version})")
 
-    # Step 4: CAPEC updates
+    # Step 4: mitre-fraud updates
+    for version in args.f3_versions:
+        job_id = initiate_update("mitre-fraud", version, ignore_embedded_relationships)
+        if job_id:
+            monitor_job_status(job_id, f"mitre-fraud (version {version})")
+
+    # Step 5: CAPEC updates
     for version in args.capec_versions:
         job_id = initiate_update("capec", version, ignore_embedded_relationships)
         if job_id:
@@ -203,7 +211,7 @@ def monitor_jobs(args):
             if followup_job_id:
                 monitor_job_status(followup_job_id, f"CAPEC follow-up query (version {version})")
 
-    # Step 5: CWE updates
+    # Step 6: CWE updates
     for version in args.cwe_versions:
         job_id = initiate_update("cwe", version, ignore_embedded_relationships)
         if job_id:
