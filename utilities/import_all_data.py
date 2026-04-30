@@ -31,7 +31,7 @@ default_location_versions = retrieve_available_versions('location')
 default_disarm_versions = retrieve_available_versions('disarm')
 default_d3fend_versions = retrieve_available_versions('d3fend')
 default_sector_versions = retrieve_available_versions('sector')
-default_f3_versions = retrieve_available_versions('mitre-fraud')
+default_f3_versions = retrieve_available_versions('mitre-f3')
 
 def parse_versions(all_versions: list):
     def parse(versions):
@@ -194,11 +194,11 @@ def monitor_jobs(args):
         if job_id:
             monitor_job_status(job_id, f"attack-mobile (version {version})")
 
-    # Step 4: mitre-fraud updates
+    # Step 4: mitre-f3 updates
     for version in args.f3_versions:
-        job_id = initiate_update("mitre-fraud", version, ignore_embedded_relationships)
+        job_id = initiate_update("mitre-f3", version, ignore_embedded_relationships)
         if job_id:
-            monitor_job_status(job_id, f"mitre-fraud (version {version})")
+            monitor_job_status(job_id, f"mitre-f3 (version {version})")
 
     # Step 5: CAPEC updates
     for version in args.capec_versions:
