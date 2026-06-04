@@ -23,7 +23,7 @@ class ExtractedWalsRecommender():
         self.n = self._V.shape[0]
         self.k = self._U.shape[1]
 
-    def make_predictions(self, techniques):
+    def make_predictions(self, techniques, limit=20):
         technique_ids_to_indices = {
             self.all_techniques[i]: i for i in range(len(self.all_techniques))
         }
@@ -45,7 +45,7 @@ class ExtractedWalsRecommender():
         predictions = self.predict_new_entity(
             entries, method=PredictionMethod.DOT, **self.hyperparameters
         )
-        return sorted(list(zip(self.all_techniques, predictions)), key=lambda x: x[1], reverse=True)[:20]
+        return [(technique, score) for technique, score in sorted(list(zip(self.all_techniques, predictions)), key=lambda x: x[1], reverse=True) if technique not in techniques][:limit]
     
     def predict_new_entity(
         self,
