@@ -19,6 +19,7 @@ class JobType(models.TextChoices):
     LOCATION_UPDATE = "location-update"
     DISARM_UPDATE   = "disarm-update"
     F3_UPDATE       = "f3-update"
+    CLOAK_UPDATE    = "cloak-update"
     SECTOR_UPDATE   = "sector-update"
     D3FEND_UPDATE   = "d3fend-update"
 
