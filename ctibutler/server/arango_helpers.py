@@ -72,6 +72,14 @@ F3_FORMS = {
     "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
 }
 
+
+CLOAK_FORMS = {
+    "Tactic": [dict(type='x-mitre-tactic')],
+    "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
+    "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
+    "Procedure": [dict(type='procedure')],
+}
+
 LOCATION_TYPES = set([
     'location'
 ])
@@ -99,6 +107,15 @@ F3_TYPES = set([
   "x-mitre-matrix",
   "x-mitre-tactic",
   "x-mitre-collection",
+])
+
+CLOAK_TYPES = set([
+  "attack-pattern",
+  "identity",
+  "marking-definition",
+  "procedure",
+  "x-mitre-matrix",
+  "x-mitre-tactic",
 ])
 
 ATLAS_TYPES = set([
@@ -149,7 +166,7 @@ SECTORS_SORT_FIELDS = [
     "name_descending",
 ]
 
-ALL_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, F3_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
+ALL_SEARCH_TYPES = CAPEC_TYPES.union(LOCATION_TYPES, SOFTWARE_TYPES, ATTACK_TYPES, DISARM_TYPES, F3_TYPES, CLOAK_TYPES, CWE_TYPES, TLP_TYPES, ATLAS_TYPES)
 SEMANTIC_SEARCH_SORT_FIELDS = [
     "modified_descending",
     "modified_ascending",
@@ -163,6 +180,9 @@ SEMANTIC_SEARCH_SORT_FIELDS = [
 KNOWLEDGE_BASE_TO_COLLECTION_MAPPING = {
     "mitre-f3": [
         "mitre_f3_vertex_collection",
+    ],
+    "cloak": [
+        "cloak_vertex_collection",
     ],
     "disarm": [
         "disarm_vertex_collection",
