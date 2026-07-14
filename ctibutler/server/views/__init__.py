@@ -23,6 +23,7 @@ from .location_view import LocationView
 from .disarm_view import DisarmView
 from .sector_view import SectorView
 from .search_view import SearchView
+from .cloak import CloakView
 from .mitre_f3 import F3View
 
 # Import utility views and functions
@@ -42,6 +43,7 @@ __all__ = [
     'DisarmView',
     'SectorView',
     'SearchView',
+    'CloakView',
     'F3View',
     
     # Utility views
