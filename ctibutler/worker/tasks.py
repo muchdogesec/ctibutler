@@ -43,6 +43,8 @@ def create_celery_task_from_job(job: Job):
             task = run_mitre_task(data, job, 'disarm')
         case models.JobType.F3_UPDATE:
             task = run_mitre_task(data, job, 'f3')
+        case models.JobType.CLOAK_UPDATE:
+            task = run_mitre_task(data, job, 'cloak')
         case models.JobType.D3FEND_UPDATE:
             task = run_mitre_task(data, job, 'd3fend')
     task.set_immutable(True)
@@ -97,6 +99,9 @@ def run_mitre_task(data, job: Job, mitre_type='cve'):
         case "f3":
             url = urljoin(settings.F3_BUCKET_ROOT_PATH, f"f3-stix-v{version}.json")
             collection_name = "mitre_f3"
+        case "cloak":
+            url = urljoin(settings.CLOAK_BUCKET_ROOT_PATH, f"cloak-bundle-v{version}.json")
+            collection_name = "cloak"
         case "d3fend":
             url = urljoin(settings.D3FEND_BUCKET_ROOT_PATH, f"d3fend-v{version}-bundle.json")
             collection_name = "d3fend"

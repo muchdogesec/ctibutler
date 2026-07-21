@@ -31,7 +31,8 @@ default_location_versions = retrieve_available_versions('location')
 default_disarm_versions = retrieve_available_versions('disarm')
 default_d3fend_versions = retrieve_available_versions('d3fend')
 default_sector_versions = retrieve_available_versions('sector')
-default_f3_versions = retrieve_available_versions('mitre-f3')
+default_f3_versions     = retrieve_available_versions('mitre-f3')
+default_cloak_versions  = retrieve_available_versions('cloak')
 
 def parse_versions(all_versions: list):
     def parse(versions):
@@ -63,6 +64,7 @@ def parse_arguments():
     parser.add_argument('--d3fend_versions', default=[], type=parse_versions(default_d3fend_versions), help="Comma-separated versions for D3FEND updates.")
     parser.add_argument('--sector_versions', default=[], type=parse_versions(default_sector_versions), help="Comma-separated versions for Sector updates.")
     parser.add_argument('--f3_versions', default=[], type=parse_versions(default_f3_versions), help="Comma-separated versions for MITRE F3 updates.")
+    parser.add_argument('--cloak_versions', default=[], type=parse_versions(default_cloak_versions), help="Comma-separated versions for CLOAK updates.")
 
 
     # New argument for ignore_embedded_relationships
@@ -256,6 +258,12 @@ def monitor_jobs(args):
         job_id = initiate_update("sector", version, ignore_embedded_relationships)
         if job_id:
             monitor_job_status(job_id, f"Sector (version {version})")
+    
+    # Step 12: cloak updates
+    for version in args.cloak_versions:
+        job_id = initiate_update("cloak", version, ignore_embedded_relationships)
+        if job_id:
+            monitor_job_status(job_id, f"CLOAK (version {version})")
 
 # Run the script
 if __name__ == "__main__":

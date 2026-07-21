@@ -55,6 +55,7 @@ router.register("attack-mobile", views.AttackView.attack_view('mobile'), "attack
 router.register("attack-ics", views.AttackView.attack_view('ics'), "attack-ics-view")
 router.register("attack-enterprise", views.AttackView.attack_view('enterprise'), "attack-enterprise-view")
 router.register("mitre-f3", views.F3View, "f3-view")
+router.register("cloak", views.CloakView, "cloak-view")
 ## objects
 ## objects
 obj_router = routers.SimpleRouter(use_regex_path=True)

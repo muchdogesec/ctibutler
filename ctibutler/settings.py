@@ -182,6 +182,7 @@ SPECTACULAR_SETTINGS: dict[str, Any] = {
         {"name": "CWE", "description": "Manage and search MITRE CWE objects."},
         {"name": "DISARM", "description": "Manage and search MITRE DISARM objects."},
         {"name": "MITRE F3", "description": "Manage and search MITRE Fight Financial Fraud Framework objects."},
+        {"name": "CLOAK", "description": "Manage and search Concealment Layers for Online Anonymity and Knowledge objects."},
         {"name": "ATLAS", "description": "Manage and search MITRE ATLAS objects."},
         {"name": "Location", "description": "Manage and search Location objects."},
         {"name": "Sector", "description": "Manage and search Sector identity objects."},
@@ -208,6 +209,7 @@ ATLAS_BUCKET_ROOT_PATH = os.environ["ATLAS_BUCKET_ROOT_PATH"]
 LOCATION_BUCKET_ROOT_PATH = os.environ["LOCATION_BUCKET_ROOT_PATH"]
 DISARM_BUCKET_ROOT_PATH = os.environ["DISARM_BUCKET_ROOT_PATH"]
 F3_BUCKET_ROOT_PATH = os.environ["F3_BUCKET_ROOT_PATH"]
+CLOAK_BUCKET_ROOT_PATH = os.environ["CLOAK_BUCKET_ROOT_PATH"]
 SECTOR_BUCKET_ROOT_PATH = os.environ["SECTOR_BUCKET_ROOT_PATH"]
 D3FEND_BUCKET_ROOT_PATH = os.environ["D3FEND_BUCKET_ROOT_PATH"]
 # stixifier settings
