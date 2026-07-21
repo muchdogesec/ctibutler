@@ -132,7 +132,7 @@ class CloakView(TruncateView, viewsets.ViewSet):
     collection_to_truncate = 'cloak'
     bucket_name = 'cloak'
     openapi_path_params = [
-        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `x-mitre-tactic--7c8fb9af-9d51-507d-8bf4-ced3ad8237f2`, `procedure--e66e00b1-56c7-55b5-b32e-178af84cca58`)'),
+        OpenApiParameter('stix_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The STIX ID (e.g. `x-mitre-tactic--7c8fb9af-9d51-507d-8bf4-ced3ad8237f2`, `tool--e66e00b1-56c7-55b5-b32e-178af84cca58`)'),
         OpenApiParameter('cloak_id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='The CLOAK ID, e.g `ta3-te9`, `ta4-te4-st348` OR the STIX ID e.g. `attack-pattern--cbc8801b-17b8-5ba8-9b31-034c7e9e46f8`.'),
     ]
     arango_collection = 'cloak_vertex_collection'
@@ -142,7 +142,7 @@ class CloakView(TruncateView, viewsets.ViewSet):
     pagination_class = Pagination("objects")
 
     class filterset_class(FilterSet):
-        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `x-mitre-tactic--7c8fb9af-9d51-507d-8bf4-ced3ad8237f2`, `procedure--e66e00b1-56c7-55b5-b32e-178af84cca58`.')
+        id = BaseCSVFilter(help_text='Filter the results using the STIX ID of an object. e.g. `x-mitre-tactic--7c8fb9af-9d51-507d-8bf4-ced3ad8237f2`, `tool--e66e00b1-56c7-55b5-b32e-178af84cca58`.')
         cloak_id = BaseCSVFilter(help_text='Filter the results by the CLOAK ID of the object. e.g. `ta3-te9` `ta4-te4-st348`.')
         text = CharFilter(help_text='Filter the results by the `name` and `description` property of the object. Search is a wildcard, so `exploit` will return all descriptions that contain the string `exploit`.')
         name = CharFilter(help_text='Filter results by `name`. Is wildcard so `evi` will match `revil`, `evil`, etc.')
