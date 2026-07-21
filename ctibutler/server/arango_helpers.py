@@ -77,7 +77,7 @@ CLOAK_FORMS = {
     "Tactic": [dict(type='x-mitre-tactic')],
     "Technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=False), dict(type='attack-pattern', x_mitre_is_subtechnique=None)],
     "Sub-technique": [dict(type='attack-pattern', x_mitre_is_subtechnique=True)],
-    "Procedure": [dict(type='procedure')],
+    "Tool": [dict(type='procedure'), dict(type='tool')],
 }
 
 LOCATION_TYPES = set([
@@ -114,6 +114,7 @@ CLOAK_TYPES = set([
   "identity",
   "marking-definition",
   "procedure",
+  'tool',
   "x-mitre-matrix",
   "x-mitre-tactic",
 ])
